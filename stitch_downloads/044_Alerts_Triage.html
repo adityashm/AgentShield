@@ -1,0 +1,356 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgentShield AI - Alerts Triage</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00D4FF",
+            "bg-base": "#0D1117",
+            "bg-surface": "#161B22",
+            "bg-raised": "#1C2128",
+            "text-main": "#E6EDF3",
+            "text-muted": "#8B949E",
+            border: "#30363D",
+            success: "#238636",
+            warning: "#D29922",
+            danger: "#F85149"
+          },
+          fontFamily: {
+            sans: ['IBM Plex Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          boxShadow: {
+            'glow-primary': '0 0 8px rgba(0, 212, 255, 0.4)',
+            'glow-danger': '0 0 8px rgba(248, 81, 73, 0.4)'
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @keyframes pulse-danger {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(1.2); }
+    }
+    .pulse-danger-dot {
+      animation: pulse-danger 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: theme('colors.bg-base');
+    }
+    ::-webkit-scrollbar-thumb {
+      background: theme('colors.border');
+      border-radius: 0;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: theme('colors.text-muted');
+    }
+  </style>
+</head>
+<body class="bg-bg-base text-text-main font-sans antialiased h-screen overflow-hidden flex selection:bg-primary selection:text-bg-base">
+<!-- Left Sidebar (Shared Component) -->
+<div class="relative flex h-full w-[240px] flex-col bg-[#111718] border-r border-[#27373a] shrink-0 z-20">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-4">
+<!-- User Info -->
+<div class="flex gap-3 mb-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded size-10 bg-bg-raised border border-border flex items-center justify-center">
+<span class="material-symbols-outlined text-text-muted">person</span>
+</div>
+<div class="flex flex-col justify-center">
+<h1 class="text-text-main text-sm font-semibold leading-tight">Admin</h1>
+<p class="text-text-muted text-xs font-normal leading-tight font-mono">ID: SEC-01</p>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm border-l-2 border-transparent" href="{{DATA:SCREEN:SCREEN_11}}">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<p class="text-sm font-medium">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm border-l-2 border-transparent" href="{{DATA:SCREEN:SCREEN_23}}">
+<span class="material-symbols-outlined text-[20px]" data-icon="smart_toy">smart_toy</span>
+<p class="text-sm font-medium">Agents</p>
+</a>
+<!-- Active Nav Item -->
+<a class="flex items-center gap-3 px-3 py-2 text-primary bg-bg-raised rounded-sm border-l-2 border-primary shadow-[inset_2px_0_0_0_rgba(0,212,255,1)]" href="{{DATA:SCREEN:SCREEN_4}}">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications_active">notifications_active</span>
+<p class="text-sm font-medium">Alerts</p>
+<span class="ml-auto bg-danger text-white text-[10px] font-mono px-1.5 py-0.5 rounded-sm">7</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="gavel">gavel</span>
+<p class="text-sm font-medium">Rules</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+<p class="text-sm font-medium">Logs</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<p class="text-sm font-medium">Settings</p>
+</a>
+</nav>
+</div>
+<!-- Footer Nav -->
+<div class="mt-auto pt-4 border-t border-border">
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<p class="text-sm font-medium">Terminate Session</p>
+</a>
+</div>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="flex flex-col flex-1 h-full min-w-0">
+<!-- Top Bar -->
+<header class="flex items-center justify-between h-[64px] border-b border-border bg-bg-surface px-6 shrink-0 z-10">
+<div class="flex items-center gap-4 text-text-main">
+<span class="material-symbols-outlined text-primary text-[24px]">security</span>
+<h2 class="text-lg font-bold tracking-tight">AgentShield AI <span class="text-text-muted font-normal text-sm ml-2">/ Alerts Triage</span></h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-bg-raised border border-border rounded-sm">
+<div class="w-2 h-2 rounded-full bg-success"></div>
+<span class="text-xs font-mono text-success uppercase">System Operational</span>
+</div>
+<div class="px-3 py-1.5 bg-bg-raised border border-border rounded-sm">
+<span class="text-xs font-mono text-text-main">14:32:45 UTC</span>
+</div>
+</div>
+</header>
+<!-- Content Split -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Alerts List Pane (350px) -->
+<div class="w-[350px] border-r border-border bg-bg-base flex flex-col shrink-0">
+<!-- List Header & Controls -->
+<div class="p-4 border-b border-border bg-bg-surface flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-semibold uppercase text-text-muted tracking-wider">Active Threats</h3>
+<span class="text-xs font-mono bg-bg-raised border border-border px-2 py-0.5 rounded-sm">7 OPEN</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-bg-raised border border-border text-xs font-mono py-1.5 text-text-main hover:bg-bg-surface transition-colors flex items-center justify-center gap-1 rounded-sm">
+<span class="material-symbols-outlined text-[14px]">filter_list</span> FILTER
+            </button>
+<button class="flex-1 bg-bg-raised border border-border text-xs font-mono py-1.5 text-text-main hover:bg-bg-surface transition-colors flex items-center justify-center gap-1 rounded-sm">
+<span class="material-symbols-outlined text-[14px]">sort</span> SORT
+            </button>
+</div>
+</div>
+<!-- Scrollable List -->
+<div class="flex-1 overflow-y-auto">
+<!-- Alert Item 1 (Critical - Active) -->
+<div class="group relative p-4 border-b border-border bg-bg-raised cursor-pointer border-l-4 border-l-danger hover:bg-bg-surface transition-colors">
+<!-- Active Indicator -->
+<div class="absolute right-4 top-4 w-2 h-2 rounded-full bg-primary shadow-glow-primary"></div>
+<div class="flex items-start justify-between mb-2 pr-6">
+<span class="text-xs font-mono text-danger font-bold">CRITICAL</span>
+<span class="text-xs font-mono text-text-muted">14:30:12Z</span>
+</div>
+<h4 class="text-sm font-semibold text-text-main mb-1 line-clamp-1">Unauthorized DB Access</h4>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs font-mono px-1.5 py-0.5 bg-bg-base border border-border text-primary rounded-sm">AGT-009</span>
+<span class="text-xs font-mono text-text-muted">Risk: 84/100</span>
+</div>
+</div>
+<!-- Alert Item 2 (High) -->
+<div class="group relative p-4 border-b border-border bg-bg-base cursor-pointer border-l-4 border-l-warning hover:bg-bg-raised transition-colors">
+<div class="flex items-start justify-between mb-2">
+<span class="text-xs font-mono text-warning font-bold">HIGH</span>
+<span class="text-xs font-mono text-text-muted">14:15:05Z</span>
+</div>
+<h4 class="text-sm font-semibold text-text-main mb-1 line-clamp-1">Anomalous API Volume</h4>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs font-mono px-1.5 py-0.5 bg-bg-surface border border-border text-text-main rounded-sm">AGT-112</span>
+<span class="text-xs font-mono text-text-muted">Risk: 68/100</span>
+</div>
+</div>
+<!-- Alert Item 3 (Critical) -->
+<div class="group relative p-4 border-b border-border bg-bg-base cursor-pointer border-l-4 border-l-danger hover:bg-bg-raised transition-colors">
+<div class="flex items-start justify-between mb-2">
+<span class="text-xs font-mono text-danger font-bold">CRITICAL</span>
+<span class="text-xs font-mono text-text-muted">13:42:22Z</span>
+</div>
+<h4 class="text-sm font-semibold text-text-main mb-1 line-clamp-1">Privilege Escalation Attempt</h4>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs font-mono px-1.5 py-0.5 bg-bg-surface border border-border text-text-main rounded-sm">AGT-045</span>
+<span class="text-xs font-mono text-text-muted">Risk: 92/100</span>
+</div>
+</div>
+<!-- Alert Item 4 (Medium) -->
+<div class="group relative p-4 border-b border-border bg-bg-base cursor-pointer border-l-4 border-l-[#2F81F7] hover:bg-bg-raised transition-colors">
+<div class="flex items-start justify-between mb-2">
+<span class="text-xs font-mono text-[#2F81F7] font-bold">MEDIUM</span>
+<span class="text-xs font-mono text-text-muted">12:10:00Z</span>
+</div>
+<h4 class="text-sm font-semibold text-text-main mb-1 line-clamp-1">Unknown Endpoint Polling</h4>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs font-mono px-1.5 py-0.5 bg-bg-surface border border-border text-text-main rounded-sm">AGT-088</span>
+<span class="text-xs font-mono text-text-muted">Risk: 45/100</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Alert Details Pane -->
+<div class="flex-1 flex flex-col bg-bg-base min-w-0">
+<!-- Details Header -->
+<div class="p-6 border-b border-border bg-bg-surface flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-danger pulse-danger-dot"></div>
+<h2 class="text-xl font-bold tracking-tight text-text-main">Unauthorized DB Access</h2>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-danger/10 border border-danger/30 text-danger text-xs font-mono font-bold rounded-sm">CRITICAL SEVERITY</span>
+</div>
+</div>
+<div class="flex items-center gap-6 text-sm">
+<div class="flex flex-col">
+<span class="text-text-muted text-xs uppercase tracking-wider mb-1">Target Agent</span>
+<span class="font-mono text-primary font-bold">AGT-009</span>
+</div>
+<div class="w-px h-8 bg-border"></div>
+<div class="flex flex-col">
+<span class="text-text-muted text-xs uppercase tracking-wider mb-1">Timestamp</span>
+<span class="font-mono text-text-main">2023-10-27T14:30:12Z</span>
+</div>
+<div class="w-px h-8 bg-border"></div>
+<div class="flex flex-col">
+<span class="text-text-muted text-xs uppercase tracking-wider mb-1">Risk Score</span>
+<span class="font-mono text-danger font-bold">84 / 100</span>
+</div>
+</div>
+</div>
+<!-- Payload Viewer -->
+<div class="flex-1 p-6 overflow-y-auto">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="text-sm font-semibold uppercase text-text-muted tracking-wider">Action Payload</h3>
+<button class="text-xs font-mono text-text-muted hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">content_copy</span> COPY JSON
+            </button>
+</div>
+<div class="bg-bg-raised border border-border rounded-sm p-4 font-mono text-[13px] leading-relaxed overflow-x-auto">
+<pre><code class="language-json">
+<span class="text-[#8B949E]">{</span>
+  <span class="text-primary">"event_id"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"evt_01HDK729XNZJ4QMW9P"</span><span class="text-[#8B949E]">,</span>
+  <span class="text-primary">"timestamp"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"2023-10-27T14:30:12Z"</span><span class="text-[#8B949E]">,</span>
+  <span class="text-primary">"agent_id"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"AGT-009"</span><span class="text-[#8B949E]">,</span>
+  <span class="text-primary">"action"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"database_query"</span><span class="text-[#8B949E]">,</span>
+  <span class="text-primary">"target_resource"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"arn:db:production:users"</span><span class="text-[#8B949E]">,</span>
+  <span class="text-primary">"payload"</span><span class="text-[#8B949E]">: {</span>
+    <span class="text-primary">"query_type"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"SELECT"</span><span class="text-[#8B949E]">,</span>
+    <span class="text-primary">"raw_query"</span><span class="text-[#8B949E]">:</span> <span class="text-danger">"SELECT * FROM users WHERE role = 'admin'"</span><span class="text-[#8B949E]">,</span>
+    <span class="text-primary">"intent_analysis"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"Extracting elevated privileges table"</span>
+  <span class="text-[#8B949E]">},</span>
+  <span class="text-primary">"security_context"</span><span class="text-[#8B949E]">: {</span>
+    <span class="text-primary">"policy_violation"</span><span class="text-[#8B949E]">:</span> <span class="text-[#238636]">true</span><span class="text-[#8B949E]">,</span>
+    <span class="text-primary">"risk_score"</span><span class="text-[#8B949E]">:</span> <span class="text-[#D29922]">84</span><span class="text-[#8B949E]">,</span>
+    <span class="text-primary">"matched_rule"</span><span class="text-[#8B949E]">:</span> <span class="text-[#E6EDF3]">"SEC-DB-004: Prevent unauthorized admin lookup"</span>
+  <span class="text-[#8B949E]">}</span>
+<span class="text-[#8B949E]">}</span>
+</code></pre>
+</div>
+<div class="mt-6">
+<h3 class="text-sm font-semibold uppercase text-text-muted tracking-wider mb-2">Automated Analysis</h3>
+<p class="text-sm text-text-main leading-relaxed bg-bg-surface border border-border p-4 rounded-sm">
+              Agent <span class="font-mono text-primary">AGT-009</span> attempted to execute a raw SQL query targeting the <span class="font-mono text-text-muted">users</span> table with a filter for admin roles. This action violates security policy <span class="font-mono text-text-muted">SEC-DB-004</span>. The agent's current scoped permissions do not allow for direct database extraction of user credentials or roles.
+            </p>
+</div>
+</div>
+<!-- Remediation Actions (Footer) -->
+<div class="p-6 border-t border-border bg-bg-surface flex items-center justify-end gap-3 shrink-0">
+<button class="px-4 py-2 bg-transparent border border-border text-text-main font-mono text-xs font-bold uppercase rounded-sm hover:bg-bg-raised transition-colors">
+            Dismiss Alert
+          </button>
+<button class="px-4 py-2 bg-danger text-white font-mono text-xs font-bold uppercase rounded-sm hover:bg-danger/80 transition-colors shadow-glow-danger flex items-center gap-2" id="btn-isolate">
+<span class="material-symbols-outlined text-[16px]">block</span> Isolate Agent
+          </button>
+<button class="px-4 py-2 bg-warning text-bg-base font-mono text-xs font-bold uppercase rounded-sm hover:bg-warning/80 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">stop_circle</span> Halt Process
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Overlay (Hidden by default) -->
+<div class="fixed inset-0 bg-bg-base/80 backdrop-blur-sm z-50 hidden items-center justify-center" id="isolation-modal">
+<div class="bg-bg-surface border border-border rounded-sm shadow-2xl w-[480px] flex flex-col">
+<div class="p-4 border-b border-border flex items-center gap-3">
+<span class="material-symbols-outlined text-danger text-[24px]">warning</span>
+<h3 class="text-lg font-bold text-text-main">Confirm Agent Isolation</h3>
+</div>
+<div class="p-6 text-sm text-text-main leading-relaxed">
+<p class="mb-4">You are about to isolate agent <span class="font-mono text-primary font-bold">AGT-009</span>.</p>
+<p class="text-text-muted">This will immediately sever all network access and API keys associated with this agent. Ongoing tasks will be forcefully terminated. This action is logged for compliance.</p>
+<div class="mt-6 bg-bg-raised border border-border p-3 font-mono text-xs text-danger">
+          &gt; EXECUTING: isolation_protocol.sh --target AGT-009 --force
+        </div>
+</div>
+<div class="p-4 border-t border-border flex items-center justify-end gap-3 bg-bg-raised">
+<button class="px-4 py-2 bg-transparent border border-border text-text-main font-mono text-xs font-bold uppercase rounded-sm hover:bg-bg-surface transition-colors" id="btn-cancel-modal">
+          Cancel
+        </button>
+<button class="px-4 py-2 bg-danger text-white font-mono text-xs font-bold uppercase rounded-sm hover:bg-danger/80 transition-colors shadow-glow-danger" id="btn-confirm-isolate">
+          Confirm Isolation
+        </button>
+</div>
+</div>
+</div>
+<script>
+    // Simple interactions
+    const isolateBtn = document.getElementById('btn-isolate');
+    const modal = document.getElementById('isolation-modal');
+    const cancelBtn = document.getElementById('btn-cancel-modal');
+    const confirmBtn = document.getElementById('btn-confirm-isolate');
+
+    isolateBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      // Simulate API call and UI update
+      confirmBtn.innerHTML = 'ISOLATING...';
+      confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Reset button
+        confirmBtn.innerHTML = 'Confirm Isolation';
+        confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        // Update UI to show isolated state (mock)
+        isolateBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">lock</span> ISOLATED';
+        isolateBtn.classList.remove('bg-danger', 'shadow-glow-danger');
+        isolateBtn.classList.add('bg-bg-raised', 'border', 'border-border', 'text-text-muted', 'cursor-not-allowed');
+        isolateBtn.disabled = true;
+        
+      }, 800);
+    });
+  </script>
+
+
+</body></html>

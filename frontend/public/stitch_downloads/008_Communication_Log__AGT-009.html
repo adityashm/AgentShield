@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Communication Log: AGT-009 - AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#00d4ff",
+                    "outline": "#859398",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-low": "#181c22",
+                    "background": "#10141a",
+                    "bg-surface": "#161B22",
+                    "bg-raised": "#1C2128",
+                    "surface-container-high": "#262a31",
+                    "tertiary-fixed": "#dae3ee",
+                    "on-secondary-fixed-variant": "#004492",
+                    "on-secondary": "#002f68",
+                    "status-success": "#238636",
+                    "surface-container": "#1c2026",
+                    "on-background": "#dfe2eb",
+                    "surface-container-highest": "#31353c",
+                    "on-tertiary-fixed": "#141c24",
+                    "surface-bright": "#353940",
+                    "status-warning": "#D29922",
+                    "primary-fixed": "#b4ebff",
+                    "secondary": "#acc7ff",
+                    "outline-variant": "#3c494e",
+                    "surface-dim": "#10141a",
+                    "on-secondary-fixed": "#001a40",
+                    "on-surface": "#dfe2eb",
+                    "surface": "#10141a",
+                    "error-container": "#93000a",
+                    "on-secondary-container": "#f8f8ff",
+                    "tertiary-container": "#bbc4cf",
+                    "on-primary-fixed": "#001f27",
+                    "on-tertiary-fixed-variant": "#3f4850",
+                    "inverse-primary": "#00677e",
+                    "secondary-fixed": "#d7e2ff",
+                    "inverse-on-surface": "#2d3137",
+                    "surface-tint": "#3cd7ff",
+                    "primary": "#a8e8ff",
+                    "primary-fixed-dim": "#3cd7ff",
+                    "on-tertiary": "#29313a",
+                    "tertiary": "#d7e0eb",
+                    "on-primary-fixed-variant": "#004e5f",
+                    "tertiary-fixed-dim": "#bec7d2",
+                    "on-primary-container": "#00586b",
+                    "status-danger": "#F85149",
+                    "border-subtle": "#30363D",
+                    "on-tertiary-container": "#48515a",
+                    "on-surface-variant": "#bbc9cf",
+                    "inverse-surface": "#dfe2eb",
+                    "error": "#ffb4ab",
+                    "text-main": "#E6EDF3",
+                    "surface-container-lowest": "#0a0e14",
+                    "surface-variant": "#31353c",
+                    "secondary-container": "#026ee4",
+                    "secondary-fixed-dim": "#acc7ff",
+                    "on-error": "#690005",
+                    "bg-hover": "#21262D",
+                    "on-primary": "#003642"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "topbar-height": "64px",
+                    "margin-page": "24px",
+                    "sidebar-width": "240px"
+            },
+            "fontFamily": {
+                    "headline-md": [
+                            "IBM Plex Sans"
+                    ],
+                    "body-sm": [
+                            "IBM Plex Sans"
+                    ],
+                    "headline-lg": [
+                            "IBM Plex Sans"
+                    ],
+                    "data-mono": [
+                            "JetBrains Mono"
+                    ],
+                    "button-label": [
+                            "JetBrains Mono"
+                    ],
+                    "body-md": [
+                            "IBM Plex Sans"
+                    ]
+            },
+            "fontSize": {
+                    "headline-md": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "data-mono": [
+                            "13px",
+                            {
+                                    "lineHeight": "18px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "button-label": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0D1117; /* Specific requirement */
+        }
+        
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D1117;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #859398;
+        }
+        
+        .glow-active {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        
+        .table-row-hover:hover {
+            background-color: #1C2128; /* Specific requirement */
+        }
+        
+        /* Input focus transitions */
+        input:focus, select:focus {
+            border-color: #00d4ff !important;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4) !important;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="text-text-main font-body-md antialiased overflow-x-hidden">
+<!-- SideNavBar -->
+<nav class="bg-background dark:bg-background w-sidebar-width h-screen fixed left-0 top-0 border-r border-border-subtle flex flex-col h-full py-base z-50">
+<!-- Brand Header -->
+<div class="px-margin-page py-4 mb-4 border-b border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-bg-raised border border-border-subtle flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary-container tracking-tight">AgentShield</h1>
+<p class="font-data-mono text-[10px] text-outline uppercase tracking-wider">Mission Control</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<ul class="flex-1 px-4 space-y-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-button-label hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-button-label hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+                    Agents
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-button-label hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 flex justify-between" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="notification_important">notification_important</span>
+                        Alerts
+                    </div>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-button-label hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+                    Rules
+                </a>
+</li>
+<!-- ACTIVE TAB: Logs -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-primary-container bg-surface-container-high border-l-2 border-primary-container font-button-label opacity-80 duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu" style="font-variation-settings: 'FILL' 1;">history_edu</span>
+                    Logs
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-button-label hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 mt-8" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    Settings
+                </a>
+</li>
+</ul>
+<!-- User/Status Bottom -->
+<div class="mt-auto px-margin-page py-4 border-t border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success glow-active"></div>
+<span class="font-data-mono text-[11px] text-outline">System Online</span>
+</div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="bg-bg-surface dark:bg-bg-surface h-topbar-height fixed top-0 right-0 left-sidebar-width w-[calc(100%-sidebar-width)] border-b border-border-subtle flex justify-between items-center px-margin-page w-full z-40">
+<!-- Search Bar (Left) -->
+<div class="flex-1 max-w-md">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="w-full bg-[#0D1117] border border-border-subtle rounded text-text-main font-data-mono text-data-mono pl-9 pr-3 py-1.5 focus:border-primary-container transition-colors placeholder:text-outline/50" placeholder="Search system resources..." type="text"/>
+</div>
+</div>
+<!-- Trailing Icons -->
+<div class="flex items-center gap-4">
+<button class="text-outline hover:text-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="text-outline hover:text-primary-container transition-all active:scale-95 relative">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</button>
+<div class="h-6 w-px bg-border-subtle mx-2"></div>
+<button class="text-outline hover:text-primary-container transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-sidebar-width mt-topbar-height p-margin-page min-h-[calc(100vh-topbar-height)] flex flex-col gap-6">
+<!-- Header Section -->
+<div>
+<div class="flex items-center gap-2 text-outline font-data-mono text-[11px] mb-2 uppercase tracking-wide">
+<a class="hover:text-primary-container transition-colors" href="#">Logs</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-text-main">Agent AGT-009</span>
+</div>
+<div class="flex justify-between items-end">
+<h2 class="font-headline-lg text-headline-lg text-text-main tracking-tight">Communication Log: <span class="text-primary-container font-data-mono">AGT-009</span></h2>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-warning animate-pulse"></span>
+<span class="font-data-mono text-status-warning text-xs uppercase tracking-wider">Intercepts Detected</span>
+</div>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-bg-raised border border-border-subtle rounded p-4 flex flex-wrap lg:flex-nowrap items-center gap-4">
+<!-- Search -->
+<div class="flex-1 min-w-[200px]">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[16px]">search</span>
+<input class="w-full bg-[#0D1117] border border-border-subtle rounded text-text-main font-data-mono text-[12px] pl-9 pr-3 py-2 placeholder:text-outline/50" placeholder="Search message content..." type="text"/>
+</div>
+</div>
+<!-- Protocol Dropdown -->
+<div class="w-40">
+<select class="w-full bg-[#0D1117] border border-border-subtle rounded text-text-main font-data-mono text-[12px] px-3 py-2 appearance-none">
+<option value="all">Protocol: All</option>
+<option value="https">HTTPS</option>
+<option value="websocket">WebSocket</option>
+<option value="grpc">gRPC</option>
+<option value="ssh">SSH</option>
+</select>
+</div>
+<!-- Status Dropdown -->
+<div class="w-40">
+<select class="w-full bg-[#0D1117] border border-border-subtle rounded text-text-main font-data-mono text-[12px] px-3 py-2 appearance-none">
+<option value="all">Status: All</option>
+<option value="success">Success</option>
+<option value="intercepted">Intercepted</option>
+<option value="blocked">Blocked</option>
+</select>
+</div>
+<!-- Date Range -->
+<div class="w-56">
+<div class="relative flex items-center bg-[#0D1117] border border-border-subtle rounded px-3 py-2">
+<span class="material-symbols-outlined text-outline text-[16px] mr-2">calendar_today</span>
+<span class="font-data-mono text-[12px] text-text-main">Last 24 Hours</span>
+<span class="material-symbols-outlined text-outline text-[16px] ml-auto">expand_more</span>
+</div>
+</div>
+<!-- Export Button -->
+<button class="bg-transparent border border-border-subtle text-text-main font-button-label uppercase px-4 py-2 rounded hover:bg-bg-hover hover:border-outline transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                Export Log
+            </button>
+</div>
+<!-- Data Table Container -->
+<div class="flex-1 bg-bg-raised border border-border-subtle rounded overflow-hidden flex flex-col relative">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle bg-[#1C2128] font-data-mono text-[11px] text-outline uppercase tracking-wider">
+<div class="col-span-2">Timestamp</div>
+<div class="col-span-2">Source</div>
+<div class="col-span-2">Destination</div>
+<div class="col-span-1">Proto</div>
+<div class="col-span-4">Snippet Preview</div>
+<div class="col-span-1 text-right">Status</div>
+</div>
+<!-- Table Body (Scrollable) -->
+<div class="flex-1 overflow-y-auto">
+<!-- Row 1: gRPC Success -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle/50 table-row-hover cursor-pointer transition-colors" onclick="openSidePanel('msg-001')">
+<div class="col-span-2 font-data-mono text-[12px] text-outline flex items-center">
+                        14:32:05.112
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        AGT-009
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        DB-PROD-01
+                    </div>
+<div class="col-span-1 flex items-center">
+<span class="px-2 py-0.5 rounded-full bg-purple-900/30 text-purple-400 border border-purple-800/50 font-data-mono text-[10px]">gRPC</span>
+</div>
+<div class="col-span-4 font-data-mono text-[12px] text-text-main flex items-center truncate opacity-80">
+                        SELECT * FROM users WHERE status = 'active' LIMIT 100...
+                    </div>
+<div class="col-span-1 flex items-center justify-end">
+<span class="flex items-center gap-1.5 text-status-success font-data-mono text-[11px]">
+<div class="w-1.5 h-1.5 rounded-full bg-status-success"></div>
+                            Success
+                        </span>
+</div>
+</div>
+<!-- Row 2: HTTPS Success -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle/50 table-row-hover cursor-pointer transition-colors" onclick="openSidePanel('msg-002')">
+<div class="col-span-2 font-data-mono text-[12px] text-outline flex items-center">
+                        14:32:01.045
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        AGT-009
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        EXTERNAL-API
+                    </div>
+<div class="col-span-1 flex items-center">
+<span class="px-2 py-0.5 rounded-full bg-blue-900/30 text-blue-400 border border-blue-800/50 font-data-mono text-[10px]">HTTPS</span>
+</div>
+<div class="col-span-4 font-data-mono text-[12px] text-text-main flex items-center truncate opacity-80">
+                        POST /v1/auth/token {"client_id":"agt_009","grant...
+                    </div>
+<div class="col-span-1 flex items-center justify-end">
+<span class="flex items-center gap-1.5 text-status-success font-data-mono text-[11px]">
+<div class="w-1.5 h-1.5 rounded-full bg-status-success"></div>
+                            Success
+                        </span>
+</div>
+</div>
+<!-- Row 3: SSH Intercepted -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle/50 table-row-hover cursor-pointer transition-colors relative" onclick="openSidePanel('msg-003')">
+<!-- Accent Left Border for Warning -->
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-warning"></div>
+<div class="col-span-2 font-data-mono text-[12px] text-outline flex items-center">
+                        14:31:55.881
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        AGT-009
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        FS-ROOT
+                    </div>
+<div class="col-span-1 flex items-center">
+<span class="px-2 py-0.5 rounded-full bg-amber-900/30 text-amber-400 border border-amber-800/50 font-data-mono text-[10px]">SSH</span>
+</div>
+<div class="col-span-4 font-data-mono text-[12px] text-text-main flex items-center truncate opacity-80">
+                        rm -rf /tmp/staging/* --force
+                    </div>
+<div class="col-span-1 flex items-center justify-end">
+<span class="flex items-center gap-1.5 text-status-warning font-data-mono text-[11px]">
+<div class="w-1.5 h-1.5 rounded-full bg-status-warning"></div>
+                            Intercepted
+                        </span>
+</div>
+</div>
+<!-- Row 4: HTTPS Blocked -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle/50 table-row-hover cursor-pointer transition-colors relative" onclick="openSidePanel('msg-004')">
+<!-- Accent Left Border for Danger -->
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-danger"></div>
+<div class="col-span-2 font-data-mono text-[12px] text-outline flex items-center">
+                        14:31:40.002
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        AGT-009
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate text-status-danger">
+                        MALICIOUS.IO
+                    </div>
+<div class="col-span-1 flex items-center">
+<span class="px-2 py-0.5 rounded-full bg-blue-900/30 text-blue-400 border border-blue-800/50 font-data-mono text-[10px]">HTTPS</span>
+</div>
+<div class="col-span-4 font-data-mono text-[12px] text-text-main flex items-center truncate opacity-80">
+                        GET /payload.sh HTTP/1.1 User-Agent: curl/7.68.0...
+                    </div>
+<div class="col-span-1 flex items-center justify-end">
+<span class="flex items-center gap-1.5 text-status-danger font-data-mono text-[11px]">
+<div class="w-1.5 h-1.5 rounded-full bg-status-danger"></div>
+                            Blocked
+                        </span>
+</div>
+</div>
+<!-- Row 5: WebSocket Success -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle/50 table-row-hover cursor-pointer transition-colors" onclick="openSidePanel('msg-005')">
+<div class="col-span-2 font-data-mono text-[12px] text-outline flex items-center">
+                        14:30:12.444
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        AGT-009
+                    </div>
+<div class="col-span-2 font-data-mono text-[12px] text-primary-container flex items-center truncate">
+                        STREAM-SVC
+                    </div>
+<div class="col-span-1 flex items-center">
+<span class="px-2 py-0.5 rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800/50 font-data-mono text-[10px]">WS</span>
+</div>
+<div class="col-span-4 font-data-mono text-[12px] text-text-main flex items-center truncate opacity-80">
+                        {"type":"heartbeat","agent_id":"agt_009","uptime...
+                    </div>
+<div class="col-span-1 flex items-center justify-end">
+<span class="flex items-center gap-1.5 text-status-success font-data-mono text-[11px]">
+<div class="w-1.5 h-1.5 rounded-full bg-status-success"></div>
+                            Success
+                        </span>
+</div>
+</div>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="bg-[#1C2128] border-t border-border-subtle px-4 py-2 flex justify-between items-center text-outline font-data-mono text-[11px]">
+<div>Showing 1-5 of 1,204 entries</div>
+<div class="flex gap-2">
+<button class="px-2 py-1 border border-border-subtle rounded hover:bg-bg-hover hover:text-text-main disabled:opacity-50" disabled="">&lt; Prev</button>
+<button class="px-2 py-1 border border-border-subtle rounded hover:bg-bg-hover hover:text-text-main">Next &gt;</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Slide-in Side Panel (Hidden by default) -->
+<!-- Overlay -->
+<div class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm transition-opacity" id="panel-overlay" onclick="closeSidePanel()"></div>
+<!-- Panel -->
+<div class="fixed right-0 top-0 h-screen w-[600px] bg-bg-surface border-l border-border-subtle shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col" id="side-panel">
+<!-- Panel Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-bg-raised">
+<div>
+<h3 class="font-headline-md text-text-main">Message Details</h3>
+<p class="font-data-mono text-[11px] text-outline mt-1" id="panel-msg-id">ID: MSG-99823-A</p>
+</div>
+<button class="text-outline hover:text-primary-container p-1 rounded transition-colors" onclick="closeSidePanel()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Panel Content -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- Meta Grid -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-[#0D1117] p-3 border border-border-subtle rounded">
+<div class="font-data-mono text-[10px] text-outline uppercase mb-1">Timestamp</div>
+<div class="font-data-mono text-[13px] text-text-main">2023-10-27 14:31:55.881 UTC</div>
+</div>
+<div class="bg-[#0D1117] p-3 border border-border-subtle rounded">
+<div class="font-data-mono text-[10px] text-outline uppercase mb-1">Action Status</div>
+<div class="font-data-mono text-[13px] text-status-warning flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-warning"></span>
+                        Intercepted - Rule #44A
+                    </div>
+</div>
+<div class="bg-[#0D1117] p-3 border border-border-subtle rounded">
+<div class="font-data-mono text-[10px] text-outline uppercase mb-1">Source</div>
+<div class="font-data-mono text-[13px] text-primary-container">AGT-009 (10.0.4.22)</div>
+</div>
+<div class="bg-[#0D1117] p-3 border border-border-subtle rounded">
+<div class="font-data-mono text-[10px] text-outline uppercase mb-1">Destination</div>
+<div class="font-data-mono text-[13px] text-primary-container">FS-ROOT (Local)</div>
+</div>
+</div>
+<!-- Payload Section -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end">
+<h4 class="font-headline-sm text-[14px] text-text-main font-semibold">Raw Payload</h4>
+<button class="font-data-mono text-[10px] text-primary-container hover:underline uppercase tracking-wider">Copy</button>
+</div>
+<div class="bg-[#0D1117] border border-border-subtle rounded p-4 relative overflow-hidden group">
+<pre class="font-data-mono text-[12px] text-text-main overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><span class="text-outline"># SSH Execution Command Intercepted</span>
+<span class="text-blue-400">user</span>: root
+<span class="text-blue-400">auth_method</span>: publickey
+<span class="text-blue-400">command_string</span>: "rm -rf /tmp/staging/* --force"
+<span class="text-blue-400">tty_allocated</span>: false
+<span class="text-blue-400">env</span>: {
+  "TERM": "xterm-256color",
+  "LANG": "en_US.UTF-8"
+}
+<span class="text-status-warning"># INTERCEPT REASON: Restrictive policy on root path deletions</span>
+                    </pre>
+</div>
+</div>
+<!-- Agent Context -->
+<div class="border border-border-subtle rounded bg-[#1C2128] p-4">
+<h4 class="font-headline-sm text-[14px] text-text-main font-semibold mb-3">Agent Context at Execution</h4>
+<div class="space-y-2 font-data-mono text-[12px]">
+<div class="flex justify-between border-b border-border-subtle/50 pb-1">
+<span class="text-outline">CPU Load:</span>
+<span class="text-text-main">45%</span>
+</div>
+<div class="flex justify-between border-b border-border-subtle/50 pb-1">
+<span class="text-outline">Memory Usage:</span>
+<span class="text-text-main">2.4 GB / 8.0 GB</span>
+</div>
+<div class="flex justify-between">
+<span class="text-outline">Active Connections:</span>
+<span class="text-text-main">12</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel Footer -->
+<div class="p-4 border-t border-border-subtle bg-bg-surface flex justify-end gap-3">
+<button class="px-4 py-2 border border-border-subtle text-text-main font-button-label uppercase rounded hover:bg-bg-hover transition-colors">
+                Ignore
+            </button>
+<button class="px-4 py-2 bg-primary-container text-background font-button-label uppercase rounded hover:opacity-90 transition-opacity font-bold">
+                Create Rule
+            </button>
+</div>
+</div>
+<!-- Simple JS for side panel interaction -->
+<script>
+        function openSidePanel(id) {
+            document.getElementById('panel-overlay').classList.remove('hidden');
+            // Small delay to ensure display:block applies before translating for animation
+            setTimeout(() => {
+                document.getElementById('side-panel').classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeSidePanel() {
+            document.getElementById('side-panel').classList.add('translate-x-full');
+            // Wait for animation to finish before hiding overlay
+            setTimeout(() => {
+                document.getElementById('panel-overlay').classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body></html>

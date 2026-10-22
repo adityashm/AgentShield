@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgentShield AI - Communication Log</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Brand Anchors -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "bg-raised": "#1C2128",
+                      "surface-container-low": "#181c22",
+                      "primary": "#a8e8ff",
+                      "on-tertiary-fixed-variant": "#3f4850",
+                      "outline-variant": "#3c494e",
+                      "secondary": "#acc7ff",
+                      "outline": "#859398",
+                      "surface-container": "#1c2026",
+                      "surface-variant": "#31353c",
+                      "on-error": "#690005",
+                      "surface-container-high": "#262a31",
+                      "on-primary": "#003642",
+                      "surface-tint": "#3cd7ff",
+                      "secondary-fixed": "#d7e2ff",
+                      "on-secondary": "#002f68",
+                      "status-warning": "#D29922",
+                      "surface-dim": "#10141a",
+                      "surface-container-lowest": "#0a0e14",
+                      "bg-hover": "#21262D",
+                      "surface-container-highest": "#31353c",
+                      "tertiary": "#d7e0eb",
+                      "status-success": "#238636",
+                      "on-tertiary": "#29313a",
+                      "inverse-surface": "#dfe2eb",
+                      "error-container": "#93000a",
+                      "surface-bright": "#353940",
+                      "on-primary-fixed": "#001f27",
+                      "on-secondary-fixed-variant": "#004492",
+                      "status-danger": "#F85149",
+                      "on-primary-container": "#00586b",
+                      "primary-container": "#00d4ff",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed-dim": "#bec7d2",
+                      "on-primary-fixed-variant": "#004e5f",
+                      "on-secondary-fixed": "#001a40",
+                      "surface": "#10141a",
+                      "inverse-primary": "#00677e",
+                      "text-main": "#E6EDF3",
+                      "on-background": "#dfe2eb",
+                      "secondary-fixed-dim": "#acc7ff",
+                      "secondary-container": "#026ee4",
+                      "on-secondary-container": "#f8f8ff",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed": "#b4ebff",
+                      "on-surface": "#dfe2eb",
+                      "on-tertiary-container": "#48515a",
+                      "on-tertiary-fixed": "#141c24",
+                      "background": "#10141a",
+                      "on-surface-variant": "#bbc9cf",
+                      "inverse-on-surface": "#2d3137",
+                      "primary-fixed-dim": "#3cd7ff",
+                      "bg-surface": "#161B22",
+                      "tertiary-fixed": "#dae3ee",
+                      "tertiary-container": "#bbc4cf",
+                      "border-subtle": "#30363D"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sidebar-width": "240px",
+                      "gutter": "16px",
+                      "base": "8px",
+                      "topbar-height": "64px",
+                      "margin-page": "24px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "IBM Plex Sans"
+                      ],
+                      "headline-md": [
+                              "IBM Plex Sans"
+                      ],
+                      "data-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg": [
+                              "IBM Plex Sans"
+                      ],
+                      "button-label": [
+                              "JetBrains Mono"
+                      ],
+                      "body-sm": [
+                              "IBM Plex Sans"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "data-mono": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "button-label": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        /* Custom utilities based on Style Guidance */
+        .glow-primary {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        .glow-text {
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        /* Scrollbar styling for high-density tech feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10141a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3c494e; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[240px] bg-surface dark:bg-surface border-r border-border-subtle flex flex-col py-gutter px-base z-30">
+<!-- Header -->
+<div class="flex flex-col items-center mb-8 pt-4">
+<div class="w-12 h-12 bg-bg-raised border border-border-subtle flex items-center justify-center mb-4 rounded relative">
+<span class="material-symbols-outlined text-primary text-[28px] glow-text" style="font-variation-settings: 'FILL' 1;">shield</span>
+<!-- Abstract tech accent -->
+<div class="absolute -bottom-1 -right-1 w-2 h-2 bg-primary"></div>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tighter text-center">MISSION CONTROL</h1>
+<p class="font-body-sm text-body-sm text-status-success mt-1 flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-status-success rounded-full animate-pulse"></span>
+                V-2.4.0 OPERATIONAL
+            </p>
+</div>
+<!-- Main Tabs -->
+<div class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">security</span>
+                Agents
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                Alerts
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+                Rules
+            </a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-primary font-bold border-r-2 border-primary bg-surface-container-high active:bg-surface-container-highest transition-all duration-150 rounded-sm relative" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+                Logs
+                <!-- Subtle active indicator -->
+<div class="absolute inset-y-0 left-0 w-[2px] bg-primary/20"></div>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                Settings
+            </a>
+</div>
+<!-- CTA -->
+<div class="mt-auto mb-6 px-3">
+<button class="w-full bg-primary/10 border border-primary text-primary hover:bg-primary hover:text-on-primary font-button-label text-button-label uppercase py-2 flex items-center justify-center gap-2 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                DEPLOY AGENT
+            </button>
+</div>
+<!-- Footer Tabs -->
+<div class="flex flex-col gap-1 border-t border-border-subtle pt-4">
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+                Security Status
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 font-body-md text-body-md text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                System Admin
+            </a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col pl-[240px]">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 h-topbar-height w-[calc(100%-240px)] bg-bg-surface dark:bg-bg-surface border-b border-border-subtle flex justify-between items-center px-margin-page z-20">
+<!-- Left Area (Brand/Search conceptually, though JSON says search on left, we'll represent the brand anchor here as per guidance) -->
+<div class="flex items-center gap-6 h-full">
+<span class="font-button-label text-button-label uppercase tracking-widest text-primary glow-text">AGENTSHIELD AI</span>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center h-full ml-4 space-x-6">
+<a class="h-full flex items-center font-data-mono text-data-mono text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 border-b-2 border-transparent" href="#">Systems</a>
+<a class="h-full flex items-center font-data-mono text-data-mono text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 border-b-2 border-transparent" href="#">Threats</a>
+<a class="h-full flex items-center font-data-mono text-data-mono text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 border-b-2 border-transparent" href="#">Deployment</a>
+</nav>
+</div>
+<!-- Right Area (Trailing Actions) -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 border-r border-border-subtle pr-6">
+<span class="font-data-mono text-data-mono text-on-surface-variant">UTC 14:32:05</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-success glow-primary"></span>
+<span class="font-data-mono text-data-mono text-status-success">ONLINE</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Workspace Area -->
+<main class="flex-1 flex overflow-hidden pt-[64px]">
+<!-- Central Table View -->
+<div class="flex-1 p-gutter overflow-y-auto flex flex-col">
+<!-- Page Header -->
+<div class="mb-4 flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-1">Communication Log: AGT-009</h2>
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+                            Filter active: Recent 1 Hour, Outbound Traffic
+                        </p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="bg-surface-dim border border-border-subtle rounded-none py-1.5 pl-9 pr-3 font-data-mono text-data-mono text-on-surface focus:border-primary focus:ring-0 focus:outline-none placeholder-on-surface-variant w-[240px]" placeholder="Filter payloads..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Table Card -->
+<div class="bg-bg-raised border border-border-subtle flex flex-col flex-1 overflow-hidden relative">
+<!-- Accent Line -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-primary opacity-20"></div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead class="bg-surface-container-high border-b border-border-subtle sticky top-0 z-10">
+<tr>
+<th class="p-3 pl-4 font-data-mono text-data-mono text-on-surface-variant w-[160px]">Timestamp</th>
+<th class="p-3 font-data-mono text-data-mono text-on-surface-variant w-[140px]">Source</th>
+<th class="p-3 font-data-mono text-data-mono text-on-surface-variant w-[180px]">Destination</th>
+<th class="p-3 font-data-mono text-data-mono text-on-surface-variant w-[100px]">Protocol</th>
+<th class="p-3 pr-4 font-data-mono text-data-mono text-on-surface-variant">Snippet Preview</th>
+</tr>
+</thead>
+<tbody class="font-data-mono text-data-mono divide-y divide-border-subtle cursor-pointer">
+<!-- Row 1 (Active/Selected state mock) -->
+<tr class="bg-surface-container border-l-2 border-l-primary hover:bg-bg-hover transition-colors">
+<td class="p-3 pl-4 text-on-surface">14:31:42.091</td>
+<td class="p-3 text-primary">AGT-009</td>
+<td class="p-3 text-on-surface">10.0.45.2:8080</td>
+<td class="p-3">
+<span class="px-2 py-0.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-sm text-[11px] uppercase tracking-wider">gRPC</span>
+</td>
+<td class="p-3 pr-4 text-on-surface-variant truncate max-w-[300px]">
+                                        {"method":"StreamTelemetry","payload":{"cpu":...
+                                    </td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-bg-hover transition-colors border-l-2 border-l-transparent">
+<td class="p-3 pl-4 text-on-surface">14:31:40.115</td>
+<td class="p-3 text-primary">AGT-009</td>
+<td class="p-3 text-on-surface">auth.internal.net:443</td>
+<td class="p-3">
+<span class="px-2 py-0.5 bg-status-success/10 text-status-success border border-status-success/20 rounded-sm text-[11px] uppercase tracking-wider">HTTPS</span>
+</td>
+<td class="p-3 pr-4 text-on-surface-variant truncate max-w-[300px]">
+                                        POST /v1/tokens HTTP/2.0 Headers: [Authorization: Bea...
+                                    </td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-bg-hover transition-colors border-l-2 border-l-transparent">
+<td class="p-3 pl-4 text-on-surface">14:31:38.802</td>
+<td class="p-3 text-primary">AGT-009</td>
+<td class="p-3 text-on-surface">192.168.1.100:22</td>
+<td class="p-3">
+<span class="px-2 py-0.5 bg-status-warning/10 text-status-warning border border-status-warning/20 rounded-sm text-[11px] uppercase tracking-wider">SSH</span>
+</td>
+<td class="p-3 pr-4 text-on-surface-variant truncate max-w-[300px]">
+                                        Encrypted packet length: 1048 bytes...
+                                    </td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-bg-hover transition-colors border-l-2 border-l-transparent">
+<td class="p-3 pl-4 text-on-surface">14:31:35.004</td>
+<td class="p-3 text-primary">AGT-009</td>
+<td class="p-3 text-on-surface">metrics.cluster.local:9090</td>
+<td class="p-3">
+<span class="px-2 py-0.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-sm text-[11px] uppercase tracking-wider">gRPC</span>
+</td>
+<td class="p-3 pr-4 text-on-surface-variant truncate max-w-[300px]">
+                                        {"method":"PushMetrics","payload":{"node_mem_usage":...
+                                    </td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-bg-hover transition-colors border-l-2 border-l-transparent opacity-60">
+<td class="p-3 pl-4 text-on-surface">14:31:22.511</td>
+<td class="p-3 text-primary">AGT-009</td>
+<td class="p-3 text-on-surface">update.server.net:443</td>
+<td class="p-3">
+<span class="px-2 py-0.5 bg-status-success/10 text-status-success border border-status-success/20 rounded-sm text-[11px] uppercase tracking-wider">HTTPS</span>
+</td>
+<td class="p-3 pr-4 text-on-surface-variant truncate max-w-[300px]">
+                                        GET /manifests/v2.4.0.json HTTP/2.0...
+                                    </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Detail Pane -->
+<div class="w-[480px] bg-bg-raised border-l border-border-subtle flex flex-col z-10 shadow-[-8px_0_24px_rgba(0,0,0,0.2)]">
+<!-- Pane Header -->
+<div class="p-4 border-b border-border-subtle bg-surface-container flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">data_object</span>
+                        Packet Details
+                    </h3>
+<button class="text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Pane Content -->
+<div class="flex-1 overflow-y-auto p-5 space-y-6">
+<!-- Meta info simple layout -->
+<div class="grid grid-cols-2 gap-y-3 font-data-mono text-data-mono">
+<div>
+<span class="text-on-surface-variant block mb-1">Time</span>
+<span class="text-on-surface">14:31:42.091 UTC</span>
+</div>
+<div>
+<span class="text-on-surface-variant block mb-1">Size</span>
+<span class="text-on-surface">2.4 KB</span>
+</div>
+<div>
+<span class="text-on-surface-variant block mb-1">Source</span>
+<span class="text-primary block">AGT-009</span>
+<span class="text-on-surface-variant text-[11px]">10.0.12.8</span>
+</div>
+<div>
+<span class="text-on-surface-variant block mb-1">Destination</span>
+<span class="text-on-surface block">10.0.45.2</span>
+<span class="text-on-surface-variant text-[11px]">Port 8080 (gRPC)</span>
+</div>
+</div>
+<hr class="border-border-subtle border-dashed"/>
+<!-- Raw Payload Section -->
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-3 flex items-center justify-between">
+                            Raw Payload
+                            <button class="text-on-surface-variant hover:text-primary" title="Copy to clipboard">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</h4>
+<!-- Code Block with Brutalist styling -->
+<div class="bg-surface-dim border border-border-subtle rounded-sm p-4 relative overflow-x-auto">
+<!-- Faux line numbers -->
+<div class="absolute left-0 top-0 bottom-0 w-8 bg-surface-container border-r border-border-subtle flex flex-col items-center py-4 font-data-mono text-[10px] text-on-surface-variant opacity-50 space-y-[6px]">
+<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+</div>
+<pre class="pl-6 font-data-mono text-body-sm leading-relaxed"><code class="language-json"><span class="text-secondary">{</span>
+  <span class="text-primary">"method"</span>: <span class="text-status-success">"StreamTelemetry"</span>,
+  <span class="text-primary">"timestamp"</span>: <span class="text-status-warning">1716301902</span>,
+  <span class="text-primary">"payload"</span>: <span class="text-secondary">{</span>
+    <span class="text-primary">"sys_metrics"</span>: <span class="text-secondary">{</span>
+      <span class="text-primary">"load_avg_1m"</span>: <span class="text-status-warning">0.45</span>,
+      <span class="text-primary">"net_tx_bytes"</span>: <span class="text-status-warning">140928</span>
+    <span class="text-secondary">}</span>
+  <span class="text-secondary">}</span>
+<span class="text-secondary">}</span></code></pre>
+</div>
+</div>
+<!-- Agent Context Section (Bento-ish grid for stats) -->
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-3">Agent Context at Event</h4>
+<div class="grid grid-cols-2 gap-3">
+<!-- Stat Card: CPU -->
+<div class="bg-surface border border-border-subtle p-3 border-l-2 border-l-primary flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1 uppercase tracking-wider">CPU Usage</span>
+<div class="flex items-end gap-2">
+<span class="font-data-mono text-headline-lg text-on-surface leading-none">12.4</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant mb-0.5">%</span>
+</div>
+</div>
+<!-- Stat Card: Memory -->
+<div class="bg-surface border border-border-subtle p-3 border-l-2 border-l-secondary flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1 uppercase tracking-wider">Memory</span>
+<div class="flex items-end gap-2">
+<span class="font-data-mono text-headline-lg text-on-surface leading-none">1.2</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant mb-0.5">GB</span>
+</div>
+</div>
+<!-- Stat Card: Connections -->
+<div class="bg-surface border border-border-subtle p-3 border-l-2 border-l-status-warning col-span-2 flex justify-between items-center">
+<div>
+<span class="font-body-sm text-body-sm text-on-surface-variant block mb-1 uppercase tracking-wider">Active Conns</span>
+<span class="font-data-mono text-headline-md text-on-surface leading-none">42</span>
+</div>
+<span class="material-symbols-outlined text-status-warning opacity-50 text-[32px]">lan</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="p-4 border-t border-border-subtle bg-surface-container flex justify-end gap-3">
+<button class="bg-transparent border border-border-subtle text-on-surface hover:bg-bg-hover font-button-label text-button-label uppercase px-6 py-2.5 transition-colors duration-200">
+                        Ignore
+                    </button>
+<button class="bg-primary text-on-primary hover:bg-surface-tint font-button-label text-button-label uppercase px-6 py-2.5 transition-colors duration-200 glow-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_moderator</span>
+                        Create Rule
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

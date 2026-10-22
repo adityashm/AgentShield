@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgentShield AI - System Logs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+                "bg-surface": "#161B22",
+                "border-subtle": "#30363D",
+                "surface-tint": "#3cd7ff",
+                "surface-container": "#1c2026",
+                "secondary": "#acc7ff",
+                "surface-bright": "#353940",
+                "on-tertiary-fixed-variant": "#3f4850",
+                "primary": "#a8e8ff",
+                "tertiary-fixed-dim": "#bec7d2",
+                "on-surface": "#dfe2eb",
+                "tertiary": "#d7e0eb",
+                "on-error-container": "#ffdad6",
+                "error": "#ffb4ab",
+                "on-primary": "#003642",
+                "outline": "#859398",
+                "error-container": "#93000a",
+                "status-danger": "#F85149",
+                "on-secondary-fixed-variant": "#004492",
+                "surface-container-lowest": "#0a0e14",
+                "on-tertiary-container": "#48515a",
+                "status-warning": "#D29922",
+                "secondary-container": "#026ee4",
+                "primary-fixed": "#b4ebff",
+                "inverse-primary": "#00677e",
+                "surface-container-highest": "#31353c",
+                "bg-raised": "#1C2128",
+                "on-primary-container": "#00586b",
+                "tertiary-container": "#bbc4cf",
+                "primary-fixed-dim": "#3cd7ff",
+                "outline-variant": "#3c494e",
+                "surface-container-low": "#181c22",
+                "on-secondary-fixed": "#001a40",
+                "tertiary-fixed": "#dae3ee",
+                "on-secondary": "#002f68",
+                "on-secondary-container": "#f8f8ff",
+                "text-main": "#E6EDF3",
+                "on-tertiary": "#29313a",
+                "surface-container-high": "#262a31",
+                "on-background": "#dfe2eb",
+                "on-tertiary-fixed": "#141c24",
+                "inverse-on-surface": "#2d3137",
+                "primary-container": "#00d4ff",
+                "secondary-fixed": "#d7e2ff",
+                "on-error": "#690005",
+                "on-surface-variant": "#bbc9cf",
+                "on-primary-fixed-variant": "#004e5f",
+                "secondary-fixed-dim": "#acc7ff",
+                "surface-variant": "#31353c",
+                "on-primary-fixed": "#001f27",
+                "inverse-surface": "#dfe2eb",
+                "surface": "#10141a",
+                "status-success": "#238636",
+                "background": "#10141a",
+                "bg-hover": "#21262D",
+                "surface-dim": "#10141a"
+            },
+            borderRadius: {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            spacing: {
+                "topbar-height": "64px",
+                "base": "8px",
+                "margin-page": "24px",
+                "sidebar-width": "240px",
+                "gutter": "16px"
+            },
+            fontFamily: {
+                "headline-lg": ["IBM Plex Sans"],
+                "button-label": ["JetBrains Mono"],
+                "body-sm": ["IBM Plex Sans"],
+                "headline-md": ["IBM Plex Sans"],
+                "body-md": ["IBM Plex Sans"],
+                "data-mono": ["JetBrains Mono"]
+            },
+            fontSize: {
+                "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "button-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+            },
+            keyframes: {
+                'pulse-slow': {
+                    '0%, 100%': { opacity: '1' },
+                    '50%': { opacity: '0.4' },
+                }
+            },
+            animation: {
+                'pulse-slow': 'pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Custom Scrollbar for Terminal */
+        .terminal-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: #0a0e14;
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            background: #30363D;
+            border-radius: 4px;
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #48515a;
+        }
+        
+        .glow-active {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-background text-text-main font-body-md h-screen overflow-hidden flex">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full h-topbar-height flex justify-between items-center px-gutter border-b border-border-subtle bg-background z-50">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg font-black tracking-tighter text-primary">AGENTSHIELD_CORE</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<span class="text-on-surface-variant font-data-mono text-data-mono uppercase">SYSTEM_STABLE</span>
+<span class="text-on-surface-variant font-data-mono text-data-mono uppercase">UTC_14:22:05</span>
+</div>
+<div class="h-6 w-px bg-border-subtle mx-2"></div>
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-text-main transition-colors duration-150 p-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-text-main transition-colors duration-150 p-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">terminal</span>
+</button>
+<button class="text-on-surface-variant hover:text-text-main transition-colors duration-150 p-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_tree</span>
+</button>
+</div>
+<div class="w-8 h-8 rounded bg-bg-raised border border-border-subtle flex items-center justify-center overflow-hidden ml-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">person</span>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-topbar-height h-[calc(100vh-64px)] w-sidebar-width flex flex-col border-r border-border-subtle py-4 bg-bg-surface z-40">
+<div class="px-gutter mb-6">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded bg-bg-raised border border-border-subtle flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">dns</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md font-bold text-primary">MISSION_CONTROL</div>
+<div class="text-on-surface-variant text-xs tracking-wider uppercase">SECOPS_V2.4</div>
+</div>
+</div>
+<button class="w-full mt-4 bg-primary-container text-on-primary font-button-label text-button-label uppercase py-2 px-4 rounded hover:bg-primary-fixed transition-colors font-bold flex items-center justify-center gap-2 glow-active">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                DEPLOY_AGENT
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto py-2 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-gutter py-2.5 text-on-surface-variant font-medium hover:bg-bg-hover hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-button-label text-button-label uppercase">DASHBOARD</span>
+</a>
+<a class="flex items-center gap-3 px-gutter py-2.5 text-on-surface-variant font-medium hover:bg-bg-hover hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">memory</span>
+<span class="font-button-label text-button-label uppercase">AGENTS</span>
+</a>
+<a class="flex items-center gap-3 px-gutter py-2.5 text-on-surface-variant font-medium hover:bg-bg-hover hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">priority_high</span>
+<span class="font-button-label text-button-label uppercase">ALERTS</span>
+</a>
+<a class="flex items-center gap-3 px-gutter py-2.5 text-on-surface-variant font-medium hover:bg-bg-hover hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">security</span>
+<span class="font-button-label text-button-label uppercase">RULES</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-3 px-gutter py-2.5 text-primary border-l-2 border-primary bg-secondary-container/10 font-bold opacity-80 scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">database</span>
+<span class="font-button-label text-button-label uppercase">LOGS</span>
+</a>
+<a class="flex items-center gap-3 px-gutter py-2.5 text-on-surface-variant font-medium hover:bg-bg-hover hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-button-label text-button-label uppercase">SETTINGS</span>
+</a>
+</div>
+<div class="mt-auto px-gutter py-4 border-t border-border-subtle flex flex-col gap-1">
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-medium hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span class="font-button-label text-button-label uppercase text-[11px]">SUPPORT</span>
+</a>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-medium hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span>
+<span class="font-button-label text-button-label uppercase text-[11px]">RESOURCES</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-[64px] p-margin-page flex-1 flex flex-col h-screen w-full min-w-0 bg-background overflow-hidden relative">
+<!-- Page Header -->
+<header class="flex justify-between items-end mb-6 shrink-0">
+<div class="flex items-center gap-4">
+<h1 class="font-headline-lg text-headline-lg font-bold text-text-main tracking-tight">System Logs</h1>
+<div class="flex items-center gap-2 px-2.5 py-1 rounded border border-status-success/30 bg-status-success/10">
+<div class="w-2 h-2 rounded-full bg-status-success animate-pulse-slow shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+<span class="font-button-label text-button-label text-status-success uppercase tracking-widest text-[10px]">LIVE</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-3 py-1.5 border border-border-subtle rounded bg-bg-raised">
+<span class="text-on-surface-variant text-sm font-medium">Follow Logs</span>
+<button class="w-8 h-4 rounded-full bg-primary-container relative flex items-center px-0.5 cursor-pointer glow-active">
+<div class="w-3 h-3 rounded-full bg-on-primary translate-x-4 transition-transform"></div>
+</button>
+</div>
+<button class="flex items-center gap-2 px-4 py-1.5 border border-border-subtle rounded bg-bg-raised hover:bg-bg-hover transition-colors font-button-label text-button-label uppercase text-text-main">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    Export
+                    <span class="material-symbols-outlined text-[16px] text-on-surface-variant ml-1">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<!-- Search/Filter Bar -->
+<div class="bg-bg-raised border border-border-subtle rounded-t-lg p-3 flex items-center gap-3 shrink-0">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full bg-[#0D1117] border border-border-subtle rounded text-text-main font-data-mono text-sm py-1.5 pl-9 pr-4 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant" placeholder="Search logs (e.g. agent_id, action_type, status)" type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<select class="bg-[#0D1117] border border-border-subtle rounded text-text-main font-body-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:border-primary-container appearance-none cursor-pointer">
+<option>Level: All</option>
+<option>Info</option>
+<option>Warn</option>
+<option>Error</option>
+<option>Critical</option>
+</select>
+<select class="bg-[#0D1117] border border-border-subtle rounded text-text-main font-body-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:border-primary-container appearance-none cursor-pointer">
+<option>Agent: All</option>
+<option>AGT-001</option>
+<option>AGT-009</option>
+<option>AGT-042</option>
+</select>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">calendar_today</span>
+<input class="bg-[#0D1117] border border-border-subtle rounded text-text-main font-body-md text-sm py-1.5 pl-9 pr-4 w-40 cursor-pointer focus:outline-none" readonly="" type="text" value="Last 15 minutes"/>
+</div>
+</div>
+</div>
+<!-- Terminal Log Viewer -->
+<div class="flex-1 bg-surface-container-lowest border-x border-b border-border-subtle rounded-b-lg overflow-hidden flex flex-col shadow-inner relative">
+<!-- Grid Header -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-2 bg-surface-container border-b border-border-subtle text-on-surface-variant font-button-label text-[11px] uppercase tracking-wider sticky top-0 z-10 shrink-0">
+<div>Timestamp</div>
+<div>Level</div>
+<div>Agent ID</div>
+<div>Action</div>
+<div>Result</div>
+<div>Message</div>
+</div>
+<!-- Log Rows Scrollable Area -->
+<div class="flex-1 overflow-y-auto terminal-scroll font-data-mono text-data-mono text-[13px] leading-relaxed pb-4">
+<!-- Row 1 (Error) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:42:01]</div>
+<div class="text-status-danger font-bold">ERROR</div>
+<div class="text-primary-fixed-dim">AGT-009</div>
+<div class="text-tertiary">unauthorized_access</div>
+<div class="text-status-danger">403</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Access denied to /sys/config - Invalid token signature</div>
+</div>
+<!-- Row 2 (Warn) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:41:55]</div>
+<div class="text-status-warning">WARN</div>
+<div class="text-primary-fixed-dim">AGT-042</div>
+<div class="text-tertiary">network_jitter</div>
+<div class="text-status-warning">-</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">15ms latency spike detected on interface eth1</div>
+</div>
+<!-- Row 3 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:41:40]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-001</div>
+<div class="text-tertiary">heartbeat_ok</div>
+<div class="text-status-success">200</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Node stable. Payload sync completed in 0.04s</div>
+</div>
+<!-- Row 4 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:41:38]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-009</div>
+<div class="text-tertiary">auth_attempt</div>
+<div class="text-text-main">PENDING</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Initiating handshake protocol with central auth server</div>
+</div>
+<!-- Row 5 (Critical) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 bg-error-container/10 hover:bg-error-container/20 border-l-2 border-l-status-danger border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant ml-[-2px] pl-[2px]">[14:41:12]</div>
+<div class="text-status-danger font-bold uppercase tracking-widest">CRITICAL</div>
+<div class="text-primary-fixed-dim font-bold">AGT-014</div>
+<div class="text-tertiary font-bold">process_termination</div>
+<div class="text-status-danger font-bold">SIGKILL</div>
+<div class="text-error font-bold group-hover:opacity-100">Core service unexpected exit. Restart policy failed. Manual intervention required.</div>
+</div>
+<!-- Row 6 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:40:50]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-022</div>
+<div class="text-tertiary">data_ingest</div>
+<div class="text-status-success">200</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Processed 4,096 bytes from stream source A</div>
+</div>
+<!-- Row 7 (Warn) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:40:45]</div>
+<div class="text-status-warning">WARN</div>
+<div class="text-primary-fixed-dim">AGT-001</div>
+<div class="text-tertiary">resource_usage</div>
+<div class="text-status-warning">85%</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Memory utilization approaching threshold. Triggering GC sweep.</div>
+</div>
+<!-- Row 8 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:40:30]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-042</div>
+<div class="text-tertiary">heartbeat_ok</div>
+<div class="text-status-success">200</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Node stable</div>
+</div>
+<!-- Row 9 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:40:15]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-009</div>
+<div class="text-tertiary">rule_evaluation</div>
+<div class="text-status-success">PASS</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Evaluated ruleset SEC_POL_04. No anomalies detected.</div>
+</div>
+<!-- Row 10 (Error) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:39:58]</div>
+<div class="text-status-danger font-bold">ERROR</div>
+<div class="text-primary-fixed-dim">AGT-014</div>
+<div class="text-tertiary">db_connection</div>
+<div class="text-status-danger">503</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Connection timeout to primary replica. Retrying...</div>
+</div>
+<!-- Row 11 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:39:40]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-001</div>
+<div class="text-tertiary">heartbeat_ok</div>
+<div class="text-status-success">200</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Node stable.</div>
+</div>
+<!-- Row 12 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:39:22]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-022</div>
+<div class="text-tertiary">agent_update</div>
+<div class="text-status-success">OK</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Successfully fetched configuration delta v2.4.1</div>
+</div>
+<!-- Row 13 (Warn) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:39:05]</div>
+<div class="text-status-warning">WARN</div>
+<div class="text-primary-fixed-dim">AGT-009</div>
+<div class="text-tertiary">auth_rate_limit</div>
+<div class="text-status-warning">429</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Too many requests from origin IP. Throttling applied.</div>
+</div>
+<!-- Row 14 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:38:50]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-042</div>
+<div class="text-tertiary">heartbeat_ok</div>
+<div class="text-status-success">200</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Node stable. Payload sync completed in 0.02s</div>
+</div>
+<!-- Row 15 (Info) -->
+<div class="grid grid-cols-[100px_80px_100px_180px_80px_1fr] gap-4 px-4 py-1 hover:bg-bg-hover/50 border-b border-border-subtle/20 group transition-colors">
+<div class="text-on-surface-variant">[14:38:35]</div>
+<div class="text-status-success">INFO</div>
+<div class="text-primary-fixed-dim">AGT-001</div>
+<div class="text-tertiary">rule_evaluation</div>
+<div class="text-status-success">PASS</div>
+<div class="text-text-main opacity-90 group-hover:opacity-100">Evaluated ruleset SEC_POL_02. No anomalies detected.</div>
+</div>
+</div>
+</div>
+<!-- Footer Stats -->
+<footer class="mt-4 flex justify-between items-center text-on-surface-variant text-sm shrink-0">
+<div class="flex gap-6">
+<span>Total: <strong class="text-text-main">1,248</strong></span>
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-status-danger"></span> Errors: <strong class="text-status-danger">12</strong></span>
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-status-warning"></span> Warnings: <strong class="text-status-warning">45</strong></span>
+</div>
+<div class="font-data-mono text-xs opacity-70">
+                Connected to log stream node-alpha-01
+            </div>
+</footer>
+</main>
+</body></html>

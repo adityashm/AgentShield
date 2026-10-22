@@ -1,0 +1,503 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgentShield AI - Compliance &amp; Audit Vault</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "surface-container-high": "#262a31",
+                            "border-subtle": "#30363D",
+                            "on-primary-container": "#00586b",
+                            "on-secondary-container": "#f8f8ff",
+                            "on-tertiary-container": "#48515a",
+                            "secondary-fixed": "#d7e2ff",
+                            "on-tertiary-fixed-variant": "#3f4850",
+                            "secondary": "#acc7ff",
+                            "surface": "#10141a",
+                            "on-secondary": "#002f68",
+                            "primary-container": "#00d4ff",
+                            "bg-surface": "#161B22",
+                            "on-background": "#dfe2eb",
+                            "tertiary-fixed": "#dae3ee",
+                            "status-warning": "#D29922",
+                            "secondary-fixed-dim": "#acc7ff",
+                            "surface-variant": "#31353c",
+                            "tertiary": "#d7e0eb",
+                            "inverse-primary": "#00677e",
+                            "status-danger": "#F85149",
+                            "background": "#10141a",
+                            "outline-variant": "#3c494e",
+                            "on-secondary-fixed-variant": "#004492",
+                            "bg-hover": "#21262D",
+                            "primary-fixed": "#b4ebff",
+                            "inverse-on-surface": "#2d3137",
+                            "on-primary-fixed": "#001f27",
+                            "inverse-surface": "#dfe2eb",
+                            "text-main": "#E6EDF3",
+                            "surface-dim": "#10141a",
+                            "status-success": "#238636",
+                            "on-error-container": "#ffdad6",
+                            "on-surface-variant": "#bbc9cf",
+                            "error": "#ffb4ab",
+                            "surface-tint": "#3cd7ff",
+                            "surface-bright": "#353940",
+                            "on-error": "#690005",
+                            "surface-container-highest": "#31353c",
+                            "on-secondary-fixed": "#001a40",
+                            "error-container": "#93000a",
+                            "outline": "#859398",
+                            "primary": "#a8e8ff",
+                            "surface-container": "#1c2026",
+                            "surface-container-lowest": "#0a0e14",
+                            "on-tertiary": "#29313a",
+                            "on-primary": "#003642",
+                            "secondary-container": "#026ee4",
+                            "tertiary-fixed-dim": "#bec7d2",
+                            "surface-container-low": "#181c22",
+                            "bg-raised": "#1C2128",
+                            "primary-fixed-dim": "#3cd7ff",
+                            "on-primary-fixed-variant": "#004e5f",
+                            "on-tertiary-fixed": "#141c24",
+                            "on-surface": "#dfe2eb",
+                            "tertiary-container": "#bbc4cf"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.125rem",
+                            "lg": "0.25rem",
+                            "xl": "0.5rem",
+                            "full": "0.75rem"
+                    },
+                    "spacing": {
+                            "margin-page": "24px",
+                            "sidebar-width": "240px",
+                            "base": "8px",
+                            "topbar-height": "64px",
+                            "gutter": "16px"
+                    },
+                    "fontFamily": {
+                            "data-mono": ["JetBrains Mono"],
+                            "body-md": ["IBM Plex Sans"],
+                            "headline-lg": ["IBM Plex Sans"],
+                            "headline-md": ["IBM Plex Sans"],
+                            "button-label": ["JetBrains Mono"],
+                            "body-sm": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                            "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                            "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                            "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                            "button-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                            "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        .glow-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        .pulse-critical {
+            animation: pulse-op 2s infinite;
+        }
+        @keyframes pulse-op {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Custom scrollbar for brutalist feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10141a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D; 
+            border-radius: 0;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3c494e; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden selection:bg-primary selection:text-on-primary">
+<!-- Shared Component: SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[240px] bg-surface dark:bg-surface border-r border-border-subtle flex flex-col py-gutter px-base z-50">
+<!-- Header -->
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 rounded bg-bg-raised border border-border-subtle flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px] icon-fill">security</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tighter uppercase">MISSION CONTROL</h1>
+<p class="font-data-mono text-data-mono text-[10px] text-on-surface-variant">V-2.4.0 OPERATIONAL</p>
+</div>
+</div>
+</div>
+<!-- CTA -->
+<div class="px-2 mb-6">
+<button class="w-full bg-primary-container text-on-primary-container font-button-label text-button-label py-2 px-4 rounded border border-transparent hover:brightness-110 active:scale-[0.98] transition-all glow-cyan uppercase tracking-widest flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                DEPLOY AGENT
+            </button>
+</div>
+<!-- Tabs -->
+<div class="flex-1 overflow-y-auto pr-2">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_39}}">
+<span class="material-symbols-outlined text-[20px]">security</span>
+<span class="font-body-md text-body-md">Agents</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_11}}">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+<span class="font-body-md text-body-md">Alerts</span>
+</a>
+</li>
+<!-- ACTIVE TAB: Rules matches Compliance/Vault intent best -->
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-primary font-bold border-r-2 border-primary bg-surface-container-high transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_25}}">
+<span class="material-symbols-outlined text-[20px] icon-fill">policy</span>
+<span class="font-body-md text-body-md">Rules</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_38}}">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span class="font-body-md text-body-md">Logs</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Footer Tabs -->
+<div class="mt-auto pt-4 border-t border-border-subtle pr-2">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+<span class="font-body-md text-body-md">Security Status</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="{{DATA:SCREEN:SCREEN_39}}">
+<span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+<span class="font-body-md text-body-md">System Admin</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Shared Component: TopAppBar -->
+<header class="fixed top-0 right-0 h-topbar-height w-[calc(100%-240px)] bg-bg-surface dark:bg-bg-surface border-b border-border-subtle flex justify-between items-center px-margin-page z-40">
+<!-- Left: Brand / Section Title -->
+<div class="flex items-center gap-4">
+<span class="font-button-label text-button-label uppercase tracking-widest text-primary">AGENTSHIELD AI</span>
+<span class="text-border-subtle">/</span>
+<span class="font-data-mono text-data-mono text-on-surface">COMPLIANCE VAULT</span>
+</div>
+<!-- Center: Navigation Links -->
+<nav class="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2 h-full">
+<a class="h-full flex items-center text-on-surface-variant font-data-mono text-data-mono hover:text-primary hover:bg-bg-hover transition-all px-4" href="#">Systems</a>
+<a class="h-full flex items-center text-on-surface-variant font-data-mono text-data-mono hover:text-primary hover:bg-bg-hover transition-all px-4" href="#">Threats</a>
+<a class="h-full flex items-center text-on-surface-variant font-data-mono text-data-mono hover:text-primary hover:bg-bg-hover transition-all px-4" href="#">Deployment</a>
+</nav>
+<!-- Right: Actions & Status -->
+<div class="flex items-center gap-6">
+<div class="hidden xl:flex items-center gap-4 font-data-mono text-data-mono">
+<span class="text-on-surface-variant">UTC 14:32:05</span>
+<div class="flex items-center gap-2 text-status-success glow-text-cyan">
+<div class="w-2 h-2 rounded-full bg-status-success glow-cyan pulse-critical"></div>
+                    ONLINE
+                </div>
+</div>
+<div class="flex items-center gap-2 border-l border-border-subtle pl-6">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-all active:scale-95 duration-100">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-all active:scale-95 duration-100">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-all active:scale-95 duration-100" title="Analyst Profile">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] mt-[64px] h-[calc(100vh-64px)] overflow-y-auto p-margin-page">
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter max-w-[1600px] mx-auto">
+<!-- Hero Section: Current Posture Gauge (Spans 8 cols) -->
+<div class="col-span-12 xl:col-span-8 bg-bg-raised border border-border-subtle rounded p-6 flex flex-col relative overflow-hidden">
+<!-- Subtle grid background pattern -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(#30363D 1px, transparent 1px), linear-gradient(90deg, #30363D 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="flex justify-between items-start mb-8 relative z-10">
+<div>
+<h2 class="font-button-label text-button-label text-on-surface-variant uppercase tracking-widest mb-1">System Wide</h2>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">CURRENT POSTURE</h3>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 border border-primary-container/30 bg-primary-container/10 text-primary-container font-data-mono text-[11px] rounded uppercase tracking-wider">Automated Scan</span>
+</div>
+</div>
+<div class="flex-1 flex items-center justify-center relative z-10 py-4">
+<!-- Brutalist Gauge Implementation -->
+<div class="relative w-[280px] h-[280px] flex items-center justify-center">
+<!-- Background Circle -->
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#21262D" stroke-dasharray="2 4" stroke-linecap="butt" stroke-width="6"></circle>
+</svg>
+<!-- Progress Circle (98%) -->
+<svg class="absolute inset-0 w-full h-full -rotate-90 drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#00d4ff" stroke-dasharray="282.7" stroke-dashoffset="5.65" stroke-linecap="butt" stroke-width="6"></circle>
+</svg>
+<!-- Inner Content -->
+<div class="text-center flex flex-col items-center">
+<span class="font-data-mono text-[56px] font-bold text-primary-container leading-none tracking-tighter glow-text-cyan">98<span class="text-[32px] text-border-subtle">%</span></span>
+<span class="font-button-label text-button-label text-status-success mt-2 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                                COMPLIANT
+                            </span>
+</div>
+</div>
+<!-- Stats beside gauge -->
+<div class="hidden md:flex flex-col gap-6 ml-12">
+<div>
+<p class="font-data-mono text-[11px] text-on-surface-variant uppercase mb-1 border-b border-border-subtle pb-1 w-32">Controls Passed</p>
+<p class="font-data-mono text-[20px] text-on-surface">342<span class="text-border-subtle">/345</span></p>
+</div>
+<div>
+<p class="font-data-mono text-[11px] text-on-surface-variant uppercase mb-1 border-b border-border-subtle pb-1 w-32">Critical Violations</p>
+<p class="font-data-mono text-[20px] text-status-success">0</p>
+</div>
+<div>
+<p class="font-data-mono text-[11px] text-on-surface-variant uppercase mb-1 border-b border-border-subtle pb-1 w-32">Last Evaluation</p>
+<p class="font-data-mono text-[13px] text-on-surface">2m ago</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Status Cards (Spans 4 cols, stacked) -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-gutter">
+<!-- SOC2 Card -->
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-success p-5 rounded flex-1 flex flex-col justify-between group hover:bg-bg-hover transition-colors">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success text-[20px]">verified</span>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase">SOC2 Type II</h3>
+</div>
+<div class="px-2 py-0.5 bg-status-success/10 border border-status-success/20 text-status-success font-data-mono text-[10px] uppercase tracking-widest rounded">Active</div>
+</div>
+<div class="mt-6">
+<div class="w-full bg-surface-container h-1.5 rounded-full mb-2 overflow-hidden">
+<div class="bg-status-success h-full w-full"></div>
+</div>
+<div class="flex justify-between font-data-mono text-[11px] text-on-surface-variant">
+<span class="">Coverage: 100%</span>
+<span class="">Continuous</span>
+</div>
+</div>
+</div>
+<!-- HIPAA Card -->
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-primary-container p-5 rounded flex-1 flex flex-col justify-between group hover:bg-bg-hover transition-colors">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">health_and_safety</span>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase">HIPAA</h3>
+</div>
+<div class="px-2 py-0.5 bg-primary-container/10 border border-primary-container/20 text-primary-container font-data-mono text-[10px] uppercase tracking-widest rounded">Active</div>
+</div>
+<div class="mt-6">
+<div class="w-full bg-surface-container h-1.5 rounded-full mb-2 overflow-hidden">
+<div class="bg-primary-container h-full w-[94%]"></div>
+</div>
+<div class="flex justify-between font-data-mono text-[11px] text-on-surface-variant">
+<span class="">Coverage: 94%</span>
+<span class="text-status-warning">3 Exceptions</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Compliance Snapshots Table (Spans 8 cols) -->
+<div class="col-span-12 xl:col-span-8 bg-bg-raised border border-border-subtle rounded flex flex-col">
+<div class="p-4 border-b border-border-subtle flex justify-between items-center bg-surface-container-low">
+<h3 class="font-button-label text-button-label text-on-surface uppercase tracking-widest">Compliance Snapshots</h3>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+</button>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="font-data-mono text-[11px] text-on-surface-variant uppercase tracking-wider bg-surface-container sticky top-0 z-10">
+<tr>
+<th class="py-3 px-4 font-normal border-b border-border-subtle">Date (UTC)</th>
+<th class="py-3 px-4 font-normal border-b border-border-subtle">Framework</th>
+<th class="py-3 px-4 font-normal border-b border-border-subtle">Status</th>
+<th class="py-3 px-4 font-normal border-b border-border-subtle text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-data-mono text-data-mono text-on-surface divide-y divide-border-subtle">
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="py-3 px-4">2023-10-27 00:00</td>
+<td class="py-3 px-4">SOC2 Type II</td>
+<td class="py-3 px-4">
+<span class="flex items-center gap-1.5 text-status-success">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span> Pass
+                                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="inline-flex items-center justify-center gap-1.5 px-3 py-1 border border-border-subtle rounded text-on-surface hover:border-primary hover:text-primary transition-colors group-hover:border-primary-container/50" onclick="window.open('{{DATA:DOCUMENT:COMPLIANCE_REPORT}}')">
+<span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+<span class="text-[11px] uppercase tracking-wider">Download PDF</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="py-3 px-4">2023-10-26 00:00</td>
+<td class="py-3 px-4">HIPAA</td>
+<td class="py-3 px-4">
+<span class="flex items-center gap-1.5 text-status-success">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span> Pass
+                                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="inline-flex items-center justify-center gap-1.5 px-3 py-1 border border-border-subtle rounded text-on-surface hover:border-primary hover:text-primary transition-colors group-hover:border-primary-container/50" onclick="window.open('{{DATA:DOCUMENT:COMPLIANCE_REPORT}}')">
+<span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+<span class="text-[11px] uppercase tracking-wider">Download PDF</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="py-3 px-4">2023-10-01 00:00</td>
+<td class="py-3 px-4 text-on-surface-variant">Quarterly Audit</td>
+<td class="py-3 px-4">
+<span class="flex items-center gap-1.5 text-status-warning">
+<span class="w-1.5 h-1.5 rounded-full bg-status-warning"></span> Review Req.
+                                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="inline-flex items-center justify-center gap-1.5 px-3 py-1 border border-border-subtle rounded text-on-surface hover:border-primary hover:text-primary transition-colors group-hover:border-primary-container/50" onclick="window.open('{{DATA:DOCUMENT:COMPLIANCE_REPORT}}')">
+<span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+<span class="text-[11px] uppercase tracking-wider">Download PDF</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="py-3 px-4">2023-09-27 00:00</td>
+<td class="py-3 px-4">SOC2 Type II</td>
+<td class="py-3 px-4">
+<span class="flex items-center gap-1.5 text-status-success">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span> Pass
+                                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="inline-flex items-center justify-center gap-1.5 px-3 py-1 border border-border-subtle rounded text-on-surface hover:border-primary hover:text-primary transition-colors group-hover:border-primary-container/50" onclick="window.open('{{DATA:DOCUMENT:COMPLIANCE_REPORT}}')">
+<span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+<span class="text-[11px] uppercase tracking-wider">Download PDF</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Right Column Bottom: Policies & Access (Spans 4 cols) -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-gutter">
+<!-- Policy Documents -->
+<div class="bg-bg-raised border border-border-subtle rounded p-5">
+<h3 class="font-button-label text-button-label text-on-surface uppercase tracking-widest mb-4">Policy Documents</h3>
+<div class="space-y-3">
+<a class="flex items-start gap-3 p-2 -mx-2 rounded hover:bg-bg-hover transition-colors group" href="#">
+<span class="material-symbols-outlined text-border-subtle group-hover:text-primary transition-colors text-[20px]">description</span>
+<div class="flex-1 min-w-0">
+<p class="font-data-mono text-data-mono text-on-surface truncate">Information Security Policy</p>
+<p class="font-data-mono text-[10px] text-on-surface-variant mt-0.5">Updated: Oct 15, 2023</p>
+</div>
+</a>
+<a class="flex items-start gap-3 p-2 -mx-2 rounded hover:bg-bg-hover transition-colors group" href="#">
+<span class="material-symbols-outlined text-border-subtle group-hover:text-primary transition-colors text-[20px]">description</span>
+<div class="flex-1 min-w-0">
+<p class="font-data-mono text-data-mono text-on-surface truncate">Incident Response Plan</p>
+<p class="font-data-mono text-[10px] text-on-surface-variant mt-0.5">Updated: Sep 02, 2023</p>
+</div>
+</a>
+<a class="flex items-start gap-3 p-2 -mx-2 rounded hover:bg-bg-hover transition-colors group" href="#">
+<span class="material-symbols-outlined text-border-subtle group-hover:text-primary transition-colors text-[20px]">description</span>
+<div class="flex-1 min-w-0">
+<p class="font-data-mono text-data-mono text-on-surface truncate">Access Control Matrix</p>
+<p class="font-data-mono text-[10px] text-on-surface-variant mt-0.5">Updated: Nov 01, 2023</p>
+</div>
+</a>
+</div>
+</div>
+<!-- External Auditor Access -->
+<div class="bg-surface border border-outline-variant/30 rounded p-5 relative overflow-hidden">
+<div class="absolute right-0 top-0 w-24 h-24 bg-primary-container/5 rounded-bl-full blur-xl pointer-events-none"></div>
+<h3 class="font-button-label text-button-label text-on-surface uppercase tracking-widest mb-4">External Auditor Access</h3>
+<div class="flex items-center justify-between mb-4 bg-surface-container-low p-3 rounded border border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-border-subtle">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">api</span>
+</div>
+<div>
+<p class="font-data-mono text-data-mono text-on-surface">Vanta Integration</p>
+<p class="font-data-mono text-[10px] text-status-success flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-status-success"></span> Connected
+                                </p>
+</div>
+</div>
+<!-- Custom Toggle -->
+<div class="w-10 h-5 bg-primary-container/20 rounded-full border border-primary-container/50 relative cursor-pointer">
+<div class="absolute right-0.5 top-0.5 w-4 h-4 bg-primary-container rounded-full shadow-[0_0_4px_rgba(0,212,255,0.6)]"></div>
+</div>
+</div>
+<button class="w-full py-2 border border-border-subtle border-dashed text-on-surface-variant font-button-label text-button-label uppercase tracking-widest hover:border-primary hover:text-primary transition-colors rounded flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                        Provision Access Key
+                    </button>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

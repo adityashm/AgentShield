@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Health - AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#bec7d2",
+                      "surface-container-low": "#181c22",
+                      "text-main": "#E6EDF3",
+                      "error-container": "#93000a",
+                      "inverse-on-surface": "#2d3137",
+                      "surface-dim": "#10141a",
+                      "bg-surface": "#161B22",
+                      "tertiary-fixed": "#dae3ee",
+                      "primary": "#a8e8ff",
+                      "status-success": "#238636",
+                      "outline": "#859398",
+                      "surface-container-high": "#262a31",
+                      "on-primary-fixed": "#001f27",
+                      "surface-container-highest": "#31353c",
+                      "primary-fixed": "#b4ebff",
+                      "primary-container": "#00d4ff",
+                      "secondary": "#acc7ff",
+                      "secondary-container": "#026ee4",
+                      "surface-variant": "#31353c",
+                      "bg-raised": "#1C2128",
+                      "inverse-surface": "#dfe2eb",
+                      "on-tertiary-fixed": "#141c24",
+                      "inverse-primary": "#00677e",
+                      "background": "#10141a",
+                      "surface-tint": "#3cd7ff",
+                      "surface-container": "#1c2026",
+                      "on-secondary-fixed-variant": "#004492",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#acc7ff",
+                      "surface-bright": "#353940",
+                      "on-tertiary-fixed-variant": "#3f4850",
+                      "bg-hover": "#21262D",
+                      "on-surface-variant": "#bbc9cf",
+                      "surface-container-lowest": "#0a0e14",
+                      "secondary-fixed": "#d7e2ff",
+                      "status-danger": "#F85149",
+                      "on-background": "#dfe2eb",
+                      "on-secondary-container": "#f8f8ff",
+                      "surface": "#10141a",
+                      "on-tertiary-container": "#48515a",
+                      "tertiary-container": "#bbc4cf",
+                      "on-primary": "#003642",
+                      "on-secondary-fixed": "#001a40",
+                      "on-primary-fixed-variant": "#004e5f",
+                      "tertiary": "#d7e0eb",
+                      "primary-fixed-dim": "#3cd7ff",
+                      "status-warning": "#D29922",
+                      "error": "#ffb4ab",
+                      "border-subtle": "#30363D",
+                      "on-tertiary": "#29313a",
+                      "outline-variant": "#3c494e",
+                      "on-secondary": "#002f68",
+                      "on-primary-container": "#00586b",
+                      "on-error": "#690005",
+                      "on-surface": "#dfe2eb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sidebar-width": "240px",
+                      "gutter": "16px",
+                      "margin-page": "24px",
+                      "base": "8px",
+                      "topbar-height": "64px"
+              },
+              "fontFamily": {
+                      "headline-md": ["IBM Plex Sans"],
+                      "data-mono": ["JetBrains Mono"],
+                      "body-md": ["IBM Plex Sans"],
+                      "button-label": ["JetBrains Mono"],
+                      "body-sm": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "button-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body { background-color: #10141a; color: #E6EDF3; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glow-primary:hover { text-shadow: 0 0 8px rgba(0, 212, 255, 0.6); }
+        .stat-pulse { animation: pulse-border 2s infinite; }
+        @keyframes pulse-border {
+            0% { border-color: rgba(248, 81, 73, 0.4); box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.4); }
+            70% { border-color: rgba(248, 81, 73, 1); box-shadow: 0 0 0 4px rgba(248, 81, 73, 0); }
+            100% { border-color: rgba(248, 81, 73, 0.4); box-shadow: 0 0 0 0 rgba(248, 81, 73, 0); }
+        }
+        .chart-line-cyan { stroke: #00d4ff; stroke-width: 2; fill: none; }
+        .chart-line-warn { stroke: #D29922; stroke-width: 2; fill: none; }
+        .chart-line-purple { stroke: #a8e8ff; stroke-width: 2; fill: none; }
+        .grid-line { stroke: #30363D; stroke-width: 1; }
+    </style>
+</head>
+<body class="font-body-md antialiased overflow-hidden">
+<!-- SideNavBar -->
+<aside class="w-sidebar-width h-screen fixed left-0 top-0 border-r border-border-subtle bg-background dark:bg-background text-primary dark:text-primary flex flex-col h-full py-base z-50">
+<div class="px-gutter pb-6 pt-2">
+<div class="font-button-label text-headline-md tracking-tighter text-primary uppercase flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 24px;">shield</span>
+                MISSION CONTROL
+            </div>
+<div class="font-data-mono text-data-mono text-on-surface-variant mt-1 text-[10px] uppercase opacity-70">AgentShield AI</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1 px-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-button-label">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="security">security</span>
+<span class="font-button-label">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications_active">notifications_active</span>
+<span class="font-button-label">Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="policy">policy</span>
+<span class="font-button-label">Rules</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="terminal">terminal</span>
+<span class="font-button-label">Logs</span>
+</a>
+<!-- Active Settings Tab -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-primary font-bold border-r-2 border-primary bg-surface-container-high transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-button-label">Settings</span>
+</a>
+</nav>
+<div class="px-gutter pt-4 border-t border-border-subtle mt-auto">
+<div class="flex items-center gap-3 text-on-surface-variant font-data-mono text-data-mono">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+                Sys: Nominal
+            </div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="h-topbar-height sticky top-0 w-full z-40 border-b border-border-subtle bg-surface dark:bg-surface text-primary dark:text-primary flex justify-between items-center px-margin-page ml-sidebar-width" style="width: calc(100% - 240px);">
+<div class="font-headline-md text-headline-md text-primary tracking-wide">
+            AgentShield AI
+        </div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary-container cursor-pointer glow-primary transition-all duration-300 flex items-center justify-center w-8 h-8 rounded-DEFAULT hover:bg-bg-hover">
+<span class="material-symbols-outlined text-[20px]" data-icon="timer">timer</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-container cursor-pointer glow-primary transition-all duration-300 flex items-center justify-center w-8 h-8 rounded-DEFAULT hover:bg-bg-hover relative">
+<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-status-danger rounded-full stat-pulse"></span>
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-container cursor-pointer glow-primary transition-all duration-300 flex items-center justify-center w-8 h-8 rounded-DEFAULT hover:bg-bg-hover">
+<span class="material-symbols-outlined text-[20px]" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-sidebar-width p-margin-page h-[calc(100vh-64px)] overflow-y-auto bg-background" style="width: calc(100% - 240px);">
+<!-- Header Section -->
+<div class="mb-6">
+<h1 class="font-headline-lg text-headline-lg text-text-main mb-1">System Health</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Infrastructure telemetry and node performance metrics</p>
+</div>
+<!-- Top Row (Stat Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-gutter">
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 border-l-2 border-l-status-success relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-status-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="font-button-label text-on-surface-variant uppercase tracking-wider">Node Stability</span>
+<span class="material-symbols-outlined text-status-success text-[18px]">dns</span>
+</div>
+<div class="font-data-mono text-[24px] leading-tight font-semibold text-text-main">99.8%</div>
+<div class="font-data-mono text-[10px] text-status-success mt-1">+0.1% vs last hour</div>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 border-l-2 border-l-primary-container relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="font-button-label text-on-surface-variant uppercase tracking-wider">Net Throughput</span>
+<span class="material-symbols-outlined text-primary-container text-[18px]">router</span>
+</div>
+<div class="font-data-mono text-[24px] leading-tight font-semibold text-text-main">1.4 GB/s</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant mt-1">Avg 1.2 GB/s</div>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 border-l-2 border-l-status-warning relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-status-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="font-button-label text-on-surface-variant uppercase tracking-wider">Memory Util</span>
+<span class="material-symbols-outlined text-status-warning text-[18px]">memory</span>
+</div>
+<div class="font-data-mono text-[24px] leading-tight font-semibold text-text-main">64%</div>
+<div class="font-data-mono text-[10px] text-status-warning mt-1">Approaching threshold</div>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 border-l-2 border-l-status-success relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-status-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="font-button-label text-on-surface-variant uppercase tracking-wider">CPU Load</span>
+<span class="material-symbols-outlined text-status-success text-[18px]">developer_board</span>
+</div>
+<div class="font-data-mono text-[24px] leading-tight font-semibold text-text-main">22%</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant mt-1">Optimal range</div>
+</div>
+</div>
+<!-- Middle Area (60/40 Split) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-gutter">
+<!-- 60% Left: Real-time Performance Metrics -->
+<div class="col-span-12 md:col-span-7 bg-bg-raised border border-border-subtle rounded-DEFAULT p-5 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md text-text-main">Real-time Performance Metrics</h2>
+<div class="flex gap-3 font-data-mono text-[10px]">
+<span class="flex items-center gap-1 text-on-surface-variant"><div class="w-2 h-2 bg-status-success rounded-full"></div> CPU</span>
+<span class="flex items-center gap-1 text-on-surface-variant"><div class="w-2 h-2 bg-status-warning rounded-full"></div> MEM</span>
+<span class="flex items-center gap-1 text-on-surface-variant"><div class="w-2 h-2 bg-primary-container rounded-full"></div> NET</span>
+</div>
+</div>
+<div class="relative flex-1 w-full min-h-[220px]">
+<!-- Mock Gridlines -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<line class="grid-line" stroke-dasharray="4" x1="0" x2="100%" y1="25%" y2="25%"></line>
+<line class="grid-line" stroke-dasharray="4" x1="0" x2="100%" y1="50%" y2="50%"></line>
+<line class="grid-line" stroke-dasharray="4" x1="0" x2="100%" y1="75%" y2="75%"></line>
+<line class="grid-line" x1="0" x2="100%" y1="100%" y2="100%"></line>
+<!-- Line 1: CPU (Greenish/Cyan proxy) -->
+<path class="chart-line-cyan" d="M0,180 Q40,150 80,170 T160,120 T240,150 T320,80 T400,100 T480,50 T560,90 T640,40" vector-effect="non-scaling-stroke"></path>
+<!-- Line 2: MEM (Warning/Amber) -->
+<path class="chart-line-warn" d="M0,100 Q40,110 80,90 T160,100 T240,80 T320,120 T400,110 T480,140 T560,130 T640,160" vector-effect="non-scaling-stroke"></path>
+<!-- Line 3: NET (Muted/Purple-ish proxy) -->
+<path class="chart-line-purple" d="M0,200 Q40,190 80,210 T160,180 T240,190 T320,170 T400,180 T480,150 T560,170 T640,190" opacity="0.6" vector-effect="non-scaling-stroke"></path>
+</svg>
+<!-- Y-Axis Labels -->
+<div class="absolute left-0 top-0 h-full flex flex-col justify-between text-on-surface-variant font-data-mono text-[10px] py-1 -ml-6">
+<span>100</span>
+<span>75</span>
+<span>50</span>
+<span>25</span>
+<span>0</span>
+</div>
+</div>
+</div>
+<!-- 40% Right: Active Nodes Status -->
+<div class="col-span-12 md:col-span-5 bg-bg-raised border border-border-subtle rounded-DEFAULT flex flex-col">
+<div class="p-4 border-b border-border-subtle flex justify-between items-center bg-surface-container-lowest/30">
+<h2 class="font-headline-md text-headline-md text-text-main">Active Nodes Status</h2>
+<span class="font-button-label text-primary-container text-[10px] bg-primary-container/10 px-2 py-1 border border-primary-container/20 rounded-DEFAULT">4 ONLINE</span>
+</div>
+<div class="flex flex-col p-2 gap-1 overflow-y-auto">
+<!-- Node Item -->
+<div class="flex items-center justify-between p-3 rounded-DEFAULT hover:bg-bg-hover border border-transparent hover:border-border-subtle transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+<div>
+<div class="font-data-mono text-text-main text-[13px]">Primary-Alpha</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant">Core Gateway</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data-mono text-[12px] text-text-main">14ms ping</div>
+<div class="font-data-mono text-[10px] text-status-success">Up 45d</div>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-DEFAULT hover:bg-bg-hover border border-transparent hover:border-border-subtle transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+<div>
+<div class="font-data-mono text-text-main text-[13px]">Worker-Node-01</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant">Compute Cluster</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data-mono text-[12px] text-text-main">18ms ping</div>
+<div class="font-data-mono text-[10px] text-status-success">Up 12d</div>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-DEFAULT hover:bg-bg-hover border border-transparent hover:border-border-subtle transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+<div>
+<div class="font-data-mono text-text-main text-[13px]">Worker-Node-02</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant">Compute Cluster</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data-mono text-[12px] text-text-main">21ms ping</div>
+<div class="font-data-mono text-[10px] text-status-success">Up 12d</div>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-DEFAULT hover:bg-bg-hover border border-transparent hover:border-border-subtle transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(35,134,54,0.6)]"></div>
+<div>
+<div class="font-data-mono text-text-main text-[13px]">Ingress-Proxy</div>
+<div class="font-data-mono text-[10px] text-on-surface-variant">Edge Gateway</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data-mono text-[12px] text-text-main">8ms ping</div>
+<div class="font-data-mono text-[10px] text-status-success">Up 89d</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

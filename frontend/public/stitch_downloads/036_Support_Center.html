@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Support Center | AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#003642",
+                        "surface-container-high": "#262a31",
+                        "surface-container-lowest": "#0a0e14",
+                        "background": "#10141a",
+                        "status-danger": "#F85149",
+                        "on-secondary-fixed": "#001a40",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "inverse-primary": "#00677e",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#29313a",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-surface": "#dfe2eb",
+                        "outline": "#859398",
+                        "on-tertiary-fixed": "#141c24",
+                        "on-tertiary-container": "#48515a",
+                        "surface-variant": "#31353c",
+                        "on-primary-container": "#00586b",
+                        "surface": "#10141a",
+                        "inverse-surface": "#dfe2eb",
+                        "on-background": "#dfe2eb",
+                        "text-main": "#E6EDF3",
+                        "tertiary-container": "#bbc4cf",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "on-secondary-fixed-variant": "#004492",
+                        "tertiary-fixed": "#dae3ee",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "on-secondary": "#002f68",
+                        "on-primary-fixed": "#001f27",
+                        "surface-container-low": "#181c22",
+                        "status-warning": "#D29922",
+                        "bg-hover": "#21262D",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1c2026",
+                        "secondary-container": "#026ee4",
+                        "on-surface-variant": "#bbc9cf",
+                        "tertiary": "#d7e0eb",
+                        "border-subtle": "#30363D",
+                        "surface-tint": "#3cd7ff",
+                        "surface-bright": "#353940",
+                        "secondary": "#acc7ff",
+                        "inverse-on-surface": "#2d3137",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "status-success": "#238636",
+                        "outline-variant": "#3c494e",
+                        "on-error": "#690005",
+                        "bg-surface": "#161B22",
+                        "surface-container-highest": "#31353c",
+                        "primary-fixed": "#b4ebff",
+                        "primary": "#a8e8ff",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "on-secondary-container": "#f8f8ff",
+                        "surface-dim": "#10141a",
+                        "primary-container": "#00d4ff",
+                        "bg-raised": "#1C2128"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "topbar-height": "64px",
+                        "sidebar-width": "240px",
+                        "gutter": "16px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "button-label": ["JetBrains Mono"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "body-sm": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "button-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glow-accent { box-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #10141a; }
+        ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 10px; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .accordion-item.active .accordion-content { max-height: 200px; }
+        .accordion-item.active .arrow-icon { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Side Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-[240px] border-r border-border-subtle bg-background flex flex-col py-base z-50">
+<div class="px-margin-page mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">AgentShield AI</h1>
+<p class="text-body-sm text-on-surface-variant uppercase tracking-widest opacity-70">Mission Control</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="description">description</span>
+<span class="font-body-md">Documentation</span>
+</a>
+<!-- Technical Support - Active State -->
+<a class="flex items-center px-margin-page py-3 text-primary bg-surface-container-high border-r-2 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="support_agent">support_agent</span>
+<span class="font-body-md">Technical Support</span>
+</a>
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="quiz">quiz</span>
+<span class="font-body-md">FAQ Center</span>
+</a>
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="report_problem">report_problem</span>
+<span class="font-body-md">Anomalies</span>
+</a>
+</nav>
+<div class="mt-auto pt-base border-t border-border-subtle">
+<button class="mx-margin-page mb-4 w-[calc(100%-48px)] bg-primary-container text-on-primary py-2 px-4 rounded-lg font-button-label uppercase hover:brightness-110 active:scale-95 duration-100 transition-all">
+                Open Ticket
+            </button>
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+<a class="flex items-center px-margin-page py-3 text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="sensors">sensors</span>
+<span class="font-body-md">Status</span>
+</a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="fixed top-0 right-0 w-[calc(100%-240px)] h-topbar-height bg-surface-container-lowest border-b border-border-subtle flex justify-between items-center px-margin-page z-40">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Security Ops Center</h2>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center space-x-8">
+<a class="text-on-surface-variant hover:text-primary transition-all font-body-md" href="#">Network</a>
+<a class="text-on-surface-variant hover:text-primary transition-all font-body-md" href="#">Threats</a>
+<a class="text-on-surface-variant hover:text-primary transition-all font-body-md" href="#">Assets</a>
+</nav>
+<div class="h-6 w-px bg-border-subtle mx-2"></div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="help_outline">help_outline</span>
+<img alt="Analyst Profile" class="w-8 h-8 rounded-full border border-border-subtle object-cover" data-alt="A professional security analyst headshot with neutral lighting, wearing dark tech-wear against a dark architectural background. The image has high contrast with deep blacks and cool blue tones, reflecting the technical authority and precision of a mission control environment for a high-end cybersecurity firm." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9s8xYE6irgKz4KL316UxqPbfd7sl-XnjLENhthW7fRbU1QnHcS6NpwAUmE-ERGiTMBg51ngtqjJ6hYN_Nta_4KLAFfR7lvrqMIEQteWryZXly0zExHEQNZBbSCJHzkhVu2GB96upHiKRtpmDMXPa2_96cCJj0Zfer7fGwt_AO9LGWEddJZxEzwkpu4ZeCHzxsUTCSS-5qCKY3Al1w_TzvWuqWLUjYQPX8upMUoqK--sWDu0MtZBvgcqDFreLkXLwtWF125OL0Vg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-[88px] p-margin-page min-h-screen">
+<!-- Support Header -->
+<div class="mb-10 max-w-4xl">
+<h1 class="font-headline-lg text-headline-lg text-text-main mb-2">Support Center</h1>
+<p class="text-on-surface-variant text-body-md max-w-2xl">Get technical assistance and report system anomalies. Access our prioritized help desk or consult our automated diagnostic systems for immediate remediation.</p>
+</div>
+<!-- Section 1: Quick Action Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-12">
+<!-- Technical Support -->
+<div class="bg-bg-surface border border-border-subtle p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-primary"></div>
+<div class="flex items-center gap-4 mb-4">
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="support_agent">support_agent</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-main">Technical Support</h3>
+</div>
+<p class="text-body-md text-on-surface-variant mb-6 font-body-sm h-12 overflow-hidden">Direct access to L3 security engineers for complex configuration and incident response assistance.</p>
+<button class="w-full py-2.5 border border-border-subtle text-primary font-button-label uppercase hover:bg-surface-container-high transition-all active:scale-95">
+                    OPEN TICKET
+                </button>
+</div>
+<!-- System Status -->
+<div class="bg-bg-surface border border-border-subtle p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-success"></div>
+<div class="flex items-center gap-4 mb-4">
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-status-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-main">System Status</h3>
+</div>
+<p class="text-body-md text-on-surface-variant mb-6 font-body-sm h-12 overflow-hidden">All global nodes operational. Monitor real-time performance metrics and historical uptime logs.</p>
+<button class="w-full py-2.5 border border-border-subtle text-on-surface-variant font-button-label uppercase hover:bg-surface-container-high transition-all active:scale-95">
+                    VIEW INCIDENT HISTORY
+                </button>
+</div>
+<!-- Community Docs -->
+<div class="bg-bg-surface border border-border-subtle p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-warning"></div>
+<div class="flex items-center gap-4 mb-4">
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-status-warning" data-icon="forum">forum</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-main">Community Docs</h3>
+</div>
+<p class="text-body-md text-on-surface-variant mb-6 font-body-sm h-12 overflow-hidden">Collaborate with fellow analysts and access community-driven remediation playbooks.</p>
+<button class="w-full py-2.5 border border-border-subtle text-on-surface-variant font-button-label uppercase hover:bg-surface-container-high transition-all active:scale-95">
+                    VISIT FORUM
+                </button>
+</div>
+</div>
+<!-- Section 2: Two-Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-gutter">
+<!-- Left 60%: FAQ Accordion -->
+<div class="lg:col-span-6 bg-bg-surface border border-border-subtle rounded-lg p-margin-page">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline-lg text-headline-lg text-text-main">Frequently Asked Questions</h3>
+<span class="text-body-sm font-data-mono text-primary px-2 py-1 bg-surface-container rounded">AUTO-UPDATED</span>
+</div>
+<div class="space-y-4">
+<!-- FAQ 1 -->
+<div class="accordion-item border border-border-subtle rounded bg-surface-container-low transition-colors hover:border-outline">
+<button class="w-full flex items-center justify-between p-4 text-left" onclick="toggleAccordion(this)">
+<span class="font-body-md text-text-main">How do I isolate a rogue agent?</span>
+<span class="material-symbols-outlined arrow-icon transition-transform" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content px-4">
+<div class="pb-4 text-body-sm text-on-surface-variant font-data-mono">
+                                Navigate to the 'Anomalies' tab, select the specific agent UID, and initiate the 'QUARANTINE_PROTOCOL'. This will revoke all JWT tokens and block network egress via the local firewall agent.
+                            </div>
+</div>
+</div>
+<!-- FAQ 2 -->
+<div class="accordion-item border border-border-subtle rounded bg-surface-container-low transition-colors hover:border-outline">
+<button class="w-full flex items-center justify-between p-4 text-left" onclick="toggleAccordion(this)">
+<span class="font-body-md text-text-main">What do risk scores represent?</span>
+<span class="material-symbols-outlined arrow-icon transition-transform" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content px-4">
+<div class="pb-4 text-body-sm text-on-surface-variant font-data-mono">
+                                Risk scores are calculated using a weighted average of anomaly detection (40%), historical threat actor overlap (30%), and endpoint sensitivity (30%). Scores above 75 trigger immediate P1 alerts.
+                            </div>
+</div>
+</div>
+<!-- FAQ 3 -->
+<div class="accordion-item border border-border-subtle rounded bg-surface-container-low transition-colors hover:border-outline">
+<button class="w-full flex items-center justify-between p-4 text-left" onclick="toggleAccordion(this)">
+<span class="font-body-md text-text-main">How to configure custom correlation rules?</span>
+<span class="material-symbols-outlined arrow-icon transition-transform" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content px-4">
+<div class="pb-4 text-body-sm text-on-surface-variant font-data-mono">
+                                Use the ShieldQuery DSL in the Documentation section to define logic gates. Upload your .sqdl file to the 'Detection Engine' configuration panel in the Global Settings.
+                            </div>
+</div>
+</div>
+<!-- FAQ 4 -->
+<div class="accordion-item border border-border-subtle rounded bg-surface-container-low transition-colors hover:border-outline">
+<button class="w-full flex items-center justify-between p-4 text-left" onclick="toggleAccordion(this)">
+<span class="font-body-md text-text-main">API rate limits and quota management</span>
+<span class="material-symbols-outlined arrow-icon transition-transform" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content px-4">
+<div class="pb-4 text-body-sm text-on-surface-variant font-data-mono">
+                                Standard tier allows 5,000 requests/hour. Enterprise allows 50,000. You can monitor your current utilization in the 'Developer Console' under the assets tab.
+                            </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right 40%: Contact Form -->
+<div class="lg:col-span-4 bg-bg-surface border border-border-subtle rounded-lg p-margin-page relative">
+<div class="mb-6">
+<h3 class="font-headline-lg text-headline-lg text-text-main mb-1">Contact SecOps</h3>
+<p class="text-body-sm text-on-surface-variant">Submit a priority encrypted report.</p>
+</div>
+<form class="space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="font-button-label text-on-surface-variant uppercase text-[10px]">Priority Level</label>
+<select class="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-text-main font-data-mono py-2.5 px-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+<option>P4 - Low</option>
+<option>P3 - Medium</option>
+<option>P2 - High</option>
+<option>P1 - CRITICAL</option>
+</select>
+</div>
+<div class="space-y-1.5">
+<label class="font-button-label text-on-surface-variant uppercase text-[10px]">Category</label>
+<select class="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-text-main font-data-mono py-2.5 px-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+<option>Bug Report</option>
+<option>Configuration</option>
+<option>Security Incident</option>
+<option>Account Query</option>
+</select>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="font-button-label text-on-surface-variant uppercase text-[10px]">Subject</label>
+<input class="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-text-main font-body-md py-2.5 px-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-on-surface-variant placeholder:opacity-40 transition-all" placeholder="Brief summary of issue" type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-button-label text-on-surface-variant uppercase text-[10px]">Message Details</label>
+<textarea class="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-text-main font-data-mono text-[12px] py-2.5 px-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-on-surface-variant placeholder:opacity-40 transition-all resize-none" placeholder="Detailed technical logs or steps to reproduce..." rows="4"></textarea>
+</div>
+<div class="pt-4">
+<button class="w-full bg-primary-container text-on-primary py-3 rounded-lg font-button-label uppercase glow-accent hover:brightness-110 active:scale-95 duration-100 transition-all" type="button">
+                            SUBMIT REPORT
+                        </button>
+</div>
+<div class="mt-6 flex items-center justify-center gap-2 opacity-40">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="text-[10px] font-data-mono uppercase">End-to-End Encrypted Tunnel</span>
+</div>
+</form>
+</div>
+</div>
+</main>
+<!-- Script for Accordion Micro-interactions -->
+<script>
+        function toggleAccordion(button) {
+            const item = button.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            // Close all items
+            document.querySelectorAll('.accordion-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // If it wasn't active, open it
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // Pulse Animation for Critical Alerts (CSS defined)
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse-opacity {
+                0% { opacity: 0.4; }
+                50% { opacity: 1; }
+                100% { opacity: 0.4; }
+            }
+            .pulse-alert { animation: pulse-opacity 2s ease-in-out infinite; }
+        `;
+        document.head.append(style);
+    </script>
+</body></html>

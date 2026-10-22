@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgentShield AI - User Guide</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom scrollbar for deep space aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10141a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3c494e; 
+        }
+        
+        .glow-active {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d7e2ff",
+                        "surface": "#10141a",
+                        "tertiary-fixed": "#dae3ee",
+                        "on-surface-variant": "#bbc9cf",
+                        "inverse-primary": "#00677e",
+                        "secondary-container": "#026ee4",
+                        "primary-fixed": "#b4ebff",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "on-secondary-container": "#f8f8ff",
+                        "surface-tint": "#3cd7ff",
+                        "primary": "#a8e8ff",
+                        "tertiary-container": "#bbc4cf",
+                        "on-primary": "#003642",
+                        "on-secondary-fixed-variant": "#004492",
+                        "status-danger": "#F85149",
+                        "surface-container-low": "#181c22",
+                        "background": "#10141a",
+                        "bg-hover": "#21262D",
+                        "surface-variant": "#31353c",
+                        "bg-surface": "#161B22",
+                        "status-warning": "#D29922",
+                        "surface-container-lowest": "#0a0e14",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#dfe2eb",
+                        "bg-raised": "#1C2128",
+                        "surface-dim": "#10141a",
+                        "secondary": "#acc7ff",
+                        "outline": "#859398",
+                        "on-secondary": "#002f68",
+                        "on-tertiary-container": "#48515a",
+                        "surface-container": "#1c2026",
+                        "surface-container-high": "#262a31",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#001f27",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "tertiary": "#d7e0eb",
+                        "inverse-on-surface": "#2d3137",
+                        "outline-variant": "#3c494e",
+                        "surface-bright": "#353940",
+                        "primary-container": "#00d4ff",
+                        "on-error": "#690005",
+                        "text-main": "#E6EDF3",
+                        "surface-container-highest": "#31353c",
+                        "on-surface": "#dfe2eb",
+                        "border-subtle": "#30363D",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "on-background": "#dfe2eb",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-primary-container": "#00586b",
+                        "on-secondary-fixed": "#001a40",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "on-tertiary": "#29313a",
+                        "status-success": "#238636",
+                        "on-tertiary-fixed": "#141c24"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "topbar-height": "64px",
+                        "sidebar-width": "240px",
+                        "margin-page": "24px",
+                        "base": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "button-label": ["JetBrains Mono"],
+                        "body-md": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "body-sm": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#0D1117] text-text-main font-body-md min-h-screen flex overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<nav class="bg-surface dark:bg-surface fixed left-0 top-0 h-full w-[240px] border-r border-border-subtle dark:border-border-subtle flex flex-col h-full py-base z-50">
+<!-- Brand / Header -->
+<div class="px-gutter mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-bg-raised border border-border-subtle flex items-center justify-center">
+<img alt="AgentShield AI Logo" class="rounded" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXqD_jo7MFrmHNY68aZe--YaI1f07FE3HzaUlKgHq2xv7FYzyn0oJk1tITFv-C2P1vx4dgQ59wH02fxVamCNrjWkxHjs8wbq-336G_Tq7DaEmy9Xpfka35eij0LI1VP_sZFfryHV4joyq1p4oluwhdBcu2SXSawCQM1FhaBbowGXtGz2XltZX4fjcF1dhpZa1gAIbtibszgyqmzgM_nMG8S1_OZ5dbISto4Nt8YGwYWAwltph6CeHpsIJzBuanelviNycN61D2pA"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary tracking-tighter">AgentShield AI</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mission Control</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 px-base space-y-1 overflow-y-auto">
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+                Agents
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+                Alerts
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+                Rules
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+                Logs
+            </a>
+</div>
+<!-- Bottom Action & Settings -->
+<div class="px-base mt-auto pt-4 border-t border-border-subtle">
+<!-- Active State mapping to User Guide/Settings context -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-primary-container bg-primary-container/10 border-r-2 border-primary scale-[0.98] transition-transform duration-100 hover:bg-bg-hover transition-colors duration-150 font-button-label mb-4" href="#">
+<span class="material-symbols-outlined fill" data-icon="menu_book">menu_book</span>
+                User Guide
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-button-label hover:bg-bg-hover transition-colors duration-150 mb-4" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+<button class="w-full bg-primary-container text-[#000000] font-button-label py-2 rounded-DEFAULT hover:bg-primary transition-colors flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                DEPLOY AGENT
+            </button>
+</div>
+</nav>
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-bg-surface dark:bg-bg-surface docked full-width fixed top-0 h-[64px] ml-[240px] border-b border-border-subtle dark:border-border-subtle flex justify-between items-center px-margin-page w-[calc(100%-240px)] z-40">
+<!-- Search Bar (on_left) -->
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-[#0D1117] border border-border-subtle rounded-DEFAULT py-1.5 pl-10 pr-4 font-body-sm text-text-main focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" placeholder="Search documentation..." type="text"/>
+<div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+<kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-data-mono bg-bg-raised border border-border-subtle rounded text-on-surface-variant">⌘</kbd>
+<kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-data-mono bg-bg-raised border border-border-subtle rounded text-on-surface-variant">K</kbd>
+</div>
+</div>
+<!-- Brand (hidden per JSON) -->
+<div class="hidden"></div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-colors focus:ring-1 focus:ring-primary">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-colors focus:ring-1 focus:ring-primary">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-bg-hover rounded transition-colors focus:ring-1 focus:ring-primary relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-status-danger rounded-full animate-pulse"></span>
+</button>
+<div class="w-px h-6 bg-border-subtle mx-2"></div>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-border-subtle cursor-pointer hover:border-primary transition-colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp_JFekX3-gj3-61e2MFB16-O_xw9u6EOOECyK2o7jRsuLXfQEuQk42P4KqWQJQPAxn3sIMiKPNl0hvOhOVnDO7-5_Wo7LaqOzNILeU-xisjwJtSczwz0P2JUj-O9gN9xf75wtAX5cQ4x12p_jQGm2cLeCEbMK-WJgdi6ZrJo6g7cGIX1ct0riu9syFXYKAcIXaome8QunXZVSprkzMQJoHRU0VFbQMQvZ5NPv6Zg_xidqmnCCdHZKaXCr6DjfJ9orxeoXeFkq6g"/>
+</div>
+</header>
+<!-- Main Layout -->
+<div class="flex-1 ml-[240px] mt-[64px] h-[calc(100vh-64px)] flex">
+<!-- Documentation Menu (Left Column) -->
+<aside class="w-[250px] bg-bg-surface border-r border-border-subtle overflow-y-auto hidden md:block">
+<div class="p-6">
+<h3 class="font-button-label text-button-label text-on-surface-variant uppercase tracking-wider mb-4">Documentation Menu</h3>
+<ul class="space-y-1">
+<li>
+<a class="flex items-center px-3 py-2 text-primary bg-bg-hover border-l-2 border-primary-container font-body-md rounded-r" href="#">
+                            Getting Started
+                        </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 text-on-surface hover:text-text-main hover:bg-bg-raised font-body-md transition-colors rounded" href="#">
+                            Dashboard Overview
+                        </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 text-on-surface hover:text-text-main hover:bg-bg-raised font-body-md transition-colors rounded" href="#">
+                            Agent Monitoring
+                        </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 text-on-surface hover:text-text-main hover:bg-bg-raised font-body-md transition-colors rounded" href="#">
+                            Alert Triage
+                        </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 text-on-surface hover:text-text-main hover:bg-bg-raised font-body-md transition-colors rounded" href="#">
+                            Rule Configuration
+                        </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 text-on-surface hover:text-text-main hover:bg-bg-raised font-body-md transition-colors rounded" href="#">
+                            Simulation Tools
+                        </a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-8 lg:p-12">
+<div class="max-w-4xl mx-auto space-y-12">
+<!-- Introduction -->
+<section>
+<div class="flex items-center gap-2 text-on-surface-variant font-data-mono text-data-mono mb-4">
+<span>User Guide</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary-container">Getting Started</span>
+</div>
+<h1 class="font-headline-lg text-[32px] leading-[40px] font-bold text-text-main mb-4 tracking-tight">Introduction to AgentShield AI</h1>
+<p class="font-body-md text-on-surface-variant leading-relaxed text-lg mb-6">
+                        AgentShield AI is an autonomous, high-density monitoring and response platform designed for modern SecOps environments. It utilizes distributed intelligent agents to establish a secure perimeter, detecting anomalies and executing rule-based mitigations in real-time. This guide will walk you through deploying your first agent and understanding the core telemetry.
+                    </p>
+<!-- Architecture Diagram Placeholder -->
+<div class="w-full h-64 bg-bg-raised border border-border-subtle rounded-DEFAULT relative overflow-hidden flex flex-col items-center justify-center group">
+<!-- Simulated Grid Background -->
+<div class="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#30363D_1px,transparent_1px),linear-gradient(to_bottom,#30363D_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2 group-hover:text-primary-container transition-colors duration-300">account_tree</span>
+<span class="font-data-mono text-on-surface-variant">System Architecture Diagram [Placeholder]</span>
+</div>
+</section>
+<!-- Core Concepts Table -->
+<section>
+<h2 class="font-headline-md text-headline-md text-text-main border-b border-border-subtle pb-2 mb-6">Core Concepts</h2>
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-border-subtle">
+<th class="py-3 px-4 font-button-label text-on-surface-variant font-semibold">Entity</th>
+<th class="py-3 px-4 font-button-label text-on-surface-variant font-semibold">Description</th>
+<th class="py-3 px-4 font-button-label text-on-surface-variant font-semibold">Risk Range</th>
+</tr>
+</thead>
+<tbody class="font-data-mono text-data-mono">
+<tr class="border-b border-border-subtle hover:bg-bg-hover transition-colors">
+<td class="py-3 px-4 text-primary-container">Sentinel Node</td>
+<td class="py-3 px-4 text-on-surface">Primary data aggregation point.</td>
+<td class="py-3 px-4 text-status-success">0 - 15</td>
+</tr>
+<tr class="border-b border-border-subtle hover:bg-bg-hover transition-colors">
+<td class="py-3 px-4 text-primary-container">Vector Proxy</td>
+<td class="py-3 px-4 text-on-surface">Handles encrypted traffic routing.</td>
+<td class="py-3 px-4 text-status-warning">16 - 45</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors">
+<td class="py-3 px-4 text-primary-container">Anomaly Daemon</td>
+<td class="py-3 px-4 text-on-surface">Executes ML heuristics on payload.</td>
+<td class="py-3 px-4 text-status-danger">46 - 99</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Quick Start Steps -->
+<section>
+<h2 class="font-headline-md text-headline-md text-text-main border-b border-border-subtle pb-2 mb-6">Quick Start</h2>
+<div class="space-y-8">
+<!-- Step 1 -->
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-bg-raised border border-primary-container flex items-center justify-center font-data-mono text-primary-container glow-active">
+                                1
+                            </div>
+<div class="flex-1">
+<h3 class="font-headline-md text-text-main mb-2">Initialize Environment</h3>
+<p class="font-body-md text-on-surface-variant mb-3">Install the core CLI tools required for deploying AgentShield nodes in your cluster.</p>
+<div class="bg-[#050608] border border-border-subtle rounded-DEFAULT p-4 relative group">
+<div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary-container" onclick="navigator.clipboard.writeText('npm install -g @agentshield/cli')">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+<code class="font-data-mono text-data-mono text-primary">
+<span class="text-on-surface-variant">$</span> npm install -g @agentshield/cli
+                                    </code>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-bg-raised border border-border-subtle flex items-center justify-center font-data-mono text-on-surface-variant">
+                                2
+                            </div>
+<div class="flex-1">
+<h3 class="font-headline-md text-text-main mb-2">Authenticate Cluster</h3>
+<p class="font-body-md text-on-surface-variant mb-3">Bind your local environment to the Mission Control dashboard using your API token.</p>
+<div class="bg-[#050608] border border-border-subtle rounded-DEFAULT p-4 relative group">
+<div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary-container" onclick="navigator.clipboard.writeText('shield auth login --token=YOUR_API_TOKEN')">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+<code class="font-data-mono text-data-mono text-primary">
+<span class="text-on-surface-variant">$</span> shield auth login --token=YOUR_API_TOKEN
+                                    </code>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="pt-8 mt-8 border-t border-border-subtle flex justify-between items-center">
+<button class="px-4 py-2 bg-transparent border border-border-subtle text-on-surface-variant font-button-label uppercase rounded hover:border-primary-container hover:text-primary-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Previous
+                    </button>
+<button class="px-4 py-2 bg-bg-raised border border-border-subtle text-text-main font-button-label uppercase rounded hover:border-primary-container hover:text-primary-container transition-colors flex items-center gap-2">
+                        Next: Dashboard Overview
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

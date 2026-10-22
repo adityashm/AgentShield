@@ -1,0 +1,408 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>System Settings - AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#262a31",
+                        "on-tertiary": "#29313a",
+                        "bg-raised": "#1C2128",
+                        "surface-bright": "#353940",
+                        "on-primary-fixed": "#001f27",
+                        "secondary": "#acc7ff",
+                        "inverse-primary": "#00677e",
+                        "status-success": "#238636",
+                        "primary-container": "#00d4ff",
+                        "secondary-container": "#026ee4",
+                        "on-secondary-container": "#f8f8ff",
+                        "surface-container-highest": "#31353c",
+                        "tertiary-fixed": "#dae3ee",
+                        "tertiary-container": "#bbc4cf",
+                        "on-background": "#dfe2eb",
+                        "surface": "#10141a",
+                        "border-subtle": "#30363D",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "bg-surface": "#161B22",
+                        "surface-tint": "#3cd7ff",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#bbc9cf",
+                        "surface-variant": "#31353c",
+                        "status-warning": "#D29922",
+                        "on-secondary-fixed-variant": "#004492",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "background": "#10141a",
+                        "outline": "#859398",
+                        "on-secondary-fixed": "#001a40",
+                        "primary": "#a8e8ff",
+                        "on-tertiary-container": "#48515a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#2d3137",
+                        "primary-fixed": "#b4ebff",
+                        "surface-dim": "#10141a",
+                        "error-container": "#93000a",
+                        "text-main": "#E6EDF3",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#3c494e",
+                        "on-secondary": "#002f68",
+                        "bg-hover": "#21262D",
+                        "surface-container-lowest": "#0a0e14",
+                        "tertiary": "#d7e0eb",
+                        "surface-container-low": "#181c22",
+                        "status-danger": "#F85149",
+                        "on-primary": "#003642",
+                        "surface-container": "#1c2026",
+                        "on-surface": "#dfe2eb",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-primary-container": "#00586b",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "on-tertiary-fixed": "#141c24",
+                        "secondary-fixed": "#d7e2ff",
+                        "inverse-surface": "#dfe2eb",
+                        "on-tertiary-fixed-variant": "#3f4850"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "topbar-height": "64px",
+                        "sidebar-width": "240px",
+                        "gutter": "16px",
+                        "margin-page": "24px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans", "sans-serif"],
+                        "button-label": ["JetBrains Mono", "monospace"],
+                        "headline-lg": ["IBM Plex Sans", "sans-serif"],
+                        "data-mono": ["JetBrains Mono", "monospace"],
+                        "body-sm": ["IBM Plex Sans", "sans-serif"],
+                        "headline-md": ["IBM Plex Sans", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0D1117; } /* Override for specific dark background requested */
+        .cyan-glow { box-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+        .pulse-critical { animation: pulse-opacity 2s infinite ease-in-out; }
+        @keyframes pulse-opacity {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #30363D;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="text-on-surface bg-[#0D1117] min-h-screen font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-bg-surface dark:bg-bg-surface text-primary dark:text-primary font-data-mono text-data-mono fixed top-0 right-0 h-topbar-height w-full md:w-[calc(100%-240px)] border-b border-border-subtle z-50 flex justify-between items-center px-margin-page">
+<div class="flex items-center gap-6">
+<span class="font-button-label text-button-label uppercase tracking-widest text-primary md:hidden">AGENTSHIELD AI</span>
+<nav class="hidden md:flex gap-6 h-full items-center">
+<a class="text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 py-1 rounded" href="#">Systems</a>
+<a class="text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 py-1 rounded" href="#">Threats</a>
+<a class="text-on-surface-variant hover:text-primary hover:bg-bg-hover transition-all active:scale-95 duration-100 px-2 py-1 rounded" href="#">Deployment</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<span class="hidden sm:inline-block">UTC 14:32:05</span>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-primary-container cyan-glow"></span>
+<span class="hidden sm:inline-block">ONLINE</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">help_outline</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span></button>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-[240px] border-r border-border-subtle z-40 flex-col py-gutter px-base hidden md:flex">
+<div class="mb-8 px-4 mt-2">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tighter mb-1">MISSION CONTROL</div>
+<div class="font-data-mono text-data-mono text-on-surface-variant text-[10px]">V-2.4.0 OPERATIONAL</div>
+</div>
+<div class="flex flex-col gap-1 flex-grow">
+<a class="flex items-center gap-3 px-4 py-3 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="index.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="agents.html">
+<span class="material-symbols-outlined">security</span>
+<span class="">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="alerts.html">
+<span class="material-symbols-outlined">notifications_active</span>
+<span class="">Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="rules.html">
+<span class="material-symbols-outlined">policy</span>
+<span class="">Rules</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="logs.html">
+<span class="material-symbols-outlined">terminal</span>
+<span class="">Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary font-bold border-r-2 border-primary bg-surface-container-high hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 active:bg-surface-container-highest transition-all duration-150" href="settings.html">
+<span class="material-symbols-outlined">settings</span>
+<span class="">Settings</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-1 mb-4">
+<a class="flex items-center gap-3 px-4 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+<span class="">Security Status</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-bg-hover hover:text-on-surface transition-colors duration-200 text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+<span class="">System Admin</span>
+</a>
+</div>
+<button class="mt-2 w-full bg-primary-container text-on-primary-container font-button-label text-button-label uppercase py-3 rounded-DEFAULT cyan-glow hover:bg-primary transition-colors">
+            DEPLOY AGENT
+        </button>
+</nav>
+<!-- Main Content -->
+<main class="md:ml-[240px] pt-topbar-height p-margin-page min-h-screen flex flex-col">
+<!-- Header -->
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">System Settings</h1>
+<p class="text-on-surface-variant font-body-md text-body-md">Manage global security parameters and system-wide configurations.</p>
+</div>
+<!-- 2-Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter flex-grow mb-[80px]">
+<!-- Left Column (60%) -->
+<div class="lg:col-span-7 flex flex-col gap-gutter">
+<!-- Environment Parameters Card -->
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 flex flex-col relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-primary-container"></div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary-container">tune</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Environment Parameters</h2>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Slider 1 -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Enable Latency Simulation</label>
+<span class="font-data-mono text-data-mono text-primary-container">120ms</span>
+</div>
+<input class="w-full appearance-none bg-transparent" max="500" min="0" type="range" value="120">
+</div>
+<!-- Slider 2 -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Network Jitter</label>
+<span class="font-data-mono text-data-mono text-primary-container">15%</span>
+</div>
+<input class="w-full appearance-none bg-transparent" max="100" min="0" type="range" value="15">
+</div>
+<!-- Slider 3 -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Packet Loss Emulation</label>
+<span class="font-data-mono text-data-mono text-primary-container">2.5%</span>
+</div>
+<input class="w-full appearance-none bg-transparent" max="20" min="0" step="0.5" type="range" value="2.5">
+</div>
+<!-- Slider 4 -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-on-surface-variant font-body-sm text-body-sm">External API Throttling</label>
+<span class="font-data-mono text-data-mono text-primary-container">500 req/s</span>
+</div>
+<input class="w-full appearance-none bg-transparent" max="1000" min="100" type="range" value="500">
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-border-subtle">
+<span class="font-data-mono text-[11px] text-on-surface-variant">Last configuration sync: 14:22:05 UTC</span>
+</div>
+</div>
+<!-- Global Threat Guardrails Card -->
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 flex flex-col relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-danger"></div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-status-danger">security</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Global Threat Guardrails</h2>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Toggle 1 -->
+<label class="flex items-center justify-between cursor-pointer p-3 bg-surface-container-low rounded-DEFAULT border border-border-subtle hover:border-primary-container transition-colors">
+<div class="flex flex-col">
+<span class="text-on-surface font-body-md text-body-md font-medium">Auto-Kill Rogue Processes</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Terminate unrecognized executables immediately.</span>
+</div>
+<div class="relative">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-border-subtle after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container cyan-glow shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"></div>
+</div>
+</label>
+<!-- Toggle 2 -->
+<label class="flex items-center justify-between cursor-pointer p-3 bg-surface-container-low rounded-DEFAULT border border-border-subtle hover:border-primary-container transition-colors">
+<div class="flex flex-col">
+<span class="text-on-surface font-body-md text-body-md font-medium">Intercept Outbound Requests</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Block unverified external communications.</span>
+</div>
+<div class="relative">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-border-subtle after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container cyan-glow shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"></div>
+</div>
+</label>
+<!-- Toggle 3 -->
+<label class="flex items-center justify-between cursor-pointer p-3 bg-surface-container-low rounded-DEFAULT border border-border-subtle hover:border-primary-container transition-colors">
+<div class="flex flex-col">
+<span class="text-on-surface font-body-md text-body-md font-medium">Read-Only File System Mode</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Prevent modifications to critical directories.</span>
+</div>
+<div class="relative">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant after:border-border-subtle after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"></div>
+</div>
+</label>
+<!-- Toggle 4 -->
+<label class="flex items-center justify-between cursor-pointer p-3 bg-surface-container-low rounded-DEFAULT border border-border-subtle hover:border-primary-container transition-colors">
+<div class="flex flex-col">
+<span class="text-on-surface font-body-md text-body-md font-medium">Enforce Agent Sandbox Mode</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Restricts agents to predefined virtualized environments.</span>
+</div>
+<div class="relative">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-border-subtle after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container cyan-glow shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"></div>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Right Column (40%) -->
+<div class="lg:col-span-5 flex flex-col gap-gutter">
+<!-- Global Risk Thresholds Card -->
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 flex flex-col relative overflow-hidden h-full">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-status-warning"></div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-status-warning">speed</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Global Risk Thresholds</h2>
+</div>
+<div class="flex-grow flex flex-col items-center justify-center py-6">
+<!-- Circular Gauge Visualization -->
+<div class="relative w-48 h-48 mb-6">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+<!-- Background Circle -->
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#30363D" stroke-dasharray="188 63" stroke-dashoffset="0" stroke-linecap="round" stroke-width="8"></circle>
+<!-- Value Circle (70/100 -> ~131 stroke dash) -->
+<circle class="drop-shadow-[0_0_8px_rgba(210,153,34,0.4)]" cx="50" cy="50" fill="transparent" r="40" stroke="#D29922" stroke-dasharray="131 120" stroke-dashoffset="0" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-data-mono text-[32px] font-bold text-status-warning">70</span>
+<span class="font-button-label text-button-label text-on-surface-variant">HIGH RISK</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="w-full grid grid-cols-2 gap-2 mt-4 bg-surface-container-low p-3 rounded-DEFAULT border border-border-subtle">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">Low &lt; 25</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">Med 26-50</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-warning drop-shadow-[0_0_4px_rgba(210,153,34,0.6)]"></span>
+<span class="font-data-mono text-[11px] text-on-surface">High 51-75</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-danger"></span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">Critical &gt; 75</span>
+</div>
+</div>
+<!-- Threshold Alert Policy Dropdown -->
+<div class="flex flex-col gap-2 mt-6 w-full">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Threshold Alert Policy</label>
+<select class="bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded-DEFAULT p-2 focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-all w-full">
+<option value="log">Log Only</option>
+<option selected="" value="alert">Alert Only</option>
+<option value="alert_halt">Alert &amp; Halt</option>
+<option value="isolate">Auto-Isolate</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Data Retention Policy Card -->
+<div class="bg-bg-raised border border-border-subtle rounded-DEFAULT p-4 flex flex-col relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-secondary-container"></div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-secondary-container">save</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Data Retention Policy</h2>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Log Retention Period</label>
+<select class="bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded-DEFAULT p-2 focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-all">
+<option value="30">30 Days</option>
+<option selected="" value="90">90 Days</option>
+<option value="365">1 Year</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-on-surface-variant font-body-sm text-body-sm">Alert History Depth</label>
+<select class="bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded-DEFAULT p-2 focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-all">
+<option value="10k">10,000 Events</option>
+<option selected="" value="50k">50,000 Events</option>
+<option value="100k">100,000 Events</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 right-0 w-full md:w-[calc(100%-240px)] bg-bg-surface border-t border-border-subtle p-4 flex justify-end gap-4 z-30 shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
+<button class="font-button-label text-button-label uppercase px-6 py-2 rounded-DEFAULT border border-border-subtle text-on-surface hover:bg-bg-hover hover:border-on-surface-variant transition-all bg-[#0D1117]">
+                Reset to Defaults
+            </button>
+<button class="font-button-label text-button-label uppercase px-6 py-2 rounded-DEFAULT bg-primary-container text-on-primary-container cyan-glow hover:bg-primary transition-all shadow-md">
+                Save Configuration
+            </button>
+</div>
+</main>
+
+
+</body></html>

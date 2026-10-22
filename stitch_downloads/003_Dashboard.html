@@ -1,0 +1,352 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgentShield AI - Dashboard</title>
+<!-- Google Fonts: IBM Plex Sans & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00D4FF",
+                        "bg-base": "#0D1117",
+                        "bg-surface": "#161B22",
+                        "bg-raised": "#1C2128",
+                        "text-main": "#E6EDF3",
+                        "text-muted": "#8B949E",
+                        "border-color": "#30363D",
+                        "status-success": "#238636",
+                        "status-info": "#2F81F7",
+                        "status-warning": "#D29922",
+                        "status-danger": "#F85149",
+                    },
+                    fontFamily: {
+                        "sans": ["IBM Plex Sans", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "2px",
+                        "none": "0px",
+                        "sm": "2px",
+                        "md": "4px",
+                    },
+                    boxShadow: {
+                        "glow-primary": "0 0 8px rgba(0, 212, 255, 0.4)",
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.bg-base');
+            color: theme('colors.text-main');
+        }
+        /* Custom scrollbar for data tables */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.bg-surface'); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.border-color'); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.text-muted'); 
+        }
+    </style>
+</head>
+<body class="font-sans antialiased h-screen overflow-hidden flex">
+<!-- Sidebar (Shared Component Style, customized for product specs) -->
+<aside class="w-[240px] flex-shrink-0 bg-bg-surface border-r border-border-color flex flex-col justify-between z-20 h-full">
+<div>
+<!-- Logo Area -->
+<div class="h-16 flex items-center px-4 border-b border-border-color gap-3">
+<div class="text-primary" data-icon="shield" data-size="24px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<h1 class="text-text-main text-lg font-bold tracking-tight">AgentShield AI</h1>
+</div>
+<!-- Navigation -->
+<nav class="p-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm bg-bg-raised border-l-2 border-primary text-primary transition-colors" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors" href="{{DATA:SCREEN:SCREEN_39}}">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors justify-between" href="{{DATA:SCREEN:SCREEN_11}}">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="text-sm font-medium">Alerts</span>
+</div>
+<span class="bg-status-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm font-mono">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors" href="{{DATA:SCREEN:SCREEN_25}}">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+<span class="text-sm font-medium">Rules</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors" href="{{DATA:SCREEN:SCREEN_38}}">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="text-sm font-medium">Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors" href="{{DATA:SCREEN:SCREEN_9}}">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<!-- User Area -->
+<div class="p-4 border-t border-border-color">
+<a class="flex items-center gap-3 px-3 py-2 rounded-sm text-text-muted hover:text-text-main hover:bg-bg-raised transition-colors" href="{{DATA:SCREEN:SCREEN_33}}">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span class="text-sm font-medium">Admin</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Top Bar -->
+<header class="h-16 flex-shrink-0 bg-bg-surface border-b border-border-color flex items-center justify-between px-6 z-10">
+<div class="flex items-center text-text-muted text-sm">
+<span class="">AgentShield AI</span>
+<span class="mx-2 material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-text-main font-semibold">Dashboard</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-bg-raised border border-border-color px-3 py-1.5 rounded-sm">
+<div class="w-2 h-2 rounded-full bg-status-success shadow-[0_0_4px_#238636]"></div>
+<span class="text-xs font-semibold text-text-main">System Operational</span>
+</div>
+<div class="text-text-muted font-mono text-sm px-3 py-1.5 border border-border-color bg-bg-raised rounded-sm">
+                    14:32:45 UTC
+                </div>
+<button class="relative p-2 text-text-muted hover:text-text-main transition-colors rounded-sm hover:bg-bg-raised border border-transparent hover:border-border-color" onclick="window.location.href='{{DATA:SCREEN:SCREEN_11}}'">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-danger animate-pulse-fast"></span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content Scrollable Area -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Stat Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1: Active Agents -->
+<div class="bg-bg-raised border border-border-color border-l-4 border-l-status-success rounded-sm p-4 flex flex-col gap-2 relative overflow-hidden cursor-pointer" onclick="window.location.href='{{DATA:SCREEN:SCREEN_39}}'">
+<div class="text-text-muted text-xs font-medium uppercase tracking-wider">Active Agents</div>
+<div class="text-2xl font-mono font-bold text-text-main">12</div>
+<div class="absolute bottom-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[48px]">group</span>
+</div>
+</div>
+<!-- Card 2: Actions Today -->
+<div class="bg-bg-raised border border-border-color border-l-4 border-l-status-info rounded-sm p-4 flex flex-col gap-2 relative overflow-hidden">
+<div class="text-text-muted text-xs font-medium uppercase tracking-wider">Actions Today</div>
+<div class="text-2xl font-mono font-bold text-text-main">4,847</div>
+<div class="absolute bottom-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[48px]">swap_horiz</span>
+</div>
+</div>
+<!-- Card 3: Open Alerts -->
+<div class="bg-bg-raised border border-border-color border-l-4 border-l-status-danger rounded-sm p-4 flex flex-col gap-2 relative overflow-hidden cursor-pointer" onclick="window.location.href='{{DATA:SCREEN:SCREEN_11}}'">
+<div class="flex items-center justify-between">
+<div class="text-text-muted text-xs font-medium uppercase tracking-wider">Open Alerts</div>
+<div class="w-2 h-2 rounded-full bg-status-danger animate-pulse-fast shadow-[0_0_6px_#F85149]"></div>
+</div>
+<div class="text-2xl font-mono font-bold text-text-main">7</div>
+<div class="absolute bottom-0 right-0 p-4 opacity-10 text-status-danger">
+<span class="material-symbols-outlined text-[48px]">warning</span>
+</div>
+</div>
+<!-- Card 4: Highest Risk Agent -->
+<div class="bg-bg-raised border border-border-color border-l-4 border-l-status-warning rounded-sm p-4 flex flex-col justify-between relative overflow-hidden">
+<div class="text-text-muted text-xs font-medium uppercase tracking-wider">Highest Risk</div>
+<div class="flex items-baseline gap-2 mt-1">
+<div class="text-lg font-mono font-bold text-text-main cursor-pointer hover:text-primary transition-colors" onclick="window.location.href='{{DATA:SCREEN:SCREEN_29}}'">AGT-009</div>
+<div class="text-sm font-mono text-status-warning">84/100</div>
+</div>
+</div>
+</div>
+<!-- Main Data Area: 60/40 Split -->
+<div class="flex flex-col lg:flex-row gap-6 min-h-[400px]">
+<!-- Live Action Feed (60%) -->
+<div class="flex-[6] bg-bg-raised border border-border-color rounded-sm flex flex-col">
+<div class="p-4 border-b border-border-color flex justify-between items-center bg-bg-surface rounded-t-sm">
+<h2 class="text-sm font-semibold text-text-main flex items-center gap-2">
+                            Live Action Feed
+                            <span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse-fast"></span>
+</h2>
+<button class="text-xs font-mono text-primary hover:text-white transition-colors uppercase tracking-wider">Pause Feed</button>
+</div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-border-color bg-bg-raised/50">
+<th class="p-3 text-xs font-medium text-text-muted uppercase tracking-wider">Agent ID</th>
+<th class="p-3 text-xs font-medium text-text-muted uppercase tracking-wider">Action Type</th>
+<th class="p-3 text-xs font-medium text-text-muted uppercase tracking-wider">Risk Score</th>
+<th class="p-3 text-xs font-medium text-text-muted uppercase tracking-wider">Timestamp</th>
+<th class="p-3 text-xs font-medium text-text-muted uppercase tracking-wider">Status</th>
+</tr>
+</thead>
+<tbody class="text-sm font-sans divide-y divide-border-color">
+<!-- Row 1: Critical -->
+<tr class="hover:bg-[#21262D] transition-colors group cursor-pointer">
+<td class="p-3 font-mono text-primary group-hover:underline" onclick="window.location.href='{{DATA:SCREEN:SCREEN_29}}'">AGT-009</td>
+<td class="p-3 text-text-main">Unauthorized DB Query</td>
+<td class="p-3">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-sm bg-status-danger/10 text-status-danger border border-status-danger/20 font-mono text-xs">88</span>
+</td>
+<td class="p-3 font-mono text-text-muted text-xs">14:32:41.002</td>
+<td class="p-3" onclick="window.location.href='{{DATA:SCREEN:SCREEN_34}}'">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-danger animate-pulse-fast"></div>
+<span class="text-status-danger text-xs font-medium">Critical</span>
+</div>
+</td>
+</tr>
+<!-- Row 2: Warning -->
+<tr class="hover:bg-[#21262D] transition-colors group cursor-pointer">
+<td class="p-3 font-mono text-primary group-hover:underline">AGT-042</td>
+<td class="p-3 text-text-main">Elevated API Rate</td>
+<td class="p-3">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-sm bg-status-warning/10 text-status-warning border border-status-warning/20 font-mono text-xs">62</span>
+</td>
+<td class="p-3 font-mono text-text-muted text-xs">14:32:38.115</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-warning"></div>
+<span class="text-status-warning text-xs font-medium">Suspicious</span>
+</div>
+</td>
+</tr>
+<!-- Row 3: Normal -->
+<tr class="hover:bg-[#21262D] transition-colors group cursor-pointer">
+<td class="p-3 font-mono text-primary group-hover:underline">AGT-012</td>
+<td class="p-3 text-text-main">Data Sync Request</td>
+<td class="p-3">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-sm bg-status-success/10 text-status-success border border-status-success/20 font-mono text-xs">14</span>
+</td>
+<td class="p-3 font-mono text-text-muted text-xs">14:32:35.401</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-text-muted"></div>
+<span class="text-text-muted text-xs font-medium">Normal</span>
+</div>
+</td>
+</tr>
+<!-- Row 4: Info -->
+<tr class="hover:bg-[#21262D] transition-colors group cursor-pointer">
+<td class="p-3 font-mono text-primary group-hover:underline">AGT-004</td>
+<td class="p-3 text-text-main">Model Parameter Update</td>
+<td class="p-3">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-sm bg-status-info/10 text-status-info border border-status-info/20 font-mono text-xs">35</span>
+</td>
+<td class="p-3 font-mono text-text-muted text-xs">14:32:22.900</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-info"></div>
+<span class="text-status-info text-xs font-medium">Monitoring</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Agent Risk Chart (40%) -->
+<div class="flex-[4] bg-bg-raised border border-border-color rounded-sm flex flex-col">
+<div class="p-4 border-b border-border-color bg-bg-surface rounded-t-sm">
+<h2 class="text-sm font-semibold text-text-main">Agent Risk Scores</h2>
+</div>
+<div class="p-4 flex-1 flex flex-col gap-4 justify-center relative">
+<!-- Chart Gridlines (Background) -->
+<div class="absolute inset-0 p-4 pt-6 pb-8 flex flex-col pointer-events-none z-0">
+<div class="flex-1 border-b border-border-color/50"></div>
+<div class="flex-1 border-b border-border-color/50"></div>
+<div class="flex-1 border-b border-border-color/50"></div>
+<div class="flex-1 border-b border-border-color/50"></div>
+<div class="flex-1 border-b border-border-color/50"></div>
+</div>
+<!-- Bar 1 (High) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-009</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-gradient-to-r from-status-warning to-status-danger" style="width: 84%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">84</div>
+</div>
+<!-- Bar 2 (Med-High) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-015</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-gradient-to-r from-status-info to-status-warning" style="width: 68%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">68</div>
+</div>
+<!-- Bar 3 (Med) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-042</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-gradient-to-r from-status-info to-status-warning" style="width: 62%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">62</div>
+</div>
+<!-- Bar 4 (Low-Med) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-004</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-gradient-to-r from-status-success to-status-info" style="width: 35%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">35</div>
+</div>
+<!-- Bar 5 (Low) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-012</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-status-success" style="width: 14%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">14</div>
+</div>
+<!-- Bar 6 (Low) -->
+<div class="flex items-center gap-3 z-10">
+<div class="w-16 font-mono text-xs text-text-muted text-right">AGT-022</div>
+<div class="flex-1 h-4 bg-bg-base rounded-sm overflow-hidden border border-border-color">
+<div class="h-full bg-status-success" style="width: 8%;"></div>
+</div>
+<div class="w-8 font-mono text-xs text-text-main">08</div>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between pl-[76px] pr-11 mt-2 text-[10px] font-mono text-text-muted z-10">
+<span class="">0</span>
+<span class="">25</span>
+<span class="">50</span>
+<span class="">75</span>
+<span class="">100</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

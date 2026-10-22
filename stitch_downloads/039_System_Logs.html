@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Logs - AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "bg-raised": "#1C2128",
+                        "surface-container-low": "#181c22",
+                        "primary": "#a8e8ff",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "outline-variant": "#3c494e",
+                        "secondary": "#acc7ff",
+                        "outline": "#859398",
+                        "surface-container": "#1c2026",
+                        "surface-variant": "#31353c",
+                        "on-error": "#690005",
+                        "surface-container-high": "#262a31",
+                        "on-primary": "#003642",
+                        "surface-tint": "#3cd7ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-secondary": "#002f68",
+                        "status-warning": "#D29922",
+                        "surface-dim": "#10141a",
+                        "surface-container-lowest": "#0a0e14",
+                        "bg-hover": "#21262D",
+                        "surface-container-highest": "#31353c",
+                        "tertiary": "#d7e0eb",
+                        "status-success": "#238636",
+                        "on-tertiary": "#29313a",
+                        "inverse-surface": "#dfe2eb",
+                        "error-container": "#93000a",
+                        "surface-bright": "#353940",
+                        "on-primary-fixed": "#001f27",
+                        "on-secondary-fixed-variant": "#004492",
+                        "status-danger": "#F85149",
+                        "on-primary-container": "#00586b",
+                        "primary-container": "#00d4ff",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-secondary-fixed": "#001a40",
+                        "surface": "#10141a",
+                        "inverse-primary": "#00677e",
+                        "text-main": "#E6EDF3",
+                        "on-background": "#dfe2eb",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "secondary-container": "#026ee4",
+                        "on-secondary-container": "#f8f8ff",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#b4ebff",
+                        "on-surface": "#dfe2eb",
+                        "on-tertiary-container": "#48515a",
+                        "on-tertiary-fixed": "#141c24",
+                        "background": "#10141a",
+                        "on-surface-variant": "#bbc9cf",
+                        "inverse-on-surface": "#2d3137",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "bg-surface": "#161B22",
+                        "tertiary-fixed": "#dae3ee",
+                        "tertiary-container": "#bbc4cf",
+                        "border-subtle": "#30363D"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "240px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "topbar-height": "64px",
+                        "margin-page": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "button-label": ["JetBrains Mono"],
+                        "body-sm": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .pulse-critical {
+            animation: pulse-op 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-op {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .glow-active {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        /* Custom Scrollbar for brutalist feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10141a; 
+            border-left: 1px solid #30363D;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D; 
+            border-radius: 0px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #859398; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:flex-row overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar (Mobile overrides SideNavBar) -->
+<header class="flex justify-between items-center px-gutter w-full border-b border-border-subtle bg-background fixed top-0 w-full h-topbar-height z-50 md:hidden">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg font-black tracking-tighter text-primary dark:text-primary">AGENTSHIELD_CORE</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-bg-hover transition-colors duration-150 p-2 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary dark:text-primary">notifications</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col h-full border-r border-border-subtle py-4 fixed left-0 top-0 h-full w-sidebar-width bg-bg-surface dark:bg-bg-surface z-40">
+<div class="px-4 mb-6">
+<div class="font-headline-md text-headline-md font-bold text-primary mb-1">MISSION_CONTROL</div>
+<div class="font-data-mono text-data-mono text-on-surface-variant text-xs">SECOPS_V2.4</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container text-on-primary-container font-button-label text-button-label py-2 px-4 uppercase flex items-center justify-center gap-2 border border-primary-container hover:bg-transparent hover:text-primary-container transition-colors glow-active">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                DEPLOY_AGENT
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+                DASHBOARD
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">memory</span>
+                AGENTS
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">priority_high</span>
+                ALERTS
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">security</span>
+                RULES
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-primary border-l-2 border-primary bg-secondary-container/10 font-bold font-button-label text-button-label scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">database</span>
+                LOGS
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+                SETTINGS
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-1 pt-4 border-t border-border-subtle">
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+                SUPPORT
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 hover:bg-bg-hover hover:text-text-main transition-colors text-on-surface-variant font-medium font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span>
+                RESOURCES
+            </a>
+<div class="px-4 mt-4 flex items-center gap-3 pt-2">
+<img alt="System Node" class="w-8 h-8 rounded-none border border-border-subtle" data-alt="A highly stylized, digital avatar representing an AI system node or SecOps operator. The avatar features abstract, geometric patterns in cyan and deep blue, reminiscent of a high-tech circuit board or neural network node. The lighting is high-contrast, moody, and clearly belongs in a dark mode, cyberpunk-inspired UI. The background is a stark, void-like black." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwCBC3H6F4jWI33oenArg_Ad9uC467G_Gcnyu_QXmAPzEbizgL8PsSkqTEwv3nA_uX2D6ADeLXXAKe4TUzrloQbnKxjnGRMRi3xqmn0Q80MTbFbTYzYxrhZUQcPI73VHZ4AYerIFhDL95w2l-xKRn13VWUpxCgpMnUqlonCWh8ZAVsEF155V0KPEiAuzJ3olFopYLPK34suQHQde_9_E-EcuYLKd_0FLiFDWjmPTBjOGYp0e1xVI5lC3i5-R-TxGYmRbo4T_86IQ"/>
+<div class="flex flex-col">
+<span class="font-data-mono text-data-mono text-[10px] text-on-surface-variant">OPERATOR</span>
+<span class="font-data-mono text-data-mono text-[11px] text-primary">SYS_ADMIN</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col pt-topbar-height md:pt-0 md:ml-sidebar-width h-screen bg-[#0D1117] overflow-hidden">
+<!-- Desktop Topbar Override for Main Content Area -->
+<div class="hidden md:flex justify-between items-center px-gutter w-full h-topbar-height border-b border-border-subtle bg-background shrink-0">
+<div class="flex items-center gap-6">
+<span class="font-headline-lg text-headline-lg font-black tracking-tighter text-primary">AGENTSHIELD_CORE</span>
+<div class="flex items-center gap-3 font-data-mono text-data-mono text-on-surface-variant border-l border-border-subtle pl-6">
+<span class="flex items-center gap-2"><div class="w-2 h-2 bg-status-success rounded-full"></div> SYSTEM_STABLE</span>
+<span class="opacity-50">|</span>
+<span id="utc-clock">UTC_14:22:05</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center hover:bg-bg-hover text-on-surface-variant hover:text-text-main transition-colors border border-transparent hover:border-border-subtle">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-bg-hover text-on-surface-variant hover:text-text-main transition-colors border border-transparent hover:border-border-subtle">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-bg-hover text-on-surface-variant hover:text-text-main transition-colors border border-transparent hover:border-border-subtle">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+</button>
+</div>
+</div>
+<!-- Toolbar / Filters -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-gutter border-b border-border-subtle bg-bg-raised shrink-0 gap-4">
+<div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">filter_list</span>
+</div>
+<select class="block w-full pl-9 pr-8 py-1.5 text-data-mono font-data-mono bg-[#0D1117] border border-border-subtle text-text-main focus:ring-1 focus:ring-primary focus:border-primary transition-all appearance-none outline-none group-hover:border-outline-variant">
+<option>LEVEL: ALL</option>
+<option>LEVEL: ERROR</option>
+<option>LEVEL: WARN</option>
+<option>LEVEL: INFO</option>
+</select>
+</div>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">memory</span>
+</div>
+<select class="block w-full pl-9 pr-8 py-1.5 text-data-mono font-data-mono bg-[#0D1117] border border-border-subtle text-text-main focus:ring-1 focus:ring-primary focus:border-primary transition-all appearance-none outline-none group-hover:border-outline-variant">
+<option>AGENT: ALL</option>
+<option>AGENT: NODE_Alpha</option>
+<option>AGENT: NODE_Beta</option>
+<option>AGENT: SEC_Core</option>
+</select>
+</div>
+<div class="relative group hidden lg:block">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">schedule</span>
+</div>
+<select class="block w-full pl-9 pr-8 py-1.5 text-data-mono font-data-mono bg-[#0D1117] border border-border-subtle text-text-main focus:ring-1 focus:ring-primary focus:border-primary transition-all appearance-none outline-none group-hover:border-outline-variant">
+<option>RANGE: LAST 15 MIN</option>
+<option>RANGE: LAST 1 HOUR</option>
+<option>RANGE: LAST 24 HOURS</option>
+<option>RANGE: CUSTOM</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<div class="relative w-full sm:w-64 group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">search</span>
+</div>
+<input class="block w-full pl-9 pr-3 py-1.5 text-data-mono font-data-mono bg-[#0D1117] border border-border-subtle text-text-main placeholder-on-surface-variant focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none group-hover:border-outline-variant focus:glow-active" placeholder="Grep logs..." type="text"/>
+</div>
+<button class="hidden sm:flex bg-transparent border border-border-subtle text-text-main font-button-label text-button-label py-1.5 px-3 uppercase items-center justify-center gap-2 hover:bg-bg-hover hover:border-outline-variant transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                    EXPORT
+                </button>
+</div>
+</div>
+<!-- Log Table Container -->
+<div class="flex-1 overflow-auto bg-[#0D1117] relative">
+<table class="w-full text-left border-collapse font-data-mono text-data-mono whitespace-nowrap">
+<thead class="sticky top-0 bg-bg-raised border-b border-border-subtle z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.5)]">
+<tr>
+<th class="py-2 px-4 text-on-surface-variant font-medium tracking-wider">TIMESTAMP</th>
+<th class="py-2 px-4 text-on-surface-variant font-medium tracking-wider">LVL</th>
+<th class="py-2 px-4 text-on-surface-variant font-medium tracking-wider">AGENT_ID</th>
+<th class="py-2 px-4 text-on-surface-variant font-medium tracking-wider">ACTION</th>
+<th class="py-2 px-4 text-on-surface-variant font-medium tracking-wider w-full">MESSAGE</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle" id="log-body">
+<!-- Rows generated by JS for demonstration, here are static examples -->
+<tr class="hover:bg-bg-hover transition-colors group cursor-crosshair">
+<td class="py-2 px-4 text-on-surface-variant group-hover:text-text-main">2023-10-27 14:22:01.045</td>
+<td class="py-2 px-4"><span class="text-status-danger font-bold flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-status-danger pulse-critical"></div> ERROR</span></td>
+<td class="py-2 px-4 text-primary">NODE_Alpha</td>
+<td class="py-2 px-4 text-text-main">AUTH_FAILURE</td>
+<td class="py-2 px-4 text-on-surface-variant truncate max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl group-hover:text-text-main">Invalid token signature detected from IP 192.168.1.104. Connection dropped forcefully.</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group cursor-crosshair bg-status-warning/5">
+<td class="py-2 px-4 text-on-surface-variant group-hover:text-text-main">2023-10-27 14:21:58.112</td>
+<td class="py-2 px-4"><span class="text-status-warning font-bold">WARN</span></td>
+<td class="py-2 px-4 text-primary">SEC_Core</td>
+<td class="py-2 px-4 text-text-main">RATE_LIMIT</td>
+<td class="py-2 px-4 text-on-surface-variant truncate max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl group-hover:text-text-main">API request rate threshold approaching limit (85%) for endpoint /api/v1/metrics.</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group cursor-crosshair">
+<td class="py-2 px-4 text-on-surface-variant group-hover:text-text-main">2023-10-27 14:21:55.890</td>
+<td class="py-2 px-4"><span class="text-status-success font-bold">INFO</span></td>
+<td class="py-2 px-4 text-primary">NODE_Beta</td>
+<td class="py-2 px-4 text-text-main">SYNC_COMPLETE</td>
+<td class="py-2 px-4 text-on-surface-variant truncate max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl group-hover:text-text-main">Local state synchronized with central ledger. Processed 420 records in 14ms.</td>
+</tr>
+<!-- More rows will be appended here -->
+</tbody>
+</table>
+<!-- Live Scroll Indicator -->
+<div class="fixed bottom-6 right-6 flex items-center gap-2 bg-bg-raised border border-border-subtle px-3 py-1.5 shadow-lg">
+<div class="w-2 h-2 rounded-full bg-status-success pulse-critical"></div>
+<span class="font-data-mono text-data-mono text-text-main text-xs uppercase tracking-wider">Live Tail</span>
+</div>
+</div>
+</main>
+<script>
+        // Simple script to update UTC clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toISOString().substring(11, 19);
+            document.getElementById('utc-clock').textContent = `UTC_${timeString}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Simulate incoming logs
+        const logBody = document.getElementById('log-body');
+        const levels = ['INFO', 'WARN', 'ERROR'];
+        const agents = ['NODE_Alpha', 'NODE_Beta', 'SEC_Core', 'DATA_Node_01'];
+        const actions = ['CONN_ESTABLISHED', 'QUERY_EXEC', 'AUTH_CHECK', 'STATE_DUMP', 'METRIC_FLUSH'];
+        const messages = [
+            'Executing routine integrity check across distributed shards.',
+            'Connection reset by peer during payload transfer.',
+            'Cache miss on lookup table, falling back to disk read.',
+            'Payload encrypted successfully using AES-256-GCM.',
+            'Received malformed packet header, discarding frame.'
+        ];
+
+        function generateLog() {
+            const level = levels[Math.floor(Math.random() * levels.length)];
+            const agent = agents[Math.floor(Math.random() * agents.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            const now = new Date();
+            const ts = now.toISOString().replace('T', ' ').substring(0, 23);
+
+            let levelHtml = '';
+            let rowClass = 'hover:bg-bg-hover transition-colors group cursor-crosshair';
+            
+            if (level === 'ERROR') {
+                levelHtml = `<span class="text-status-danger font-bold flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-status-danger pulse-critical"></div> ERROR</span>`;
+                rowClass += ' bg-status-danger/5';
+            } else if (level === 'WARN') {
+                levelHtml = `<span class="text-status-warning font-bold">WARN</span>`;
+                rowClass += ' bg-status-warning/5';
+            } else {
+                levelHtml = `<span class="text-status-success font-bold">INFO</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.innerHTML = `
+                <td class="py-2 px-4 text-on-surface-variant group-hover:text-text-main">${ts}</td>
+                <td class="py-2 px-4">${levelHtml}</td>
+                <td class="py-2 px-4 text-primary">${agent}</td>
+                <td class="py-2 px-4 text-text-main">${action}</td>
+                <td class="py-2 px-4 text-on-surface-variant truncate max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl group-hover:text-text-main">${msg}</td>
+            `;
+
+            // Insert at top to simulate live scrolling (newest first)
+            logBody.insertBefore(tr, logBody.firstChild);
+
+            // Keep only last 50 rows to prevent DOM bloat
+            if (logBody.children.length > 50) {
+                logBody.removeChild(logBody.lastChild);
+            }
+        }
+
+        // Generate a new log every 2-5 seconds
+        setInterval(() => {
+            generateLog();
+        }, Math.random() * 3000 + 2000);
+    </script>
+</body></html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIEM Configuration - AgentShield AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#262a31",
+                        "border-subtle": "#30363D",
+                        "on-primary-container": "#00586b",
+                        "on-secondary-container": "#f8f8ff",
+                        "on-tertiary-container": "#48515a",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "secondary": "#acc7ff",
+                        "surface": "#10141a",
+                        "on-secondary": "#002f68",
+                        "primary-container": "#00d4ff",
+                        "bg-surface": "#161B22",
+                        "on-background": "#dfe2eb",
+                        "tertiary-fixed": "#dae3ee",
+                        "status-warning": "#D29922",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "surface-variant": "#31353c",
+                        "tertiary": "#d7e0eb",
+                        "inverse-primary": "#00677e",
+                        "status-danger": "#F85149",
+                        "background": "#10141a",
+                        "outline-variant": "#3c494e",
+                        "on-secondary-fixed-variant": "#004492",
+                        "bg-hover": "#21262D",
+                        "primary-fixed": "#b4ebff",
+                        "inverse-on-surface": "#2d3137",
+                        "on-primary-fixed": "#001f27",
+                        "inverse-surface": "#dfe2eb",
+                        "text-main": "#E6EDF3",
+                        "surface-dim": "#10141a",
+                        "status-success": "#238636",
+                        "on-error-container": "#ffdad6",
+                        "on-surface-variant": "#bbc9cf",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#3cd7ff",
+                        "surface-bright": "#353940",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#31353c",
+                        "on-secondary-fixed": "#001a40",
+                        "error-container": "#93000a",
+                        "outline": "#859398",
+                        "primary": "#a8e8ff",
+                        "surface-container": "#1c2026",
+                        "surface-container-lowest": "#0a0e14",
+                        "on-tertiary": "#29313a",
+                        "on-primary": "#003642",
+                        "secondary-container": "#026ee4",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "surface-container-low": "#181c22",
+                        "bg-raised": "#1C2128",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-tertiary-fixed": "#141c24",
+                        "on-surface": "#dfe2eb",
+                        "tertiary-container": "#bbc4cf"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "sidebar-width": "240px",
+                        "base": "8px",
+                        "topbar-height": "64px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "data-mono": ["JetBrains Mono"],
+                        "body-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "button-label": ["JetBrains Mono"],
+                        "body-sm": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #10141a;
+            color: #dfe2eb;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .glow-active {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        .input-focus:focus {
+            border-color: #a8e8ff;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="font-body-md bg-background text-on-surface antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-background dark:bg-background text-primary dark:text-primary font-body-md text-body-md font-headline-md text-headline-md font-bold text-primary dark:text-primary fixed left-0 top-0 h-full w-[240px] border-r border-border-subtle flex flex-col h-full py-base z-20">
+<div class="px-gutter mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-xl">shield</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary">AgentShield AI</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Mission Control</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>Documentation</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span>Technical Support</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span>FAQ Center</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">report_problem</span>
+<span>Anomalies</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="mt-auto pt-4 border-t border-border-subtle">
+<ul class="space-y-1 mb-4">
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-primary dark:text-primary bg-surface-container-high border-r-2 border-primary hover:bg-bg-hover transition-colors scale-95 duration-100" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover transition-colors" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span>Status</span>
+</a>
+</li>
+</ul>
+<div class="px-gutter">
+<button class="w-full py-2 bg-primary text-on-primary font-button-label text-button-label uppercase rounded hover:bg-primary-fixed transition-colors">
+                    Open Ticket
+                </button>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="ml-[240px] flex-1 flex flex-col h-full">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-primary font-headline-md text-headline-md font-headline-md text-headline-md font-bold text-primary fixed top-0 right-0 w-[calc(100%-240px)] h-topbar-height border-b border-border-subtle flex justify-between items-center px-margin-page z-10">
+<div class="flex items-center gap-6">
+<span class="text-on-surface">Security Ops Center</span>
+<nav class="hidden md:flex gap-6 font-body-md text-body-md font-normal">
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Network</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Threats</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Assets</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<input class="bg-bg-raised border border-border-subtle text-on-surface font-body-sm text-body-sm rounded px-3 py-1.5 pl-8 focus:border-primary input-focus transition-colors" placeholder="Search..." type="text"/>
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-on-surface-variant text-sm">search</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-border-subtle overflow-hidden">
+<img alt="Analyst Profile" class="w-full h-full object-cover" data-alt="A close-up portrait of a security analyst in a dark, high-tech control room environment. Soft cyan lighting illuminates his face from below, suggesting the glow of multiple monitors. The overall tone is serious, focused, and professional, perfectly fitting a modern cybersecurity theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDNlrs9j4va-OFCZsraintKx6hdppnx_28N1UlNSBz6RtdZCmIhmg3xocb8IvP7lepU-MgLgA9C1Pt0cZpFwZQPrYDz9vYGfdlVSAAReBYCs6U2qMXM7MMP2SFSvB1M8agqUQ0lPdhAejM7BwRsRiW6G8PdlM-EZTzqaTAcxotQRlmNr6zEge9mc0R_mMrsvSpftQobJCFU7DOA_9ATBwVP-jvRb4NGvK72QhFHgMxVz257uGWbUxfpA9jD0-iCzjIc_KEM5UyFw"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto mt-topbar-height p-margin-page bg-background">
+<div class="max-w-5xl mx-auto">
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">SIEM Integration Configuration</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Configure data forwarding to your external Security Information and Event Management system.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Left Column: Settings -->
+<div class="lg:col-span-2 space-y-gutter">
+<!-- Connection Settings -->
+<section class="bg-bg-raised border border-border-subtle rounded-lg p-6 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary glow-active"></div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">router</span>
+                                Connection Settings
+                            </h2>
+<div class="space-y-4">
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-1">ENDPOINT URL</label>
+<input class="w-full bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded px-3 py-2 input-focus" type="text" value="https://siem-ingest.internal.corp:8088/services/collector"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-1">PROTOCOL</label>
+<select class="w-full bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded px-3 py-2 input-focus appearance-none">
+<option>HTTPS / HEC</option>
+<option>TCP</option>
+<option>UDP</option>
+</select>
+</div>
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-1">PORT</label>
+<input class="w-full bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded px-3 py-2 input-focus" type="text" value="8088"/>
+</div>
+</div>
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-1">API TOKEN / KEY</label>
+<div class="relative">
+<input class="w-full bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded px-3 py-2 input-focus pr-10" type="password" value="siem_token_sample_1234567890abcdef"/>
+<button class="absolute right-2 top-2 text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Payload Mapping -->
+<section class="bg-bg-raised border border-border-subtle rounded-lg p-6 relative">
+<div class="absolute top-0 left-0 w-1 h-full bg-border-subtle"></div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">schema</span>
+                                Payload Mapping &amp; Format
+                            </h2>
+<div class="mb-6">
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">EXPORT FORMAT</label>
+<div class="flex gap-4">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="text-primary bg-[#0D1117] border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" name="format" type="radio"/>
+<span class="font-data-mono text-data-mono text-on-surface">JSON</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary bg-[#0D1117] border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" name="format" type="radio"/>
+<span class="font-data-mono text-data-mono text-on-surface">CEF (Common Event Format)</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary bg-[#0D1117] border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" name="format" type="radio"/>
+<span class="font-data-mono text-data-mono text-on-surface">Syslog RFC5424</span>
+</label>
+</div>
+</div>
+<div class="border border-border-subtle rounded overflow-hidden">
+<div class="bg-surface-container-highest px-4 py-2 border-b border-border-subtle flex justify-between items-center">
+<span class="font-data-mono text-data-mono text-on-surface-variant">TELEMETRY FIELDS</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant text-xs">7/12 SELECTED</span>
+</div>
+<div class="bg-[#0D1117] p-4 max-h-[200px] overflow-y-auto space-y-2">
+<label class="flex items-center gap-3 p-2 hover:bg-bg-hover rounded cursor-pointer transition-colors">
+<input checked="" class="text-primary bg-bg-raised border-border-subtle rounded focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-data-mono text-data-mono text-primary">timestamp</span>
+<span class="font-data-mono text-xs text-on-surface-variant ml-auto">ISO8601</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-bg-hover rounded cursor-pointer transition-colors">
+<input checked="" class="text-primary bg-bg-raised border-border-subtle rounded focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-data-mono text-data-mono text-primary">source_ip</span>
+<span class="font-data-mono text-xs text-on-surface-variant ml-auto">IPv4/IPv6</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-bg-hover rounded cursor-pointer transition-colors">
+<input checked="" class="text-primary bg-bg-raised border-border-subtle rounded focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-data-mono text-data-mono text-primary">destination_ip</span>
+<span class="font-data-mono text-xs text-on-surface-variant ml-auto">IPv4/IPv6</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-bg-hover rounded cursor-pointer transition-colors">
+<input checked="" class="text-primary bg-bg-raised border-border-subtle rounded focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-data-mono text-data-mono text-primary">event_severity</span>
+<span class="font-data-mono text-xs text-on-surface-variant ml-auto">Int 1-5</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-bg-hover rounded cursor-pointer transition-colors">
+<input class="text-primary bg-bg-raised border-border-subtle rounded focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-data-mono text-data-mono text-on-surface">raw_payload</span>
+<span class="font-data-mono text-xs text-on-surface-variant ml-auto">Base64</span>
+</label>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Status & Actions -->
+<div class="space-y-gutter">
+<section class="bg-bg-raised border border-border-subtle rounded-lg p-6 relative">
+<div class="absolute top-0 left-0 w-1 h-full bg-status-success glow-active" style="box-shadow: 0 0 8px rgba(35, 134, 54, 0.4);"></div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-4">Status</h2>
+<div class="flex items-center gap-3 mb-6">
+<div class="w-2 h-2 rounded-full bg-status-success glow-active" style="box-shadow: 0 0 8px rgba(35, 134, 54, 0.4);"></div>
+<span class="font-data-mono text-data-mono text-status-success">CONNECTED</span>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex justify-between border-b border-border-subtle pb-2">
+<span class="font-data-mono text-data-mono text-on-surface-variant">Last Ping</span>
+<span class="font-data-mono text-data-mono text-on-surface">12ms</span>
+</div>
+<div class="flex justify-between border-b border-border-subtle pb-2">
+<span class="font-data-mono text-data-mono text-on-surface-variant">Events Sent (1h)</span>
+<span class="font-data-mono text-data-mono text-on-surface">4,291</span>
+</div>
+<div class="flex justify-between border-b border-border-subtle pb-2">
+<span class="font-data-mono text-data-mono text-on-surface-variant">Error Rate</span>
+<span class="font-data-mono text-data-mono text-on-surface">0.02%</span>
+</div>
+</div>
+<button class="w-full py-2 bg-transparent border border-border-subtle text-on-surface font-button-label text-button-label uppercase rounded hover:bg-bg-hover hover:border-primary transition-all mb-3 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">swap_calls</span>
+                                Test Connection
+                            </button>
+<button class="w-full py-2 bg-primary text-on-primary font-button-label text-button-label uppercase rounded hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                                Save Configuration
+                            </button>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

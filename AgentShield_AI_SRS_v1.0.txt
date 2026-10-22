@@ -1,0 +1,535 @@
+SOFTWARE REQUIREMENTS SPECIFICATION
+AgentShield AI
+A Behaviour-Based Security Monitoring System for Autonomous AI Agents
+Project Group
+26MPA06
+Institution
+IMS Engineering College, Ghaziabad
+Programme
+B.Tech Computer Science Engineering
+Project Type
+4th Year Major Project
+Document Version
+v1.0
+Status
+Draft — For Guide Review
+Prepared By
+Group 26MPA06 Members
+Academic Year
+2025–2026
+1. Introduction
+1.1 Purpose
+This Software Requirements Specification (SRS) defines the functional and non-functional requirements for AgentShield AI — a behaviour-based security monitoring system designed to observe, analyze, and evaluate the actions of autonomous AI agents. This document serves as the authoritative reference for the design, development, testing, and evaluation of the system.
+This document is intended for the project development team, the academic guide, and examiners at IMS Engineering College, Ghaziabad, as part of the 4th year major project submission.
+1.2 Scope
+AgentShield AI is a monitoring and threat detection platform that:
+Captures and logs all actions performed by autonomous AI agents in real time
+Applies rule-based security policies to detect known threat patterns
+Uses machine learning (Isolation Forest) to detect novel or anomalous agent behaviour
+Computes dynamic risk scores for individual agents and their actions
+Presents findings through a centralized React.js security dashboard with alerts
+The system does not directly control or restrict AI agents; it operates as a passive observer and active alerting layer. The initial version targets simulated AI agent environments for demonstration and evaluation purposes.
+1.3 Definitions, Acronyms, and Abbreviations
+Term / Acronym
+Definition
+AI Agent
+An autonomous software entity that perceives its environment and takes actions to achieve goals
+SRS
+Software Requirements Specification — this document
+FR
+Functional Requirement — a capability the system must provide
+NFR
+Non-Functional Requirement — a quality attribute of the system
+API
+Application Programming Interface
+ML
+Machine Learning
+Isolation Forest
+An unsupervised ML algorithm for anomaly detection based on random tree partitioning
+Risk Score
+A numerical value (0–100) representing the threat level of an agent or action
+MITRE ATLAS
+A knowledge base of adversarial tactics and techniques targeting AI/ML systems
+SIEM
+Security Information and Event Management — a class of security monitoring tools
+REST
+Representational State Transfer — an architectural style for web APIs
+WebSocket
+A full-duplex communication protocol over TCP for real-time data streaming
+FastAPI
+A modern Python web framework for building REST APIs
+PostgreSQL
+An open-source relational database management system
+IMSEC
+IMS Engineering College, Ghaziabad
+1.4 Overview
+The remainder of this document is organized as follows:
+Section 2: Overall Description — system context, user classes, and assumptions
+Section 3: Specific Requirements — detailed functional and non-functional requirements
+Section 4: System Models — use case diagram, activity diagram, and ER diagram descriptions
+Section 5: Architecture Overview — component layers and interaction design
+Section 6: Appendix — revision history and references
+2. Overall Description
+2.1 Product Perspective
+AgentShield AI operates as an independent monitoring layer that interfaces with AI agent environments through an event ingestion API. It does not replace existing security tools (firewalls, SIEM systems) but complements them by providing semantic-level visibility into AI agent behaviour — a gap that traditional security tools do not address.
+The system follows a 4-layer architecture:
+Agent Simulator Layer — generates synthetic AI agent activity logs
+Ingestion and Processing Layer — FastAPI backend receives and evaluates actions
+Storage Layer — PostgreSQL persists all events, scores, and alerts
+Presentation Layer — React.js dashboard displays analytics and alerts
+2.2 Product Functions
+The primary functions of AgentShield AI are summarized below:
+Function
+Description
+Real-Time Action Ingestion
+Accept and record agent actions via REST/WebSocket endpoints as they occur
+Behavioural Logging
+Store structured logs of all agent actions with metadata (timestamp, agent ID, action type, parameters)
+Rule-Based Threat Detection
+Evaluate each incoming action against a configurable set of security rules
+ML Anomaly Detection
+Run Isolation Forest scoring on action feature vectors to detect behavioural outliers
+Risk Score Calculation
+Combine rule match severity and ML anomaly score into a per-action and per-agent risk score
+Alert Generation
+Raise alerts when risk scores exceed defined thresholds, with severity classification
+Dashboard Visualisation
+Display agent activity feeds, risk trends, alert history, and anomaly maps
+Audit Trail
+Maintain immutable logs of all agent actions and system decisions for post-incident review
+2.3 User Classes and Characteristics
+User Class
+Description
+Privilege Level
+Security Analyst
+Primary operator; monitors dashboard, investigates alerts, reviews logs
+Full read + alert management
+System Administrator
+Configures security rules, manages thresholds, administers database
+Full read + write + config
+Project Evaluator / Guide
+Reviews system functionality for academic assessment
+Read-only dashboard access
+Developer
+Integrates agent simulators, extends detection rules and ML models
+Full system access
+2.4 Operating Environment
+Backend: Python 3.11+ on Linux (Ubuntu 22.04 recommended) or Windows 10/11
+Frontend: Modern web browser (Chrome 110+, Firefox 110+, Edge 110+)
+Database: PostgreSQL 15+ on local or hosted instance
+ML Runtime: Scikit-learn 1.3+ with NumPy and Pandas
+Minimum hardware: 8GB RAM, 4-core CPU, 20GB disk
+2.5 Design and Implementation Constraints
+The MVP (Minimum Viable Product) uses simulated AI agent activity; integration with production agents is a future scope item
+ML model training is performed offline on historical log data; real-time inference only at v1.0
+All communication between frontend and backend must use HTTPS/WSS in production
+The system must remain functional with up to 50 concurrent simulated agent sessions
+Risk scoring algorithm must complete within 200ms per action to support real-time operation
+2.6 Assumptions and Dependencies
+AI agent activity can be represented as structured JSON events containing action type, parameters, agent ID, and timestamp
+The Isolation Forest model is pre-trained on a representative dataset of normal agent behaviour before deployment
+PostgreSQL database is available and accessible from the FastAPI backend
+The development team has working knowledge of Python, React.js, and PostgreSQL
+MITRE ATLAS threat taxonomy is used as the reference framework for defining security rules
+3. Specific Requirements
+3.1 Functional Requirements
+Requirements are identified using the format FR-XX. Each requirement is classified by priority: Critical, High, or Medium.
+3.1.1 Action Ingestion and Logging
+ID
+Requirement
+Priority
+FR-01
+The system shall accept AI agent action events via a REST POST endpoint (/api/v1/actions) with a structured JSON payload containing: agent_id, action_type, parameters (JSON object), timestamp, and session_id.
+Critical
+FR-02
+The system shall accept streaming agent events via a WebSocket endpoint (/ws/agent/{agent_id}) for real-time ingestion.
+High
+FR-03
+The system shall persist all received action events to the PostgreSQL database within 100ms of receipt.
+Critical
+FR-04
+The system shall assign a unique action_id (UUID) to each received event.
+Critical
+FR-05
+The system shall support bulk ingestion of historical logs via a CSV/JSON file upload endpoint for ML model training.
+Medium
+3.1.2 Rule-Based Threat Detection
+ID
+Requirement
+Priority
+FR-06
+The system shall evaluate each incoming action event against a configurable rule set within 200ms.
+Critical
+FR-07
+The system shall support the following built-in rule categories: unauthorized file access, privilege escalation attempt, excessive API call rate, prompt injection signature, data exfiltration pattern, and unsafe command execution.
+Critical
+FR-08
+The system shall allow administrators to add, edit, and delete security rules via the admin interface without restarting the service.
+High
+FR-09
+Each rule shall have a configurable severity level: LOW, MEDIUM, HIGH, or CRITICAL.
+High
+FR-10
+When a rule match occurs, the system shall record the matched rule ID, severity, and matched action ID in the alerts table.
+Critical
+3.1.3 Machine Learning Anomaly Detection
+ID
+Requirement
+Priority
+FR-11
+The system shall extract a feature vector from each action event comprising: action_type (encoded), parameter_count, call_frequency (actions per minute), session_duration, and time_of_day.
+Critical
+FR-12
+The system shall run an Isolation Forest model on batches of feature vectors every 60 seconds to compute anomaly scores.
+Critical
+FR-13
+Anomaly scores shall be normalized to the range [0, 1] where values above 0.7 indicate anomalous behaviour.
+Critical
+FR-14
+The system shall support retraining the Isolation Forest model via an admin-triggered API endpoint using the latest stored action logs.
+High
+FR-15
+The system shall log the anomaly score for each processed action in the actions table.
+High
+3.1.4 Risk Scoring
+ID
+Requirement
+Priority
+FR-16
+The system shall compute a per-action risk score using the formula: Risk Score = (0.4 × Rule Severity Score) + (0.6 × Anomaly Score), normalized to [0, 100].
+Critical
+FR-17
+The system shall maintain a rolling per-agent risk score calculated as the weighted average of the agent's last 20 action risk scores.
+High
+FR-18
+Risk scores shall be stored in the database and updated in real time on the dashboard.
+Critical
+FR-19
+The system shall classify per-agent risk into four bands: Safe (0–25), Low Risk (26–50), Medium Risk (51–75), High Risk (76–100).
+High
+3.1.5 Alert Generation and Management
+ID
+Requirement
+Priority
+FR-20
+The system shall generate an alert when a per-action risk score exceeds a configurable threshold (default: 70).
+Critical
+FR-21
+Each alert shall contain: alert_id, action_id, agent_id, trigger_type (rule/anomaly/combined), severity, risk_score, timestamp, and status (open/acknowledged/resolved).
+Critical
+FR-22
+The system shall display unacknowledged alerts as visual notifications on the dashboard.
+Critical
+FR-23
+Analysts shall be able to acknowledge and resolve alerts with an optional notes field through the dashboard.
+High
+FR-24
+The system shall support alert export to CSV format.
+Medium
+3.1.6 Dashboard and Visualisation
+ID
+Requirement
+Priority
+FR-25
+The dashboard shall display a live agent activity feed showing the last 50 actions with action type, agent ID, risk score, and timestamp.
+Critical
+FR-26
+The dashboard shall display a risk score trend chart (line chart) for each agent over the last 30 minutes.
+High
+FR-27
+The dashboard shall display a summary panel with: total active agents, total actions today, open alerts count, and highest current risk agent.
+Critical
+FR-28
+The dashboard shall display an alert history table with filtering by severity, agent, and date range.
+High
+FR-29
+The dashboard shall refresh all real-time data automatically every 5 seconds without requiring a page reload.
+High
+FR-30
+The dashboard shall provide an agent detail view showing full action history, risk timeline, and all associated alerts for a selected agent.
+Medium
+3.2 Non-Functional Requirements
+3.2.1 Performance
+ID
+Requirement
+NFR-01
+Action ingestion and rule evaluation shall complete within 200ms for 95% of requests under normal load (up to 100 actions/second).
+NFR-02
+The dashboard shall load within 3 seconds on a standard broadband connection.
+NFR-03
+The ML anomaly scoring batch job shall complete within 30 seconds for batches of up to 10,000 action records.
+NFR-04
+The PostgreSQL database shall handle up to 1 million stored action records without degradation in query performance (with appropriate indexing).
+3.2.2 Security
+ID
+Requirement
+NFR-05
+All API endpoints shall require JWT-based authentication except the health check endpoint.
+NFR-06
+All data in transit between components shall be encrypted using TLS 1.2 or higher in production deployment.
+NFR-07
+The audit log table shall be append-only; no DELETE operations shall be permitted on it.
+NFR-08
+Failed login attempts shall be rate-limited to 5 attempts per minute per IP address.
+3.2.3 Reliability and Availability
+ID
+Requirement
+NFR-09
+The system shall maintain 99% uptime during a 24-hour demonstration or evaluation window.
+NFR-10
+If the ML scoring service fails, the rule-based detection subsystem shall continue operating independently.
+NFR-11
+All action events received via API shall be persisted to the database before any detection processing begins, ensuring no data loss on processing failure.
+3.2.4 Usability
+ID
+Requirement
+NFR-12
+The dashboard shall be usable without training for users familiar with standard security monitoring interfaces.
+NFR-13
+All alert severity levels shall be visually distinguished using consistent colour coding throughout the interface.
+NFR-14
+The system shall provide meaningful error messages in API responses for all 4xx and 5xx error conditions.
+3.2.5 Maintainability
+ID
+Requirement
+NFR-15
+Security rules shall be stored in a database table (not hardcoded) to allow modification without redeployment.
+NFR-16
+The ML model shall be replaceable via a configuration change without modifying application code.
+NFR-17
+The codebase shall maintain at least 70% unit test coverage for backend modules.
+3.3 External Interface Requirements
+3.3.1 User Interface
+The dashboard shall be a single-page application (SPA) built with React.js and styled with Tailwind CSS
+Charts and visualizations shall be implemented using Chart.js
+The interface shall be responsive and functional on screen widths of 1280px and above
+Colour scheme shall use accessible contrast ratios meeting WCAG 2.1 AA standards
+3.3.2 API Interface
+Endpoint
+Method
+Description
+POST /api/v1/actions
+POST
+Ingest a single agent action event
+POST /api/v1/actions/bulk
+POST
+Bulk ingest from file (CSV/JSON)
+GET /api/v1/agents
+GET
+List all active agents with current risk scores
+GET /api/v1/agents/{id}/actions
+GET
+Get paginated action history for a specific agent
+GET /api/v1/alerts
+GET
+List alerts with optional filters (severity, status, date)
+PATCH /api/v1/alerts/{id}
+PATCH
+Update alert status (acknowledge / resolve)
+POST /api/v1/rules
+POST
+Create a new security rule
+GET /api/v1/rules
+GET
+List all configured security rules
+DELETE /api/v1/rules/{id}
+DELETE
+Remove a security rule
+POST /api/v1/model/retrain
+POST
+Trigger ML model retraining (admin only)
+WS /ws/agent/{agent_id}
+WebSocket
+Stream real-time events for a specific agent
+3.3.3 Database Interface
+The system uses PostgreSQL with the following primary tables:
+Table
+Purpose
+Key Fields
+agents
+Registry of all observed AI agents
+agent_id, name, created_at, current_risk_score, status
+actions
+All ingested agent action events
+action_id, agent_id, action_type, parameters, timestamp, risk_score, anomaly_score, session_id
+alerts
+Generated security alerts
+alert_id, action_id, agent_id, trigger_type, severity, risk_score, status, created_at, resolved_at
+rules
+Configurable security rules
+rule_id, name, description, condition_json, severity, enabled, created_at
+audit_log
+Append-only system event log
+log_id, event_type, actor, details, timestamp
+4. System Models
+4.1 Use Case Summary
+The primary use cases for AgentShield AI are organized by actor:
+Actor
+Use Case
+Description
+AI Agent Simulator
+UC-01: Submit Action Event
+Agent sends a structured action event to the ingestion API
+AI Agent Simulator
+UC-02: Stream Events
+Agent establishes a WebSocket session for continuous event streaming
+Security Analyst
+UC-03: View Dashboard
+Analyst monitors the live agent activity feed and risk summary panel
+Security Analyst
+UC-04: Investigate Alert
+Analyst opens an alert, reviews the triggering action, and updates alert status
+Security Analyst
+UC-05: Export Alerts
+Analyst exports the filtered alert list to CSV for reporting
+Security Analyst
+UC-06: View Agent Detail
+Analyst drills into a specific agent to see full action and risk history
+System Administrator
+UC-07: Configure Rules
+Admin adds, edits, or disables security detection rules
+System Administrator
+UC-08: Retrain ML Model
+Admin triggers retraining of the Isolation Forest model on current data
+System Administrator
+UC-09: Set Risk Thresholds
+Admin adjusts alert trigger thresholds and risk band boundaries
+4.2 Main Flow — Action Ingestion to Alert
+The following sequence describes the primary detection flow:
+AI Agent Simulator sends a POST request to /api/v1/actions with a JSON action event payload
+FastAPI backend validates the payload schema; returns 422 if invalid
+Valid event is written to the actions table in PostgreSQL with a generated action_id
+Rule Engine evaluates the action against all enabled rules; rule matches are recorded
+Feature vector is extracted from the action and added to the current scoring batch
+Every 60 seconds, the ML Engine runs Isolation Forest on the accumulated batch; anomaly scores are written back to the actions table
+Risk Score is computed per action using the weighted formula (FR-16)
+If risk score exceeds the configured threshold, an alert record is inserted into the alerts table
+Dashboard polls /api/v1/alerts every 5 seconds; new alerts appear as notifications
+Analyst acknowledges the alert, adds investigation notes, and marks it resolved
+4.3 Entity Relationship Overview
+The core data relationships are:
+One Agent has many Actions (one-to-many: agents → actions)
+One Action may trigger zero or more Alerts (one-to-many: actions → alerts)
+One Rule may match many Actions; each match is recorded in the alerts table with the triggering rule_id
+Audit Log records all system-level events independently with no foreign key dependencies (append-only)
+5. Architecture Overview
+5.1 Layered Architecture
+AgentShield AI uses a 4-layer architecture to separate concerns and support independent scaling of each component:
+Layer
+Components
+Technology
+Layer 1: Simulation
+AI Agent Simulator, Log Generator, Scenario Scripts
+Python 3.11, JSON
+Layer 2: Ingestion & Processing
+FastAPI REST/WebSocket Server, Rule Engine, ML Engine, Risk Calculator
+FastAPI, Python, Scikit-learn
+Layer 3: Storage
+Action Store, Alert Store, Rule Store, Audit Log
+PostgreSQL 15
+Layer 4: Presentation
+Security Dashboard SPA, Chart Components, Alert Panel
+React.js, Tailwind CSS, Chart.js
+5.2 Component Descriptions
+5.2.1 AI Agent Simulator
+A Python script that generates synthetic AI agent action sequences following configurable behaviour profiles — including normal workflow patterns and injected threat scenarios (unauthorized file access, API flooding, prompt injection patterns). Outputs JSON events to the ingestion API.
+5.2.2 FastAPI Backend
+The central processing hub. Handles request validation, coordinates the Rule Engine and ML Engine, computes risk scores, and writes all results to PostgreSQL. Exposes both REST endpoints and WebSocket connections. Implements JWT authentication for all protected routes.
+5.2.3 Rule Engine
+A synchronous evaluation module that compares each incoming action against the rules stored in the PostgreSQL rules table. Rules are expressed as JSON condition objects and evaluated using a lightweight expression evaluator. Returns a list of matched rules and their aggregate severity score for use in risk calculation.
+5.2.4 ML Engine
+An asynchronous batch processing module that runs every 60 seconds. Loads the latest pre-trained Isolation Forest model from disk, extracts feature vectors from the current action batch, computes anomaly scores, and writes them back to the actions table. Supports model retraining via an admin-triggered endpoint.
+5.2.5 React.js Dashboard
+A single-page application providing the operator interface. Polls the FastAPI backend at 5-second intervals for updated data. Uses Chart.js for risk trend visualization. Implements real-time alert notifications, agent drill-down views, and rule management interfaces. Communicates exclusively with the FastAPI backend via HTTP/WebSocket; it has no direct database access.
+5.3 Data Flow Summary
+Step
+From
+To
+Data
+1
+Agent Simulator
+FastAPI /api/v1/actions
+JSON action event
+2
+FastAPI
+PostgreSQL (actions)
+Validated action record
+3
+FastAPI
+Rule Engine
+Action payload
+4
+Rule Engine
+FastAPI
+Matched rules + severity score
+5
+FastAPI
+ML Engine batch queue
+Feature vector
+6
+ML Engine
+PostgreSQL (actions)
+Anomaly scores (batch update)
+7
+FastAPI
+PostgreSQL (alerts)
+Alert record (if threshold exceeded)
+8
+React Dashboard
+FastAPI GET /api/v1/alerts
+Alert list (polled)
+9
+Analyst
+FastAPI PATCH /api/v1/alerts/{id}
+Status update
+6. Appendix
+6.1 Revision History
+Version
+Date
+Author
+Description
+v0.1
+June 2026
+Group 26MPA06
+Initial draft — scope and objectives
+v1.0
+June 2026
+Group 26MPA06
+Complete SRS — all sections finalized for guide review
+6.2 References
+IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications
+MITRE ATLAS — Adversarial Threat Landscape for AI Systems. https://atlas.mitre.org
+Scikit-learn documentation — Isolation Forest. https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html
+FastAPI documentation. https://fastapi.tiangolo.com
+Liu, F.T., Ting, K.M., and Zhou, Z.H. (2008). Isolation Forest. In 2008 Eighth IEEE International Conference on Data Mining.
+React documentation. https://react.dev
+6.3 Requirement Traceability Matrix (Summary)
+Each functional requirement maps to a system component:
+Requirement Range
+Component
+Test Approach
+FR-01 to FR-05
+FastAPI Ingestion Layer + PostgreSQL
+Unit test: API endpoint validation + DB write
+FR-06 to FR-10
+Rule Engine
+Unit test: rule matching logic + integration test with API
+FR-11 to FR-15
+ML Engine (Isolation Forest)
+Unit test: feature extraction + model scoring pipeline
+FR-16 to FR-19
+Risk Calculator module
+Unit test: formula correctness + boundary conditions
+FR-20 to FR-24
+Alert Service + PostgreSQL
+Integration test: end-to-end alert generation and management
+FR-25 to FR-30
+React.js Dashboard
+Manual testing + Cypress E2E tests
+NFR-01 to NFR-04
+FastAPI + PostgreSQL
+Load testing with Locust (100 req/s)
+NFR-05 to NFR-08
+Authentication module
+Security testing: JWT validation, rate limiting
+End of Document — AgentShield AI SRS v1.0 | Group 26MPA06 | IMS Engineering College, Ghaziabad

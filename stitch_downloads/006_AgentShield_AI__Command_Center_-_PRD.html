@@ -1,0 +1,180 @@
+# AgentShield AI: Command Center
+
+## Product Overview
+
+**The Pitch:** A high-utility, real-time security monitoring NOC (Network Operations Center) for autonomous AI agents. AgentShield AI centralizes agent risk scoring, live action feeds, and threat triage into a single pane of glass.
+
+**For:** Security engineers and AI operations teams who need zero-latency visibility into rogue agent behavior and automated system guardrails.
+
+**Device:** desktop
+
+**Design Direction:** Industrial, data-dense, cyberpunk-adjacent tactical command center. High contrast, monospace dominance, and aggressive data visualization over sparse, dark backgrounds.
+
+**Inspired by:** CrowdStrike Falcon, Datadog, Palantir Foundry
+
+---
+
+## Screens
+
+- **Dashboard:** Real-time pulse of system health, active threats, and live agent telemetry
+- **Agents Directory:** Comprehensive grid of all registered agents with historical risk profiles
+- **Alerts Triage:** Priority-queued incident response interface for suspicious agent behaviors
+- **Agent Deep-Dive:** Forensic timeline view of a single agent's decision-making history
+
+---
+
+## Key Flows
+
+**Threat Isolation:** SecOps engineer halts a rogue agent
+
+1. User is on Dashboard -> sees pulsing red dot on Open Alerts card
+2. User clicks "Open Alerts" -> Navigates to Alerts Triage screen, filtering for Critical severity
+3. User clicks "Isolate" button on AGT-009 -> Agent is immediately suspended, status badge turns grey
+
+---
+
+<details>
+<summary>Design System</summary>
+
+## Color Palette
+
+- **Primary:** `#00D4FF` - Active states, links, primary highlights (Cyan)
+- **Background:** `#0D1117` - Main application canvas (Deep Space)
+- **Surface:** `#161B22` - Sidebars, top nav
+- **Surface Raised:** `#1C2128` - Cards, chart backgrounds, table headers
+- **Text:** `#E6EDF3` - Primary body text
+- **Muted:** `#8B949E` - Secondary text, borders, subtle grid lines
+- **Accent Success:** `#238636` - Normal status, upward trends, low risk (0-25)
+- **Accent Info:** `#2F81F7` - Standard actions, medium-low risk (26-50)
+- **Accent Warning:** `#D29922` - Suspicious status, medium-high risk (51-75)
+- **Accent Danger:** `#F85149` - Critical status, open alerts, high risk (76-100)
+
+## Typography
+
+Industrial, machine-readable typography prioritizing data density over warmth.
+
+- **Headings:** `IBM Plex Sans`, 600, 18-24px
+- **Body/UI Labels:** `IBM Plex Sans`, 400, 14px
+- **Data/Metrics:** `JetBrains Mono`, 500, 13px (Agent IDs, timestamps, raw data)
+- **Small text:** `IBM Plex Sans`, 400, 12px
+- **Buttons:** `JetBrains Mono`, 600, 12px, uppercase
+
+**Style notes:** Sharp corners (`0px` or `2px` max border radius). 1px solid borders (`#30363D`) on all cards. Deep, inset shadows for active states. Glowing box-shadows (`0 0 8px rgba(0, 212, 255, 0.4)`) for active cyan elements.
+
+## Design Tokens
+
+```css
+:root {
+  --color-primary: #00D4FF;
+  --color-bg-base: #0D1117;
+  --color-bg-surface: #161B22;
+  --color-bg-raised: #1C2128;
+  --color-text-main: #E6EDF3;
+  --color-text-muted: #8B949E;
+  --color-border: #30363D;
+  --color-success: #238636;
+  --color-warning: #D29922;
+  --color-danger: #F85149;
+  --font-ui: 'IBM Plex Sans', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+  --radius-sm: 2px;
+  --radius-none: 0px;
+  --spacing-base: 8px;
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary>Screen Specifications</summary>
+
+### Dashboard
+
+**Purpose:** Primary command center for real-time agent monitoring.
+
+**Layout:** 240px left sidebar. Full-width top bar. Main content area: Top row of 4 stat cards. Bottom area split 60% (Table) / 40% (Chart).
+
+**Key Elements:**
+- **Sidebar:** 240px wide, `#161B22` background. Top: Logo + shield icon. Vertical links (Dashboard, Agents, Alerts, Rules, Logs, Settings). Dashboard active (cyan text, cyan left border). Bottom: User avatar, "Admin", logout icon.
+- **Top Bar:** 64px height, `#161B22`. Left: "AgentShield AI" breadcrumb. Center: "System Operational" green pill. Right: `14:32:45 UTC` live clock, bell icon with red badge `3`.
+- **Stat Cards (x4):** `#1C2128` background, 1px `#30363D` border.
+  - Active Agents: `12` (green left border)
+  - Actions Today: `4,847` (blue left border)
+  - Open Alerts: `7` (red left border, pulsing red dot)
+  - Highest Risk Agent: `AGT-009`, score `84/100` (amber left border)
+- **Live Action Feed (Left 60%):** `#1C2128` card. Header: "Live Action Feed" + pulsing green dot. Table columns:
+  - Agent ID (cyan, `JetBrains Mono`)
+  - Action Type (white text)
+  - Risk Score (0-25 green badge, 26-50 blue badge, 51-75 amber badge, 76-100 red badge)
+  - Timestamp (`JetBrains Mono`, `#8B949E`)
+  - Status ("Normal" grey, "Suspicious" amber, "Critical" red pulsing)
+- **Agent Risk Chart (Right 40%):** `#1C2128` card. Title "Agent Risk Scores". Horizontal bar chart. Top 6 agents. Bars colored by risk band. `#30363D` gridlines.
+
+**States:**
+- **Empty:** "No telemetry data detected" in `JetBrains Mono` across feed.
+- **Loading:** Skeleton loaders with subtle `#30363D` to `#1C2128` pulse.
+
+**Interactions:**
+- **Hover Row:** Table row background shifts to `#21262D`.
+- **Click Agent ID:** Opens side-panel with Agent Deep-Dive.
+
+**Responsive:**
+- **Desktop:** 240px sidebar, 60/40 split.
+- **Tablet:** Collapse sidebar to icons (64px). Stack 60/40 split to 100/100 vertical.
+- **Mobile:** Not supported (Desktop focused).
+
+### Agents Directory
+
+**Purpose:** Comprehensive list of all registered autonomous agents.
+
+**Layout:** Standard sidebar and top bar. Main content is a full-width data grid with advanced filtering top-bar.
+
+**Key Elements:**
+- **Filter Bar:** Search input (`Agent ID`, `Function`), Status Dropdown, Risk Range slider.
+- **Agent Grid:** Card-based grid (auto-fill 320px). Each card shows Agent ID, uptime, total actions, and a sparkline of recent risk scores.
+- **Status Indicators:** Online (solid green dot), Offline (hollow grey dot), Suspended (solid amber dot).
+
+**Interactions:**
+- **Hover Card:** 1px border highlights to `#00D4FF`.
+
+### Alerts Triage
+
+**Purpose:** Incident response queue for suspicious agent behaviors.
+
+**Layout:** 3-pane layout. Sidebar (240px), Alert List (350px), Alert Details (remaining width).
+
+**Key Elements:**
+- **Alert List:** Sortable list. Each item shows severity strip (red/amber), Agent ID, time, and brief description (e.g., `Unauthorized DB Access`).
+- **Alert Details:** Full JSON payload viewer for the flagged action in `JetBrains Mono`. Remediation buttons at bottom: "Dismiss", "Isolate Agent", "Halt Process".
+
+**Interactions:**
+- **Click Isolate Agent:** Modal confirmation. On confirm, fires API and turns Agent status red across all dashboards.
+
+### Agent Deep-Dive
+
+**Purpose:** Forensic view of a single agent.
+
+**Layout:** 2-column layout. Left 30% identity and stats. Right 70% timeline.
+
+**Key Elements:**
+- **Identity Panel:** Large Agent ID (`AGT-009`). Current risk score gauge. Assigned LLM model (`GPT-4-Turbo`). Permissions list.
+- **Action Timeline:** Vertical timeline of all API calls and system commands executed by the agent, color-coded by risk severity.
+
+</details>
+
+---
+
+<details>
+<summary>Build Guide</summary>
+
+**Stack:** HTML + Tailwind CSS v3
+
+**Build Order:**
+1. **Design System & Layout Frame:** Set CSS variables in base layer. Build the 240px sidebar and 64px top bar. Establishes the `#0D1117` and `#161B22` spatial relationship.
+2. **Stat Cards:** Implement the 4-column grid. Nail the 1px colored left borders and JetBrains Mono typography for numbers.
+3. **Live Action Feed Table:** Build the core table structure. Implement the specific status badges (Normal, Suspicious, Critical) and the CSS pulse animation for critical dots.
+4. **Agent Risk Chart:** Implement the horizontal bar chart on the right 40% panel, matching the specific gridline colors and bar risk-band gradients.
+
+</details>

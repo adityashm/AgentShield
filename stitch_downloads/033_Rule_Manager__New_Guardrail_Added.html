@@ -1,0 +1,380 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgentShield AI - Rule Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#dae3ee",
+                        "tertiary-container": "#bbc4cf",
+                        "border-subtle": "#30363D",
+                        "on-tertiary-container": "#48515a",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#b4ebff",
+                        "on-surface": "#dfe2eb",
+                        "bg-surface": "#161B22",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "background": "#10141a",
+                        "on-tertiary-fixed": "#141c24",
+                        "on-surface-variant": "#bbc9cf",
+                        "inverse-on-surface": "#2d3137",
+                        "text-main": "#E6EDF3",
+                        "on-background": "#dfe2eb",
+                        "on-secondary-container": "#f8f8ff",
+                        "secondary-container": "#026ee4",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "error": "#ffb4ab",
+                        "surface": "#10141a",
+                        "inverse-primary": "#00677e",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-secondary-fixed": "#001a40",
+                        "surface-bright": "#353940",
+                        "tertiary": "#d7e0eb",
+                        "inverse-surface": "#dfe2eb",
+                        "error-container": "#93000a",
+                        "status-success": "#238636",
+                        "on-tertiary": "#29313a",
+                        "on-primary-container": "#00586b",
+                        "primary-container": "#00d4ff",
+                        "on-primary-fixed": "#001f27",
+                        "status-danger": "#F85149",
+                        "on-secondary-fixed-variant": "#004492",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-tint": "#3cd7ff",
+                        "on-secondary": "#002f68",
+                        "on-primary": "#003642",
+                        "surface-container-high": "#262a31",
+                        "surface-container-lowest": "#0a0e14",
+                        "surface-container-highest": "#31353c",
+                        "bg-hover": "#21262D",
+                        "status-warning": "#D29922",
+                        "surface-dim": "#10141a",
+                        "on-error": "#690005",
+                        "surface-container": "#1c2026",
+                        "surface-variant": "#31353c",
+                        "bg-raised": "#1C2128",
+                        "outline-variant": "#3c494e",
+                        "outline": "#859398",
+                        "secondary": "#acc7ff",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "surface-container-low": "#181c22",
+                        "primary": "#a8e8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "240px",
+                        "topbar-height": "64px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "margin-page": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["IBM Plex Sans"],
+                        "button-label": ["JetBrains Mono"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "body-md": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0D1117; color: #dfe2eb; margin: 0; padding: 0; }
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-smoothing: antialiased; }
+        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .glow { box-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+        .input-glow:focus { border-color: #00d4ff; box-shadow: 0 0 8px rgba(0, 212, 255, 0.4); outline: none; }
+        
+        /* Custom Toggle Switch */
+        .toggle-checkbox:checked { right: 0; border-color: #00d4ff; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #00d4ff; }
+        .toggle-checkbox:checked + .toggle-label:before { transform: translateX(100%); background-color: #003642; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="w-sidebar-width h-screen fixed left-0 top-0 bg-background border-r border-border-subtle flex flex-col py-base z-50">
+<div class="px-gutter mb-6 flex items-center gap-3">
+<img alt="AgentShield Logo" class="w-8 h-8 rounded" data-alt="A minimalist, futuristic shield icon glowing with cyan lines on a dark obsidian background, representing cybersecurity and AI protection. The lighting is focused and dramatic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBdjSbkeyqcmjuiuiPGZ11T2o35sBDrRu_tWt2KqlW7WzczPhugDGYNMkGt9pL11cl87zJbLINLEEdLpvVdqxEUH0OeJ3Ss0mGt_ih1_DbuEEduXOprRnmPzq5AOUqQNhepmDjjVu3skuzOOtyKq7nCZns-wfdfscNoK3or8u6VQi8Tzq0Od-rqwqso17rhMqH0KrcVsgQ2HeMCFw2_WiQKQgzSJaE9inMKLrgivdHnbt0h53M_d8OwUlOV8jQIu6xsKtbjKU8hw">
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">AGENTSHIELD</h1>
+<p class="font-button-label text-button-label uppercase tracking-widest text-on-surface-variant text-[10px]">MISSION CONTROL</p>
+</div>
+</div>
+<button class="mx-gutter mb-6 bg-primary-container text-on-primary font-button-label text-button-label py-2 px-4 rounded flex items-center justify-center gap-2 hover:bg-surface-tint transition-colors glow">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span> NEW SCAN
+        </button>
+<div class="flex-grow flex flex-col gap-1 px-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span> <span class="font-button-label text-button-label">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">smart_toy</span> <span class="font-button-label text-button-label">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">notification_important</span> <span class="font-button-label text-button-label">Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-primary bg-bg-hover border-l-2 border-primary bg-bg-raised transition-all duration-150 shadow-[inset_2px_0_0_0_#a8e8ff] border-r-2" href="{{DATA:SCREEN:SCREEN_25}}">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">gavel</span> <span class="font-button-label text-button-label text-primary">Rules</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">terminal</span> <span class="font-button-label text-button-label">Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span> <span class="font-button-label text-button-label">Settings</span>
+</a>
+</div>
+<div class="mt-auto px-2 flex flex-col gap-1 border-t border-border-subtle pt-4">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span> <span class="font-button-label text-button-label">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span> <span class="font-button-label text-button-label">User Guide</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="ml-[240px] flex-1 flex flex-col min-h-screen w-[calc(100%-240px)]">
+<!-- TopNavBar -->
+<header class="h-topbar-height bg-surface border-b border-border-subtle flex justify-between items-center px-gutter sticky top-0 z-40 shadow-sm">
+<div class="flex items-center gap-6">
+<h2 class="font-headline-md text-headline-md font-bold text-primary uppercase tracking-wider">AGENTSHIELD AI</h2>
+<div class="hidden lg:flex items-center gap-4 border-l border-border-subtle pl-6">
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">LIVE FEED</a>
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">NETWORK</a>
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">SENSORS</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center text-on-surface-variant gap-2 mr-4 border-r border-border-subtle pr-4">
+<button class="p-1 hover:text-primary-container transition-colors"><span class="material-symbols-outlined">notifications_active</span></button>
+<button class="p-1 hover:text-primary-container transition-colors"><span class="material-symbols-outlined">dns</span></button>
+<button class="p-1 hover:text-primary-container transition-colors"><span class="material-symbols-outlined">schedule</span></button>
+</div>
+<button class="bg-primary-container text-on-primary font-button-label text-button-label py-1.5 px-4 rounded border border-primary-container hover:bg-transparent hover:text-primary-container transition-all active:scale-95 duration-100">DEPLOY AGENT</button>
+<img alt="Security Analyst Profile" class="w-8 h-8 rounded-full border border-border-subtle ml-2 object-cover" data-alt="A professional headshot of a female security analyst in a dark control room setting, illuminated softly by blue screen light. Modern, corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBizTvysZMHOP_UUJL-5LiLU6fAvHfBrqc0UhvgMnxca-oCMkC_WKt_-dYPFNlnkm1JQ-pHxcndbYoq9mpzXdVCluWVa7rLdoyenSAwpNPMt3lTjmRakwy6l7ieEYBObJ3uDq7rR1uKDolpWiuwp0YElmZy1PwiXPBIVOYeqw-3nQU3ueET_2kJ2poMAbEiA7-U9hQgk_yKd3SuSupJlW9CjkxumZ5PkeRbItyeR1noX26P7g2EbkcIH6OidlaYh77lYIySqQ0ipA">
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="flex-1 p-margin-page flex flex-col gap-6 overflow-y-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-end border-b border-border-subtle pb-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-1">Security Rules</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Configure detection rules for the rule engine.</p>
+</div>
+<button class="bg-primary-container text-on-primary font-button-label text-button-label py-2 px-4 rounded hover:bg-surface-tint transition-colors glow flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span> ADD RULE
+                </button>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 flex-1">
+<!-- Left Column: Rules Table (65%) -->
+<div class="xl:col-span-8 flex flex-col gap-4">
+<div class="bg-bg-raised border border-border-subtle rounded flex-1 overflow-hidden flex flex-col">
+<div class="px-4 py-3 border-b border-border-subtle bg-surface-container flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Active Rule Set</h3>
+<a href="{{DATA:SCREEN:SCREEN_18}}" class="flex items-center gap-2 px-3 py-1 font-button-label text-button-label text-on-surface-variant hover:text-primary border border-border-subtle rounded bg-[#0D1117] transition-colors mr-2"><span class="material-symbols-outlined" style="font-size: 16px;">settings_ethernet</span> SIEM CONFIG</a><div class="flex gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" style="font-size: 16px;">search</span>
+<input class="bg-[#0D1117] border border-border-subtle rounded pl-8 pr-3 py-1 font-body-sm text-body-sm text-on-surface input-glow w-48" placeholder="Search rules..." type="text">
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface border border-border-subtle rounded bg-[#0D1117]"><span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface border-b border-border-subtle text-on-surface-variant font-button-label text-button-label uppercase tracking-wider">
+<th class="p-3 w-12 text-center">Status</th>
+<th class="p-3">Rule ID</th>
+<th class="p-3">Name</th>
+<th class="p-3">Severity</th>
+<th class="p-3 text-right">Matches</th>
+<th class="p-3 text-right w-20">Actions</th>
+</tr>
+</thead>
+<tbody class="font-data-mono text-data-mono text-on-surface divide-y divide-border-subtle">
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer checked:border-[#00d4ff] z-10" id="toggle1" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle1"></label>
+</div>
+</td>
+<td class="p-3 text-primary">RUL-001</td>
+<td class="p-3 font-body-md text-body-md">Unauthorized File Access <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase">File System</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-status-danger"></span> High</span></td>
+<td class="p-3 text-right text-on-surface-variant">1,204</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" id="toggle2" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle2"></label>
+</div>
+</td>
+<td class="p-3 text-primary">RUL-002</td>
+<td class="p-3 font-body-md text-body-md">Excessive API Rate <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase">Rate Limiting</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-status-warning"></span> Medium</span></td>
+<td class="p-3 text-right text-on-surface-variant">342</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group border-l-2 border-l-status-danger bg-[#1c2128]/50">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" id="toggle3" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle3"></label>
+</div>
+</td>
+<td class="p-3 text-primary">RUL-003</td>
+<td class="p-3 font-body-md text-body-md text-status-danger font-semibold">Prompt Injection Pattern <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase font-normal">Input Val</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5 font-bold text-status-danger"><span class="w-2 h-2 rounded-full bg-status-danger pulse"></span> Critical</span></td>
+<td class="p-3 text-right text-on-surface-variant">89</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" id="toggle4" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle4"></label>
+</div>
+</td>
+<td class="p-3 text-primary">RUL-004</td>
+<td class="p-3 font-body-md text-body-md">Privilege Escalation <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase">Access</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-status-danger"></span> Critical</span></td>
+<td class="p-3 text-right text-on-surface-variant">12</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group opacity-60">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" id="toggle5" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle5"></label>
+</div>
+</td>
+<td class="p-3 text-on-surface-variant">RUL-005</td>
+<td class="p-3 font-body-md text-body-md line-through text-on-surface-variant">Data Exfiltration <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase no-underline">Network</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5 text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-border-subtle"></span> High</span></td>
+<td class="p-3 text-right text-on-surface-variant">-</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-bg-hover transition-colors group border-l-2 border-l-status-danger bg-[#1c2128]/50">
+<td class="p-3 text-center">
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" id="toggle-new" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-border-subtle cursor-pointer" for="toggle-new"></label>
+</div>
+</td>
+<td class="p-3 text-primary">RULE-102</td>
+<td class="p-3 font-body-md text-body-md text-status-danger font-semibold">Prompt Injection Protection <span class="ml-2 inline-block px-2 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-border-subtle uppercase font-normal">Input Val</span></td>
+<td class="p-3"><span class="flex items-center gap-1.5 font-bold text-status-danger"><span class="w-2 h-2 rounded-full bg-status-danger pulse"></span> Critical</span></td>
+<td class="p-3 text-right text-on-surface-variant">0</td>
+<td class="p-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></button>
+</td>
+</tr></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: Form Panel (35%) -->
+<div class="xl:col-span-4 flex flex-col">
+<div class="bg-bg-raised border border-border-subtle rounded flex-1 flex flex-col">
+<div class="px-4 py-3 border-b border-border-subtle bg-surface-container flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Rule Editor</h3>
+<span class="font-data-mono text-data-mono text-primary text-xs">RULE-102</span>
+</div>
+<div class="p-4 flex-1 flex flex-col gap-4 overflow-y-auto">
+<!-- Field: Name -->
+<div class="flex flex-col gap-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant">RULE NAME</label>
+<input class="bg-[#0D1117] border border-border-subtle rounded px-3 py-2 font-body-md text-body-md text-on-surface input-glow focus:border-primary w-full" placeholder="e.g. Suspicious Login Pattern" type="text" value="Prompt Injection Protection">
+</div>
+<!-- Field: Description -->
+<div class="flex flex-col gap-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant">DESCRIPTION</label>
+<textarea class="bg-[#0D1117] border border-border-subtle rounded px-3 py-2 font-body-md text-body-md text-on-surface input-glow focus:border-primary w-full h-20 resize-none" placeholder="Describe the detection logic..."></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Field: Category -->
+<div class="flex flex-col gap-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant">CATEGORY</label>
+<select class="bg-[#0D1117] border border-border-subtle rounded px-3 py-2 font-body-md text-body-md text-on-surface input-glow focus:border-primary w-full appearance-none"><option selected="">Input Validation</option><option>Access Control</option><option>Network</option></select>
+</div>
+<!-- Field: Severity -->
+<div class="flex flex-col gap-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant">SEVERITY</label>
+<select class="bg-[#0D1117] border border-border-subtle rounded px-3 py-2 font-body-md text-body-md text-on-surface input-glow focus:border-primary w-full appearance-none text-status-warning"><option selected="">Input Validation</option><option>Access Control</option><option>Network</option></select>
+</div>
+</div>
+<!-- Field: Condition (Code Block) -->
+<div class="flex flex-col gap-1.5 mt-2"><label class="font-button-label text-button-label text-on-surface-variant">DETECTION PATTERN (REGEX)</label><div class="relative bg-[#0a0e14] border border-border-subtle rounded p-2 font-data-mono text-[12px] text-primary break-all">\b(system override|ignore previous instructions|you are now a)\b</div></div><div class="grid grid-cols-2 gap-4 mt-2"><div class="flex flex-col gap-1.5"><label class="font-button-label text-button-label text-on-surface-variant">AUTOMATED ACTION</label><div class="bg-surface-container-highest border border-status-danger text-status-danger px-3 py-2 rounded font-button-label text-[10px] text-center">BLOCK &amp; ALERT</div></div><div class="flex flex-col gap-1.5"><label class="font-button-label text-button-label text-on-surface-variant">TARGETED AGENTS</label><div class="bg-surface-container-highest border border-border-subtle text-primary px-3 py-2 rounded font-button-label text-[10px] text-center uppercase">ALL_AGENTS</div></div></div>
+</div>
+<!-- Panel Footer / Actions -->
+<div class="px-4 py-3 border-t border-border-subtle bg-surface-container flex justify-end gap-3">
+<button class="px-4 py-2 font-button-label text-button-label border border-border-subtle text-on-surface rounded hover:bg-bg-hover transition-colors">CANCEL</button>
+<button class="px-4 py-2 font-button-label text-button-label bg-primary-container text-on-primary rounded hover:bg-surface-tint transition-colors glow" onclick="alert('Success: Rule configuration has been saved successfully.')">SAVE RULE</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+<div class="bg-bg-raised border border-border-subtle rounded p-4 border-l-2 border-l-border-subtle">
+<p class="font-button-label text-button-label text-on-surface-variant mb-1 uppercase">Total Rules</p>
+<p class="font-data-mono text-[24px] font-semibold text-on-surface">12</p>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded p-4 border-l-2 border-l-status-success">
+<p class="font-button-label text-button-label text-on-surface-variant mb-1 uppercase">Active</p>
+<p class="font-data-mono text-[24px] font-semibold text-status-success glow-success">9</p>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded p-4 border-l-2 border-l-border-subtle">
+<p class="font-button-label text-button-label text-on-surface-variant mb-1 uppercase">Disabled</p>
+<p class="font-data-mono text-[24px] font-semibold text-on-surface-variant">3</p>
+</div>
+<div class="bg-bg-raised border border-border-subtle rounded p-4 border-l-2 border-l-primary">
+<p class="font-button-label text-button-label text-on-surface-variant mb-1 uppercase">Matches Today</p>
+<p class="font-data-mono text-[24px] font-semibold text-primary glow">847</p>
+</div>
+</div>
+</main>
+</div>
+
+
+</body></html>

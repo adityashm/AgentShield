@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Configuration - AGENTSHIELD AI</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#29313a",
+                        "on-surface-variant": "#bbc9cf",
+                        "bg-hover": "#21262D",
+                        "on-surface": "#dfe2eb",
+                        "on-secondary-container": "#f8f8ff",
+                        "on-primary-fixed": "#001f27",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#31353c",
+                        "primary-container": "#00d4ff",
+                        "on-secondary-fixed-variant": "#004492",
+                        "on-primary": "#003642",
+                        "surface-container-highest": "#31353c",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "on-error": "#690005",
+                        "surface-dim": "#10141a",
+                        "status-warning": "#D29922",
+                        "on-primary-container": "#00586b",
+                        "on-secondary": "#002f68",
+                        "tertiary": "#d7e0eb",
+                        "surface-tint": "#3cd7ff",
+                        "status-danger": "#F85149",
+                        "surface-bright": "#353940",
+                        "tertiary-fixed": "#dae3ee",
+                        "secondary-container": "#026ee4",
+                        "background": "#10141a",
+                        "primary": "#a8e8ff",
+                        "tertiary-container": "#bbc4cf",
+                        "secondary": "#acc7ff",
+                        "inverse-on-surface": "#2d3137",
+                        "inverse-surface": "#dfe2eb",
+                        "bg-raised": "#1C2128",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-tertiary-container": "#48515a",
+                        "outline-variant": "#3c494e",
+                        "text-main": "#E6EDF3",
+                        "surface-container-lowest": "#0a0e14",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#001a40",
+                        "surface-container-low": "#181c22",
+                        "inverse-primary": "#00677e",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-background": "#dfe2eb",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "bg-surface": "#161B22",
+                        "border-subtle": "#30363D",
+                        "outline": "#859398",
+                        "on-tertiary-fixed": "#141c24",
+                        "surface-container": "#1c2026",
+                        "surface": "#10141a",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "status-success": "#238636",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "surface-container-high": "#262a31",
+                        "primary-fixed": "#b4ebff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "240px",
+                        "base": "8px",
+                        "margin-page": "24px",
+                        "topbar-height": "64px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "button-label": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom scrollbar for deep space aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3c494e;
+        }
+        
+        /* Input glow effect focus */
+        .input-glow:focus-within {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        
+        .accordion-item.active .accordion-content {
+            max-height: 500px; /* Arbitrary large value for expansion */
+            opacity: 1;
+            padding-top: 1rem; /* 16px */
+            padding-bottom: 1rem;
+        }
+        
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col py-6 bg-surface-container-lowest border-r border-border-subtle fixed left-0 top-0 h-full w-sidebar-width z-40">
+<!-- Header -->
+<div class="px-margin-page mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 rounded bg-primary-container/20 flex items-center justify-center border border-primary-container/50">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-black text-primary uppercase tracking-tight">AGENTSHIELD</h1>
+</div>
+</div>
+<p class="font-data-mono text-[10px] text-on-surface-variant tracking-wider uppercase">NOC OPERATOR v2.4</p>
+</div>
+<!-- Main Nav Links -->
+<div class="flex flex-col gap-1 px-3 flex-grow">
+<!-- Mission Control (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-all duration-150 ease-in-out font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Mission Control
+            </a>
+<!-- Agent Registry (Active - Semantically matches 'Configuration for AGT-009') -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-primary bg-secondary-container/10 border-r-2 border-primary transition-all duration-150 ease-in-out font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1; filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.5));">smart_toy</span>
+                Agent Registry
+            </a>
+<!-- Threat Intel (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-all duration-150 ease-in-out font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[20px]">security</span>
+                Threat Intel
+            </a>
+<!-- Log Stream (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-all duration-150 ease-in-out font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+                Log Stream
+            </a>
+<!-- System Health (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-all duration-150 ease-in-out font-button-label text-button-label" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+                System Health
+            </a>
+</div>
+<!-- CTA & Footer Nav -->
+<div class="px-margin-page mt-auto flex flex-col gap-4">
+<button class="w-full bg-primary-container/10 border border-primary-container text-primary-container font-button-label text-button-label py-2 rounded hover:bg-primary-container/20 transition-colors uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_8px_rgba(0,212,255,0.15)]">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                DEPLOY NEW AGENT
+            </button>
+<div class="h-px bg-border-subtle w-full my-2"></div>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">code</span>
+                Terminal
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+                Help
+            </a>
+</div>
+</nav>
+<!-- Main Workspace Area -->
+<div class="flex-1 flex flex-col md:ml-[240px] min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-240px)] h-topbar-height bg-background border-b border-border-subtle flex items-center justify-between px-margin-page z-30">
+<!-- Left: Search placeholder (JSON says 'on_left' for search bar intent, implementing as a subtle command palette trigger) -->
+<div class="flex-1 max-w-md">
+<div class="flex items-center bg-surface-container-lowest border border-border-subtle rounded px-3 py-1.5 text-on-surface-variant cursor-pointer hover:border-outline-variant transition-colors group">
+<span class="material-symbols-outlined text-[18px] mr-2 group-hover:text-primary-container transition-colors">search</span>
+<span class="font-data-mono text-data-mono opacity-70">Query configuration index...</span>
+<span class="ml-auto font-data-mono text-[10px] bg-bg-raised border border-border-subtle px-1.5 rounded text-on-surface-variant">⌘K</span>
+</div>
+</div>
+<!-- Right: Actions & Profile -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-bg-hover transition-colors duration-200 cursor-pointer active:opacity-80 p-2 rounded-full flex items-center justify-center relative">
+<span class="material-symbols-outlined">sensors</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-status-success rounded-full shadow-[0_0_6px_rgba(35,134,54,0.8)]"></span>
+</button>
+<button class="text-on-surface-variant hover:bg-bg-hover transition-colors duration-200 cursor-pointer active:opacity-80 p-2 rounded-full flex items-center justify-center relative">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-bg-hover transition-colors duration-200 cursor-pointer active:opacity-80 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-6 w-px bg-border-subtle mx-2"></div>
+<div class="w-8 h-8 rounded bg-bg-raised border border-border-subtle overflow-hidden cursor-pointer hover:border-primary-container transition-colors">
+<img alt="Security Analyst Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD9tBHCELbffpIIaymCgo4CX0Smx2idH3SI0nGB3YOxjAFctcQifGaeMTNRAj8wELY5tvMrn55RnTOhtUfp7Ngte0ZCM7kO1Woli-JHDFWv7p6rGzfX3IM-v5WNwNuI8lH10kWmSJFePJMC9n5paaKdHHYh5RyQioET2vZOz9IDd1Ewb1V--MGzvypJoTu3DlndP2ExFLQGAHoj1-uN-TnXKM3W-pCmkM3HK8shl8jxPC2EtUmcKb7WnbdGCRUY6i4gWrZk1042w"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 mt-[64px] p-margin-page pb-24 overflow-y-auto bg-background">
+<!-- Page Header -->
+<div class="mb-8 flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2 text-on-surface-variant font-data-mono text-data-mono mb-2">
+<span class="hover:text-primary cursor-pointer transition-colors">Agent Registry</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">Configuration</span>
+</div>
+<h2 class="font-data-mono text-headline-lg font-bold text-primary-container drop-shadow-[0_0_8px_rgba(0,212,255,0.3)] flex items-center gap-3">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">terminal</span>
+                        Configuration: AGT-009
+                    </h2>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low border border-border-subtle px-3 py-1.5 rounded">
+<span class="w-2 h-2 bg-status-success rounded-full animate-pulse shadow-[0_0_6px_rgba(35,134,54,0.6)]"></span>
+<span class="font-data-mono text-data-mono text-status-success">ONLINE</span>
+</div>
+</div>
+<!-- Configuration Accordions Container -->
+<div class="max-w-4xl flex flex-col gap-4">
+<!-- Section 1: Network Settings (Expanded by Default) -->
+<div class="accordion-item active bg-bg-raised border border-border-subtle rounded flex flex-col overflow-hidden shadow-sm">
+<button class="flex items-center justify-between p-4 bg-surface-container hover:bg-bg-hover transition-colors cursor-pointer w-full text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">router</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Network Settings</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant accordion-icon">expand_more</span>
+</button>
+<div class="accordion-content px-4 border-t border-border-subtle bg-bg-raised">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Field: Access Control List -->
+<div class="col-span-1 md:col-span-2">
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Access Control List (CIDR)</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex flex-col transition-all duration-200">
+<textarea class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-3 focus:ring-0 resize-none h-24" placeholder="Enter IP ranges..."></textarea>
+</div>
+<p class="text-[11px] font-body-sm text-outline mt-1">Comma-separated list of allowed IP ranges.</p>
+</div>
+<!-- Field: Outbound Proxy -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Outbound Proxy</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">link</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0" type="text" value="proxy.internal.net:8080"/>
+</div>
+</div>
+<!-- Field: Max Connections -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Max Connections</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">speed</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0" type="number" value="1024"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Data Sources -->
+<div class="accordion-item bg-bg-raised border border-border-subtle rounded flex flex-col overflow-hidden shadow-sm">
+<button class="flex items-center justify-between p-4 bg-surface-container hover:bg-bg-hover transition-colors cursor-pointer w-full text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">database</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Data Sources</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant accordion-icon">expand_more</span>
+</button>
+<div class="accordion-content px-4 border-t border-border-subtle bg-bg-raised">
+<div class="grid grid-cols-1 gap-6">
+<!-- Field: Connected Databases -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Connected Databases</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">dns</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0" type="text" value="postgres://secops_db_prod"/>
+</div>
+</div>
+<!-- Field: File System Access Path -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">File System Access Path</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">folder</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0" type="text" value="/var/log/nginx/access.log"/>
+</div>
+</div>
+<!-- Field: S3 Bucket Integration -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">S3 Bucket Integration</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">cloud</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0" type="text" value="s3://agent-ingest-bucket-009"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3: Scan Parameters -->
+<div class="accordion-item bg-bg-raised border border-border-subtle rounded flex flex-col overflow-hidden shadow-sm">
+<button class="flex items-center justify-between p-4 bg-surface-container hover:bg-bg-hover transition-colors cursor-pointer w-full text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">radar</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Scan Parameters</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant accordion-icon">expand_more</span>
+</button>
+<div class="accordion-content px-4 border-t border-border-subtle bg-bg-raised">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Field: Scan Frequency -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Scan Frequency</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200 relative">
+<select class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 appearance-none cursor-pointer">
+<option class="bg-surface" value="realtime">Real-time (Stream)</option>
+<option class="bg-surface" selected="" value="1min">Every 1 Minute</option>
+<option class="bg-surface" value="5min">Every 5 Minutes</option>
+<option class="bg-surface" value="hourly">Hourly</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-3 pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Field: Depth Level -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Depth Level</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200 relative">
+<select class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 appearance-none cursor-pointer">
+<option class="bg-surface" value="shallow">Shallow (Headers Only)</option>
+<option class="bg-surface" selected="" value="deep">Deep (Full Payload)</option>
+<option class="bg-surface" value="exhaustive">Exhaustive (Heuristics)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-3 pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Field: Concurrency Limit -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Concurrency Limit</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 text-center" type="number" value="50"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 4: API Keys & Credentials -->
+<div class="accordion-item bg-bg-raised border border-border-subtle rounded flex flex-col overflow-hidden shadow-sm">
+<button class="flex items-center justify-between p-4 bg-surface-container hover:bg-bg-hover transition-colors cursor-pointer w-full text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">key</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">API Keys &amp; Credentials</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant accordion-icon">expand_more</span>
+</button>
+<div class="accordion-content px-4 border-t border-border-subtle bg-bg-raised">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Field: Main API Key -->
+<div class="col-span-1 md:col-span-2">
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Main API Key</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">password</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 tracking-widest" type="password" value="agt009_prod_sec_xxxxxxxxxxxxx"/>
+<button class="text-outline hover:text-primary-container transition-colors ml-2" onclick="const i = this.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; this.innerText = i.type === 'password' ? 'visibility_off' : 'visibility';">
+<span class="material-symbols-outlined text-[18px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Field: Webhook Secret -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Webhook Secret</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px] text-outline mr-2">lock</span>
+<input class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 tracking-widest" type="password" value="whsec_009_xxxxxxxxxxx"/>
+</div>
+</div>
+<!-- Field: Rotation Interval -->
+<div>
+<label class="block font-data-mono text-data-mono text-on-surface-variant mb-2">Rotation Interval (Days)</label>
+<div class="input-glow border border-border-subtle rounded bg-surface-container-lowest flex items-center px-3 h-10 transition-all duration-200 relative">
+<select class="w-full bg-transparent border-none text-on-surface font-data-mono text-data-mono p-0 focus:ring-0 appearance-none cursor-pointer">
+<option class="bg-surface" selected="" value="30">30 Days</option>
+<option class="bg-surface" value="60">60 Days</option>
+<option class="bg-surface" value="90">90 Days</option>
+<option class="bg-surface text-status-warning" value="never">Manual (Not Recommended)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-3 pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="max-w-4xl mt-8 pt-6 border-t border-border-subtle flex flex-col-reverse sm:flex-row justify-end gap-4">
+<button class="px-6 py-2 border border-border-subtle text-on-surface font-button-label text-button-label uppercase rounded hover:bg-bg-hover hover:border-outline-variant transition-colors active:scale-95 duration-150">
+                    Reset to Defaults
+                </button>
+<button class="px-6 py-2 bg-primary-container text-on-primary-fixed font-button-label text-button-label uppercase rounded hover:bg-primary transition-colors active:scale-95 duration-150 flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(0,212,255,0.3)]">
+<span class="material-symbols-outlined text-[16px]">save</span>
+                    Save Configuration
+                </button>
+</div>
+</main>
+</div>
+</body></html>

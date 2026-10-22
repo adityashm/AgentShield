@@ -1,0 +1,632 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgentShield AI - Agents Directory</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00D4FF", // Adjusting primary to match PRD spec closer for the cyan vibe
+                        "background-base": "#0D1117",
+                        "background-surface": "#161B22",
+                        "background-raised": "#1C2128",
+                        "border-muted": "#30363D",
+                        "text-main": "#E6EDF3",
+                        "text-muted": "#8B949E",
+                        "accent-success": "#238636",
+                        "accent-info": "#2F81F7",
+                        "accent-warning": "#D29922",
+                        "accent-danger": "#F85149",
+                    },
+                    fontFamily: {
+                        sans: ["IBM Plex Sans", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "2px",
+                        "sm": "2px",
+                        "md": "2px",
+                        "lg": "2px",
+                        "xl": "2px",
+                        "full": "9999px",
+                    },
+                    boxShadow: {
+                        'neon-primary': '0 0 8px rgba(0, 212, 255, 0.4)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background-base');
+            color: theme('colors.text-main');
+        }
+        
+        /* Custom Scrollbar for a more tactical feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.background-base'); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.border-muted'); 
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.text-muted'); 
+        }
+
+        .pulse-dot-red {
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(248, 81, 73, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0); }
+        }
+
+        .agent-card:hover {
+            border-color: theme('colors.primary');
+            box-shadow: theme('boxShadow.neon-primary');
+        }
+
+        /* Sparkline simple CSS implementation */
+        .sparkline {
+            display: flex;
+            align-items: flex-end;
+            height: 32px;
+            gap: 2px;
+        }
+        .sparkline-bar {
+            flex: 1;
+            background-color: theme('colors.primary');
+            opacity: 0.6;
+            transition: height 0.3s ease;
+        }
+        .agent-card:hover .sparkline-bar {
+            opacity: 1;
+        }
+        
+        /* Range Slider Styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            border-radius: 2px;
+            background: theme('colors.primary');
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: theme('colors.border-muted');
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-hidden flex h-screen w-full">
+<!-- START SHARED SIDEBAR LOGIC (Preserved Structure from Rules) -->
+<div class="flex h-full w-[240px] flex-col bg-[#161B22] border-r border-[#30363D] shrink-0">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-6">
+<!-- Header / Logo -->
+<div class="flex items-center gap-3 px-2">
+<div class="text-[#00D4FF]" data-icon="shield" data-size="28px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 28px;">shield</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">AgentShield AI</h2>
+</div>
+<!-- Nav Links -->
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 text-[#8B949E] hover:text-white transition-colors group" href="#">
+<div class="group-hover:text-[#00D4FF] transition-colors" data-icon="dashboard" data-size="20px" data-weight="regular">
+<span class="material-symbols-outlined" style="font-size: 20px;">dashboard</span>
+</div>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-[#1C2128] border-l-2 border-[#00D4FF] text-[#00D4FF]" href="#">
+<div data-icon="robot_2" data-size="20px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 20px;">robot_2</span>
+</div>
+<p class="text-sm font-medium leading-normal">Agents</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#8B949E] hover:text-white transition-colors group" href="#">
+<div class="group-hover:text-[#00D4FF] transition-colors" data-icon="warning" data-size="20px" data-weight="regular">
+<span class="material-symbols-outlined" style="font-size: 20px;">warning</span>
+</div>
+<p class="text-sm font-medium leading-normal flex-1">Alerts</p>
+<span class="bg-[#F85149] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm font-mono">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#8B949E] hover:text-white transition-colors group" href="#">
+<div class="group-hover:text-[#00D4FF] transition-colors" data-icon="gavel" data-size="20px" data-weight="regular">
+<span class="material-symbols-outlined" style="font-size: 20px;">gavel</span>
+</div>
+<p class="text-sm font-medium leading-normal">Rules</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#8B949E] hover:text-white transition-colors group" href="#">
+<div class="group-hover:text-[#00D4FF] transition-colors" data-icon="database" data-size="20px" data-weight="regular">
+<span class="material-symbols-outlined" style="font-size: 20px;">database</span>
+</div>
+<p class="text-sm font-medium leading-normal">Logs</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#8B949E] hover:text-white transition-colors group" href="#">
+<div class="group-hover:text-[#00D4FF] transition-colors" data-icon="settings" data-size="20px" data-weight="regular">
+<span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+</div>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+</div>
+</div>
+<!-- User Profile Bottom -->
+<div class="flex gap-3 px-2 pt-4 border-t border-[#30363D]">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="A small circular avatar portrait of a futuristic security operator wearing a matte black headset with a subtle glowing cyan earpiece, illuminated by cool monitor light in a dark room." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuC0EVR82cfOhAbZQ_Mcu_jWmvUsbOIqTUMvNn6ipsm0VfpY0icl5PDCxLMGegBvTtBTmG4At2SuLmBTgzuY4vKb_ng_oP6PDtnrrwll-TV99nAbEbThIS89A-RUkrmNFYr6aFxmiXwcp7JwVHpAYSeiLDlbPdJsUTHWgQ7ZEsQDy8yA86UuRUj3ym-FWFCzerd2q1t7XpB8aHcTIXNKKmX0IpFvO6VYYeyaDq2C_HVvSt_UGpdq1Bxbnxu4Niv_TCDfHQUjLMq1lQ&quot;);"></div>
+<div class="flex flex-col justify-center">
+<h1 class="text-[#E6EDF3] text-sm font-medium leading-normal">OpSec Admin</h1>
+<p class="text-[#8B949E] text-xs font-mono leading-normal">ID: 884-X</p>
+</div>
+</div>
+</div>
+</div>
+<!-- END SHARED SIDEBAR -->
+<!-- MAIN CONTENT AREA -->
+<div class="flex flex-col flex-1 h-full min-w-0 bg-[#0D1117]">
+<!-- START SHARED TOP BAR -->
+<header class="flex items-center justify-between h-[64px] shrink-0 border-b border-[#30363D] bg-[#161B22] px-6">
+<div class="flex items-center gap-2 text-[#8B949E] text-sm"><span class="">AgentShield AI</span><span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span><span class="text-[#E6EDF3] font-medium">Agents Directory</span></div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-[#1C2128] border border-[#30363D] px-3 py-1.5 rounded-sm">
+<div class="size-2 rounded-full bg-[#238636]"></div>
+<span class="text-[#E6EDF3] text-xs font-mono font-medium">SYS: NORMAL</span>
+</div>
+<div class="bg-[#1C2128] border border-[#30363D] px-3 py-1.5 rounded-sm">
+<span class="text-[#E6EDF3] text-xs font-mono font-medium">14:32:45 UTC</span>
+</div>
+<button class="relative p-1.5 text-[#8B949E] hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-size: 20px;">notifications</span>
+<span class="absolute top-1 right-1 size-2 rounded-full bg-[#F85149] pulse-dot-red"></span>
+</button>
+</div>
+</header>
+<!-- END SHARED TOP BAR -->
+<!-- PAGE CONTENT -->
+<main class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- Filters & Actions Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#161B22] p-4 border border-[#30363D] rounded-sm shrink-0">
+<div class="flex flex-1 items-center gap-4">
+<!-- Search Input -->
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" style="font-size: 18px;">search</span>
+<input class="w-full bg-[#0D1117] border border-[#30363D] rounded-sm py-1.5 pl-10 pr-3 text-sm text-[#E6EDF3] placeholder-[#8B949E] focus:outline-none focus:border-[#00D4FF] focus:ring-1 focus:ring-[#00D4FF] font-mono transition-colors" placeholder="Search by Agent ID or Function..." type="text">
+</div>
+<!-- Status Dropdown -->
+<div class="relative">
+<select class="appearance-none bg-[#0D1117] border border-[#30363D] rounded-sm py-1.5 pl-3 pr-8 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#00D4FF] focus:ring-1 focus:ring-[#00D4FF] cursor-pointer">
+<option value="all">Status: All</option>
+<option value="online">Online</option>
+<option value="suspended">Suspended</option>
+<option value="offline">Offline</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#8B949E] pointer-events-none" style="font-size: 16px;">arrow_drop_down</span>
+</div>
+<!-- Risk Slider -->
+<div class="flex items-center gap-3 px-2">
+<span class="text-xs text-[#8B949E] uppercase tracking-wider font-semibold">Risk:</span>
+<input class="w-24 appearance-none bg-transparent" max="100" min="0" type="range" value="100">
+<span class="text-xs font-mono text-[#E6EDF3]">0-100</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="bg-[#1C2128] hover:bg-[#30363D] border border-[#30363D] text-[#E6EDF3] px-3 py-1.5 text-xs font-mono uppercase font-semibold transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span>
+                        More Filters
+                    </button>
+<button class="bg-[#00D4FF] hover:bg-[#00b0d4] text-[#0D1117] px-3 py-1.5 text-xs font-mono uppercase font-semibold transition-colors flex items-center gap-1 shadow-[0_0_8px_rgba(0,212,255,0.2)]">
+<span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+                        Provision Agent
+                    </button>
+</div>
+</div>
+<!-- Agents Grid -->
+<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+<!-- Agent Card: Normal -->
+<div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+<span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+<div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+</div>
+<div>
+<h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-042</h3>
+<p class="text-[#8B949E] text-xs mt-1">Data Ingestion Bot</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+<span class="text-[#238636] font-mono font-bold text-lg">12</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+<span class="text-[#E6EDF3] font-mono text-sm">34d 12h</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+<span class="text-[#E6EDF3] font-mono text-sm">1.2M</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+<span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+</div>
+<div class="sparkline w-full border-b border-[#30363D]">
+<div class="sparkline-bar" style="height: 10%;"></div>
+<div class="sparkline-bar" style="height: 12%;"></div>
+<div class="sparkline-bar" style="height: 8%;"></div>
+<div class="sparkline-bar" style="height: 15%;"></div>
+<div class="sparkline-bar" style="height: 10%;"></div>
+<div class="sparkline-bar" style="height: 20%;"></div>
+<div class="sparkline-bar" style="height: 12%;"></div>
+<div class="sparkline-bar" style="height: 14%;"></div>
+<div class="sparkline-bar" style="height: 12%;"></div>
+</div>
+</div>
+</div>
+<!-- Agent Card: Suspended (Critical) -->
+<div class="agent-card bg-[#1C2128] border border-[#F85149] shadow-[inset_0_0_20px_rgba(248,81,73,0.1)] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer" onclick="window.location.href='{{DATA:SCREEN:SCREEN_29}}'">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#F85149] rounded-sm">
+<span class="material-symbols-outlined text-[#F85149]" style="font-size: 24px;">block</span>
+<div class="absolute -top-1 -right-1 size-2.5 bg-[#F85149] rounded-full border-2 border-[#1C2128] pulse-dot-red"></div>
+</div>
+<div>
+<h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-009</h3>
+<p class="text-[#8B949E] text-xs mt-1">Market Analyst Alpha</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-[#F85149] uppercase tracking-wider font-semibold">Risk Score</span>
+<span class="text-[#F85149] font-mono font-bold text-lg">94</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+<span class="text-[#F85149] font-mono text-sm">HALTED</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+<span class="text-[#E6EDF3] font-mono text-sm">84,392</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+<span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+</div>
+<div class="sparkline w-full border-b border-[#30363D]">
+<div class="sparkline-bar !bg-[#F85149]" style="height: 30%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 40%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 35%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 60%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 85%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 95%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 100%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 90%;"></div>
+<div class="sparkline-bar !bg-[#F85149]" style="height: 94%;"></div>
+</div>
+</div>
+</div>
+<!-- Agent Card: Warning -->
+<div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+<span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+<div class="absolute -top-1 -right-1 size-2.5 bg-[#D29922] rounded-full border-2 border-[#1C2128]"></div>
+</div>
+<div>
+<h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-117</h3>
+<p class="text-[#8B949E] text-xs mt-1">Social Scraper V2</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+<span class="text-[#D29922] font-mono font-bold text-lg">68</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+<span class="text-[#E6EDF3] font-mono text-sm">12d 04h</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+<span class="text-[#E6EDF3] font-mono text-sm">405k</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+<span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+</div>
+<div class="sparkline w-full border-b border-[#30363D]">
+<div class="sparkline-bar" style="height: 20%;"></div>
+<div class="sparkline-bar" style="height: 25%;"></div>
+<div class="sparkline-bar" style="height: 30%;"></div>
+<div class="sparkline-bar" style="height: 45%;"></div>
+<div class="sparkline-bar" style="height: 50%;"></div>
+<div class="sparkline-bar" style="height: 40%;"></div>
+<div class="sparkline-bar" style="height: 60%;"></div>
+<div class="sparkline-bar" style="height: 70%;"></div>
+<div class="sparkline-bar" style="height: 68%;"></div>
+</div>
+</div>
+</div>
+<!-- Generate a few more identical normal cards for grid visualization -->
+<script>
+                    for(let i=0; i<5; i++) {
+                        document.write(`
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-${200+i}</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker ${i+1}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">${10 + Math.floor(Math.random()*15)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">${Math.floor(Math.random()*60)}d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">${(Math.random()*50).toFixed(1)}k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    ${Array(9).fill(0).map(() => `<div class="sparkline-bar" style="height: ${10 + Math.random()*20}%;"></div>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        `);
+                    }
+                </script>
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-200</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker 1</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">21</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">56d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">49.2k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    <div class="sparkline-bar" style="height: 27.0881886238856%;"></div><div class="sparkline-bar" style="height: 23.062748388972082%;"></div><div class="sparkline-bar" style="height: 19.30161866832164%;"></div><div class="sparkline-bar" style="height: 17.83469328255574%;"></div><div class="sparkline-bar" style="height: 17.19216718418209%;"></div><div class="sparkline-bar" style="height: 13.670829154217097%;"></div><div class="sparkline-bar" style="height: 28.831798731091194%;"></div><div class="sparkline-bar" style="height: 11.898333055254549%;"></div><div class="sparkline-bar" style="height: 12.630603259146756%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-201</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker 2</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">14</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">41d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">7.8k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    <div class="sparkline-bar" style="height: 13.32106765146645%;"></div><div class="sparkline-bar" style="height: 29.730837437247267%;"></div><div class="sparkline-bar" style="height: 19.363592512099626%;"></div><div class="sparkline-bar" style="height: 29.408139021825185%;"></div><div class="sparkline-bar" style="height: 16.792171251550187%;"></div><div class="sparkline-bar" style="height: 21.071467557315827%;"></div><div class="sparkline-bar" style="height: 22.025975300037327%;"></div><div class="sparkline-bar" style="height: 14.10265423167959%;"></div><div class="sparkline-bar" style="height: 21.24909372564337%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-202</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker 3</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">11</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">21d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">29.4k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    <div class="sparkline-bar" style="height: 16.48754334355073%;"></div><div class="sparkline-bar" style="height: 16.619589101996034%;"></div><div class="sparkline-bar" style="height: 21.052657474334097%;"></div><div class="sparkline-bar" style="height: 19.02485916600145%;"></div><div class="sparkline-bar" style="height: 11.28530903342166%;"></div><div class="sparkline-bar" style="height: 20.86768137975048%;"></div><div class="sparkline-bar" style="height: 28.90101558783781%;"></div><div class="sparkline-bar" style="height: 21.052536717357864%;"></div><div class="sparkline-bar" style="height: 11.309329381100495%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-203</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker 4</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">19</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">1d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">10.3k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    <div class="sparkline-bar" style="height: 21.408487442824928%;"></div><div class="sparkline-bar" style="height: 27.79340171545741%;"></div><div class="sparkline-bar" style="height: 19.990420731144102%;"></div><div class="sparkline-bar" style="height: 17.63269954991612%;"></div><div class="sparkline-bar" style="height: 22.062744530522377%;"></div><div class="sparkline-bar" style="height: 15.929003199086317%;"></div><div class="sparkline-bar" style="height: 11.844023392871675%;"></div><div class="sparkline-bar" style="height: 10.507308878299433%;"></div><div class="sparkline-bar" style="height: 29.686586455462077%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="agent-card bg-[#1C2128] border border-[#30363D] rounded-sm p-4 flex flex-col gap-4 transition-all duration-200 cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center size-10 bg-[#0D1117] border border-[#30363D] rounded-sm">
+                                        <span class="material-symbols-outlined text-[#8B949E]" style="font-size: 24px;">smart_toy</span>
+                                        <div class="absolute -top-1 -right-1 size-2.5 bg-[#238636] rounded-full border-2 border-[#1C2128]"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[#E6EDF3] font-mono font-semibold text-lg leading-none">AGT-204</h3>
+                                        <p class="text-[#8B949E] text-xs mt-1">Utility Tasker 5</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Risk Score</span>
+                                    <span class="text-[#238636] font-mono font-bold text-lg">18</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 py-3 border-y border-[#30363D]">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Uptime</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">29d 12h</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Total Actions</span>
+                                    <span class="text-[#E6EDF3] font-mono text-sm">19.9k</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-[#8B949E] uppercase tracking-wider font-semibold">Recent Risk Trend</span>
+                                    <span class="text-[#8B949E] text-[10px] font-mono">Last 24h</span>
+                                </div>
+                                <div class="sparkline w-full border-b border-[#30363D]">
+                                    <div class="sparkline-bar" style="height: 29.878440157137984%;"></div><div class="sparkline-bar" style="height: 26.446964166916636%;"></div><div class="sparkline-bar" style="height: 10.130384698546598%;"></div><div class="sparkline-bar" style="height: 18.781339519090825%;"></div><div class="sparkline-bar" style="height: 29.17291722387129%;"></div><div class="sparkline-bar" style="height: 29.781872096150487%;"></div><div class="sparkline-bar" style="height: 18.373676868647657%;"></div><div class="sparkline-bar" style="height: 18.473525052101355%;"></div><div class="sparkline-bar" style="height: 19.278355665305668%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+</div>
+</main>
+</div>
+
+
+</body></html>
