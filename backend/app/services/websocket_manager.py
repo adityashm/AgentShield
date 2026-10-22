@@ -33,6 +33,10 @@ class WebSocketManager:
 
     async def broadcast(self, message: Dict[str, Any]):
         """Broadcast telemetry event to all active WebSocket listeners."""
+        from ..realtime.bus import telemetry_bus
+        org_id = message.get("org_id", "org_default")
+        await telemetry_bus.broadcast_org_event(org_id, message)
+
         json_str = json.dumps(message)
         dead_connections = []
         for connection in self.active_connections:
@@ -47,6 +51,9 @@ class WebSocketManager:
 
     async def broadcast_agent_event(self, agent_id: str, message: Dict[str, Any]):
         """Broadcast to specific agent subscribers and global feed."""
+        from ..realtime.bus import telemetry_bus
+        org_id = message.get("org_id", "org_default")
+        await telemetry_bus.broadcast_agent_event(org_id, agent_id, message)
         await self.broadcast(message)
 
 ws_manager = WebSocketManager()

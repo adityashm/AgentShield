@@ -38,3 +38,5 @@ def compute_key_hash(raw_key: str, pepper: Optional[str] = None) -> str:
 def secure_compare(a: str, b: str) -> bool:
     """Constant-time string comparison."""
     return hmac.compare_digest(a, b)
+
+hash_api_key_hmac = compute_key_hash

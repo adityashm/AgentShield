@@ -304,24 +304,16 @@ def process_single_action(
 
         # Alert creation if threshold exceeded
         if risk_score >= settings.ALERT_THRESHOLD or matched_rules:
-            alert_id = f"ALT-{uuid.uuid4().hex[:6].upper()}"
-            alert = Alert(
-                id=alert_id,
+            from ...services.alerts import AlertService
+            AlertService.create_or_deduplicate_alert(
                 org_id=org.id,
                 agent_id=agent.id,
-                first_action_id=action.id,
-                rule_id=matched_rules[0].id if matched_rules else None,
-                title=f"Security Alert: {matched_rules[0].name if matched_rules else 'Behavioural Anomaly'}",
-                severity="Critical" if risk_score >= 80 else "High" if risk_score >= 60 else "Medium",
+                action=action,
+                matched_rules=matched_rules,
                 risk_score=risk_score,
-                status="Open",
-                group_key=f"{agent.id}:{matched_rules[0].id if matched_rules else 'anomaly'}:{now.strftime('%Y%m%d%H%M')[:11]}0",
-                count=1,
-                first_seen=now,
-                last_seen=now,
-                resolution_note=reason,
+                db=db,
+                reason=reason,
             )
-            db.add(alert)
 
     return action, matched_rule_models, agent.status
 

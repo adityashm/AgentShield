@@ -26,12 +26,14 @@ class ActionResponse(BaseModel):
 
 class AlertResponse(BaseModel):
     alert_id: str
-    action_id: str
+    id: Optional[str] = None
+    action_id: Optional[str] = None
     agent_id: str
-    trigger_type: str
+    trigger_type: Optional[str] = None
     severity: str
     risk_score: float
     status: str
+    count: Optional[int] = 1
     notes: Optional[str] = None
     created_at: datetime
     resolved_at: Optional[datetime] = None

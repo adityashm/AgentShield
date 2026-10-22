@@ -29,6 +29,9 @@ from .api.v1.api_keys import router as api_keys_router
 from .api.v1.auth import router as auth_router
 from .api.v1.users import router as users_router
 from .api.v1.webhooks import router as webhooks_router
+from .api.v1.audit import router as audit_router
+from .workers.webhook_worker import webhook_worker
+from .realtime.ws import router as realtime_ws_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,6 +46,10 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
+    if settings.RUN_WORKER_INLINE:
+        logger.info("Starting background webhook outbox worker...")
+        await webhook_worker.start()
+
     if settings.AUTO_SIMULATE or settings.SIMULATOR_ENABLED:
         logger.info("Starting autonomous agent background simulation...")
         await simulator.start()
@@ -52,6 +59,9 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down simulator and background tasks...")
     await simulator.stop()
+    if settings.RUN_WORKER_INLINE:
+        logger.info("Stopping background webhook outbox worker...")
+        await webhook_worker.stop()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -91,34 +101,10 @@ app.include_router(model_router, prefix=settings.API_V1_STR)
 app.include_router(system_router, prefix=settings.API_V1_STR)
 app.include_router(api_keys_router, prefix=settings.API_V1_STR)
 app.include_router(webhooks_router, prefix=settings.API_V1_STR)
+app.include_router(audit_router, prefix=settings.API_V1_STR)
 
-# Global Telemetry WebSocket Endpoint
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await ws_manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            if data == "ping":
-                await websocket.send_text("pong")
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket)
-    except Exception:
-        ws_manager.disconnect(websocket)
-
-# Agent-Specific WebSocket Endpoint
-@app.websocket("/ws/agent/{agent_id}")
-async def agent_websocket_endpoint(websocket: WebSocket, agent_id: str):
-    await ws_manager.connect(websocket, agent_id=agent_id)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            if data == "ping":
-                await websocket.send_text("pong")
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket, agent_id=agent_id)
-    except Exception:
-        ws_manager.disconnect(websocket, agent_id=agent_id)
+# Include Authenticated WebSocket Realtime Router
+app.include_router(realtime_ws_router)
 
 @app.get("/")
 def root():

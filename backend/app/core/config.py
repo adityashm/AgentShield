@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     EVENT_BUS: str = "memory"  # 'memory' or 'postgres'
     WEB_CONCURRENCY: int = 1
     RUN_WORKER_INLINE: bool = True
+    ALLOW_LOCAL_WEBHOOKS: bool = False
     
     # Rate Limits & Overlap
     RATE_LIMIT_PER_KEY_PER_MIN: int = 300

@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from ...database import get_db
 from ...db.models import Organization, APIKey, User, AuditLog
 from ...services.auth import generate_api_key, hash_key
+from ...services.audit import AuditService
 from ...core.config import settings
 from ...core.deps import get_current_user, get_current_org_from_key
 from ...core.errors import NotFoundError, ForbiddenError, ProblemException
@@ -82,20 +83,17 @@ def create_api_key(
     db.flush()
     
     # Audit log entry
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=org_id,
-        actor_type="user" if user_id else "system",
-        actor_id=user_id or "system",
         action="api_key.create",
         target_type="api_key",
         target_id=key_record.id,
+        actor_type="user" if user_id else "system",
+        actor_id=user_id or "system",
         ip=request.client.host if request.client else "127.0.0.1",
         details={"name": req.name, "prefix": prefix, "scopes": parsed_scopes},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
     db.refresh(key_record)
 
@@ -190,20 +188,17 @@ def rotate_api_key(
     old_key.replaced_by = new_key.id
 
     # Audit log
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=org_id,
-        actor_type="user" if user_id else "system",
-        actor_id=user_id or "system",
         action="api_key.rotate",
         target_type="api_key",
         target_id=old_key.id,
+        actor_type="user" if user_id else "system",
+        actor_id=user_id or "system",
         ip=request.client.host if request.client else "127.0.0.1",
         details={"old_prefix": old_key.prefix, "new_prefix": new_prefix, "grace_hours": grace_hours},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
 
     return KeyCreateResponse(
@@ -238,20 +233,17 @@ def revoke_api_key(
     key_record.revoked_at = datetime.now(timezone.utc)
 
     # Audit log
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=org_id,
-        actor_type="user" if user_id else "system",
-        actor_id=user_id or "system",
         action="api_key.revoke",
         target_type="api_key",
         target_id=key_record.id,
+        actor_type="user" if user_id else "system",
+        actor_id=user_id or "system",
         ip=request.client.host if request.client else "127.0.0.1",
         details={"name": key_record.name, "prefix": key_record.prefix},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
 
     return {"status": "revoked", "key_id": key_id}

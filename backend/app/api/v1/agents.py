@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from ...database import get_db
 from ...schemas import AgentResponse, ActionResponse
 from ...db.models import Agent, Action, AuditLog
+from ...services.audit import AuditService
 from ...core.errors import NotFoundError
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -129,20 +130,17 @@ def quarantine_agent(
     meta["quarantined_by"] = user_id
     agent.metadata_json = meta
 
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=agent.org_id,
-        actor_type="user" if user_id != "system" else "system",
-        actor_id=user_id,
         action="agent.quarantine",
         target_type="agent",
         target_id=agent.id,
+        actor_type="user" if user_id != "system" else "system",
+        actor_id=user_id,
         ip=request.client.host if request.client else "127.0.0.1",
         details={"agent_id": agent.id, "external_id": agent.external_id, "reason": reason},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
 
     return {
@@ -183,20 +181,17 @@ def halt_agent(
     meta["halted_by"] = user_id
     agent.metadata_json = meta
 
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=agent.org_id,
-        actor_type="user" if user_id != "system" else "system",
-        actor_id=user_id,
         action="agent.halt",
         target_type="agent",
         target_id=agent.id,
+        actor_type="user" if user_id != "system" else "system",
+        actor_id=user_id,
         ip=request.client.host if request.client else "127.0.0.1",
         details={"agent_id": agent.id, "external_id": agent.external_id, "reason": reason},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
 
     return {
@@ -238,20 +233,17 @@ def release_agent(
     meta["released_by"] = user_id
     agent.metadata_json = meta
 
-    audit = AuditLog(
-        id=str(uuid.uuid4()),
+    AuditService.log_event(
+        db=db,
         org_id=agent.org_id,
-        actor_type="user" if user_id != "system" else "system",
-        actor_id=user_id,
         action="agent.release",
         target_type="agent",
         target_id=agent.id,
+        actor_type="user" if user_id != "system" else "system",
+        actor_id=user_id,
         ip=request.client.host if request.client else "127.0.0.1",
         details={"agent_id": agent.id, "external_id": agent.external_id, "reason": reason},
-        prev_hash="0" * 64,
-        hash="0" * 64,
     )
-    db.add(audit)
     db.commit()
 
     return {

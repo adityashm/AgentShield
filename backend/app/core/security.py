@@ -50,6 +50,8 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
     except JWTError:
         return None
 
+verify_access_token = decode_access_token
+
 def generate_refresh_token() -> tuple[str, str]:
     """
     Generates a secure random refresh token.

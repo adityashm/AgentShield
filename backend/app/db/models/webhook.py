@@ -38,6 +38,8 @@ class WebhookEndpoint(Base):
     # Synonyms for backward compatibility
     endpoint_id = synonym("id")
     target_type = synonym("type")
+    is_active = synonym("enabled")
+    events = synonym("event_types")
 
     @property
     def url(self) -> str:
@@ -83,6 +85,7 @@ class WebhookDelivery(Base):
     response_code: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempt_count = synonym("attempts")
 
     organization: Mapped["Organization"] = relationship("Organization", back_populates="webhook_deliveries")
     endpoint: Mapped["WebhookEndpoint"] = relationship("WebhookEndpoint", back_populates="deliveries")

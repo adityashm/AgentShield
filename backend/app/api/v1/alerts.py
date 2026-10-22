@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
 
@@ -63,3 +64,41 @@ def update_alert(alert_id: str, update_in: AlertUpdate, db: Session = Depends(ge
     db.commit()
     db.refresh(alert)
     return alert
+
+class AlertCommentCreate(BaseModel):
+    body: str
+
+@router.get("/{alert_id}/comments")
+def get_alert_comments(alert_id: str, db: Session = Depends(get_db)):
+    """Retrieve chronological investigation notes for an alert."""
+    from ...services.alerts import AlertService
+    comments = AlertService.get_comments(alert_id, db)
+    return [
+        {
+            "id": c.id,
+            "alert_id": c.alert_id,
+            "user_id": c.user_id,
+            "body": c.body,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        }
+        for c in comments
+    ]
+
+@router.post("/{alert_id}/comments")
+def add_alert_comment(
+    alert_id: str,
+    comment_in: AlertCommentCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Add an analyst investigation note to the alert thread."""
+    from ...services.alerts import AlertService
+    user_id = getattr(getattr(request.state, "user", None), "id", None) or "analyst"
+    c = AlertService.add_comment(alert_id, user_id, comment_in.body, db)
+    return {
+        "id": c.id,
+        "alert_id": c.alert_id,
+        "user_id": c.user_id,
+        "body": c.body,
+        "created_at": c.created_at.isoformat() if c.created_at else None,
+    }

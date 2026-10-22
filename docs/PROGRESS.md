@@ -227,4 +227,57 @@ This document maintains an evidence-backed record of all transformation phases, 
   ```
 - **Phase 3 Status**: PASSED.
 
+---
+
+## 2026-10-22 — Phase 4: Realtime, Alert Deduplication, Webhook Outbox & Audit Log
+
+### Work Performed
+1. **Realtime Pub/Sub Telemetry Event Bus (`backend/app/realtime/bus.py`)**:
+   - Implemented async in-memory pub/sub message bus with per-tenant (`org:{org_id}`) and per-agent (`org:{org_id}:agent:{agent_id}`) channel routing.
+   - Subscriber queue isolation with auto-unsubscription on disconnect.
+2. **Authenticated WebSocket Feeds (`backend/app/realtime/ws.py`)**:
+   - Realtime streaming endpoints on `/ws`, `/api/v1/ws`, `/ws/agent/{agent_id}`, `/api/v1/ws/agent/{agent_id}`.
+   - In-message JWT access token / API key authentication with graceful fallback to `org_default` for development/legacy clients.
+   - Concurrent ping-pong receiver task and asynchronous queue draining.
+3. **Smart Alert Deduplication & Analyst Comments (`backend/app/services/alerts.py`, `backend/app/api/v1/alerts.py`)**:
+   - 10-minute sliding window deduplication by `(org_id, agent_id, rule_id or "anomaly")`.
+   - Subsequent matches increment alert `count` and refresh `last_seen` timestamp to suppress alert fatigue.
+   - Added analyst thread comments API via `POST /api/v1/alerts/{id}/comments` and `GET /api/v1/alerts/{id}/comments`.
+4. **Transactional Webhook Outbox & SSRF Protection (`backend/app/workers/webhook_worker.py`)**:
+   - Transactional outbox staging in `webhook_deliveries` on alert creation.
+   - SSRF protection layer validating URL schemes (http/https only), rejecting localhost, IPv4/IPv6 private ranges (RFC 1918), link-local, multicast, and cloud metadata service IPs (`169.254.169.254`) with DNS resolution inspection.
+   - Destination payload adapters: Slack Block Kit (`blocks`), Discord Embeds (`embeds`), PagerDuty Events API v2 (`routing_key`, `event_action="trigger"`), and Generic HMAC-SHA256 (`t={ts},v1={sig}`).
+   - Exponential retry backoff (`[10, 60, 300, 1800]` seconds, max 5 attempts before marking dead).
+   - Integrated into FastAPI lifespan (`app.main.lifespan`) with graceful startup and shutdown.
+5. **Tamper-Evident SHA-256 Cryptographic Audit Log (`backend/app/services/audit.py`, `backend/app/api/v1/audit.py`)**:
+   - Contiguous cryptographic hash chain: `hash = SHA256(prev_hash:ts:org_id:actor_type:actor_id:action:target_type:target_id:canonical_json(details))`.
+   - `GET /api/v1/audit-log/verify` verifies unbroken hash chain and detects any record tampering, omission, or reordering.
+   - Integrated into agent status changes (quarantine, emergency halt, release) and API key lifecycle (create, rotate, revoke).
+6. **Phase 4 Test Suite (`backend/tests/test_phase4.py`)**:
+   - Added 6 dedicated tests covering alert sliding-window deduplication, analyst comments thread, SSRF defense filters, adapter payload formats, SHA-256 hash chaining verification and tampering detection, and async event bus pub/sub.
+
+### Verification Gate Status
+- **Backend Test Suite**:
+  ```
+  Command: $env:PYTHONPATH="backend"; python -m pytest backend/tests/ -v
+  Result: 33 passed, 6 warnings in 2.58s
+  Test breakdown:
+    tests/corpus/test_detection_corpus.py (1 passed, 80 samples)
+    tests/test_actions.py (3 passed)
+    tests/test_alerts.py (1 passed)
+    tests/test_api_keys.py (5 passed)
+    tests/test_auth.py (6 passed)
+    tests/test_ml_engine.py (3 passed)
+    tests/test_phase4.py (6 passed)
+    tests/test_rule_engine.py (3 passed)
+    tests/test_tenancy.py (2 passed)
+    tests/test_webhooks.py (3 passed)
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 3.96s, 0 errors, 110 modules transformed
+  ```
+- **Phase 4 Status**: PASSED.
+
 

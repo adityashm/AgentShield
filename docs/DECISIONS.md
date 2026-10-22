@@ -13,4 +13,7 @@ Format: `[YYYY-MM-DD] Decision: Reason`
 - **[2026-10-22] Safe AST Evaluator Without eval/exec**: Built a dedicated AST recursive interpreter for JSON-DSL rules with ReDoS safe pattern compilation to avoid code execution vulnerabilities in policy evaluations.
 - **[2026-10-22] Layered Deobfuscation Normalization Pipeline**: Applied Unicode NFKC, zero-width stripping, homoglyph translation, and depth-bounded recursive decoding (URL/hex/base64) before rule matching to defeat adversarial evasion.
 - **[2026-10-22] Guardrail Block Floor at 90.0**: Any critical rule violation sets action risk score to at least 90.0 to prevent rolling averages from diluting immediate block enforcement.
+- **[2026-10-22] SSRF Protection on Webhook Dispatch**: Block private (RFC 1918), loopback, link-local, and cloud metadata IPs (`169.254.169.254`) via IP literal and pre-flight DNS address info resolution.
+- **[2026-10-22] 10-Minute Sliding Window Alert Deduplication**: Group alerts by `(org_id, agent_id, rule_id or "anomaly")` within a 10-minute window, incrementing occurrence count and refreshing `last_seen` to prevent alert fatigue.
+- **[2026-10-22] Cryptographic SHA-256 Hash Chaining for Audit Log**: Chain each audit entry to the prior record using `SHA256(prev_hash:ts:org_id:actor:action:target:details)` to ensure tamper-evident security compliance verifiable via `GET /api/v1/audit-log/verify`.
 
