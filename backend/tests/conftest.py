@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.main import app
 from app.database import Base, get_db
+from app.db import models as db_models
 from app.services.rule_engine import RuleEngine
 from app.services.auth import seed_default_org_and_key
 

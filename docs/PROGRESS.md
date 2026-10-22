@@ -397,3 +397,60 @@ This document maintains an evidence-backed record of all transformation phases, 
   - `page_audit.png`
   - `page_settings.png`
 - **Phase 6 Status**: PASSED.
+
+---
+
+## 2026-10-22 — Phase 7: Decoupled Simulator as External Client & Demo Management API
+
+### Work Performed
+1. **Decoupled Architecture (`backend/app/simulator/`)**:
+   - Eliminated direct database mutations and internal SQL bypasses.
+   - `scenarios.py`: Predefined 6 simulated agent personas and 7 targeted attack scenarios mapped to OWASP ASI 2026 (`ASI01`-`ASI08`) and MITRE ATLAS (`AML.T0051`-`AML.T0098`).
+   - `client.py`: Asynchronous (`httpx`) and synchronous (`requests`) HTTP client communicating with AgentShield strictly via authenticated REST endpoints (`POST /api/v1/actions/batch`, `POST /api/v1/actions`, `POST /api/v1/evaluate`, `GET /api/v1/api-keys/ping`) with automatic exponential retry backoff and status tracking.
+   - `cli.py`: Standalone CLI supporting `--scenario`, `--continuous`, `--interval`, `--batch-size`, `--evaluate`, `--threat-rate`, `--ping`, and `--list-scenarios`.
+2. **Backward Compatible Root Simulator (`backend/simulator.py`)**:
+   - Updated root entrypoint to delegate seamlessly to `backend.app.simulator.cli.run_cli()`, supporting `--api-url`, `--base-url`, and `--scenario` arguments for Docker Compose and local workflows.
+3. **Demo Management API Router (`backend/app/api/v1/demo.py`)**:
+   - `POST /api/v1/demo/start`: Starts autonomous agent simulation task.
+   - `POST /api/v1/demo/stop`: Stops running simulation task.
+   - `GET /api/v1/demo/status`: Returns live simulation metrics (actions sent, threats sent, uptime, agent counts).
+   - `POST /api/v1/demo/seed`: Idempotently seeds demo organization and 6 simulated agents into the database.
+4. **Standalone Seeder Script (`scripts/seed_demo.py`)**:
+   - Seeded demo organization (`org_default`), admin credentials (`admin@agentshield.ai`), demo API key (`ashield_test_default_demo_key_12345`), 6 simulated agents, and 25 historical baseline telemetry actions.
+5. **Phase 7 Test Suite (`backend/tests/test_simulator.py`)**:
+   - Added 6 automated tests verifying scenario integrity and MITRE/OWASP mappings, scenario lookup, random action and batch generation, simulator client initialization, demo API endpoints (`/demo/seed` and `/demo/status`), and pipeline injection.
+
+### Verification Gate Status
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 39 passed, 6 warnings in 2.77s
+  Test breakdown:
+    tests/corpus/test_detection_corpus.py (1 passed, 80 samples)
+    tests/test_actions.py (3 passed)
+    tests/test_alerts.py (1 passed)
+    tests/test_api_keys.py (5 passed)
+    tests/test_auth.py (6 passed)
+    tests/test_ml_engine.py (3 passed)
+    tests/test_phase4.py (6 passed)
+    tests/test_rule_engine.py (3 passed)
+    tests/test_simulator.py (6 passed)
+    tests/test_tenancy.py (2 passed)
+    tests/test_webhooks.py (3 passed)
+  ```
+- **SDK Test Suite**:
+  ```
+  Command: python -m pytest sdk/python/tests/ -v
+  Result: 25 passed in 22.55s
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 3.41s, 0 errors, 113 modules transformed
+  ```
+- **Simulator CLI Verification**:
+  ```
+  python backend/simulator.py --list-scenarios -> Exit 0 [SUCCESS]
+  python scripts/seed_demo.py                  -> Exit 0 [SUCCESS, 6 agents, 25 baseline actions]
+  ```
+- **Phase 7 Status**: PASSED.

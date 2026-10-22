@@ -51,7 +51,7 @@ async def toggle_simulator():
         return {"status": "started", "simulator_active": True}
 
 @router.post("/simulator/inject")
-async def inject_threat_scenario(scenario_index: int = 0):
+async def inject_threat_scenario(scenario_index: int = 0, db: Session = Depends(get_db)):
     """Manually trigger a targeted MITRE ATLAS threat injection (0=DB, 1=Prompt Injection, 2=Sudo, 3=Rate Flood, 4=Exfil)."""
     idx = max(0, min(len(THREAT_SCENARIOS) - 1, scenario_index))
     scenario = THREAT_SCENARIOS[idx]
@@ -59,5 +59,6 @@ async def inject_threat_scenario(scenario_index: int = 0):
         agent_id=scenario["agent"],
         action_type=scenario["type"],
         parameters=scenario["params"],
+        db=db,
     )
     return {"injected_scenario": scenario["description"], "event": result}

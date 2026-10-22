@@ -64,3 +64,4 @@ class EventBus:
 
 # Global bus instance
 telemetry_bus = EventBus()
+bus = telemetry_bus

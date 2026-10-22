@@ -30,6 +30,7 @@ from .api.v1.auth import router as auth_router
 from .api.v1.users import router as users_router
 from .api.v1.webhooks import router as webhooks_router
 from .api.v1.audit import router as audit_router
+from .api.v1.demo import router as demo_router
 from .workers.webhook_worker import webhook_worker
 from .realtime.ws import router as realtime_ws_router
 
@@ -102,6 +103,7 @@ app.include_router(system_router, prefix=settings.API_V1_STR)
 app.include_router(api_keys_router, prefix=settings.API_V1_STR)
 app.include_router(webhooks_router, prefix=settings.API_V1_STR)
 app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(demo_router, prefix=settings.API_V1_STR)
 
 # Include Authenticated WebSocket Realtime Router
 app.include_router(realtime_ws_router)

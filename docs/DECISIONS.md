@@ -16,4 +16,5 @@ Format: `[YYYY-MM-DD] Decision: Reason`
 - **[2026-10-22] SSRF Protection on Webhook Dispatch**: Block private (RFC 1918), loopback, link-local, and cloud metadata IPs (`169.254.169.254`) via IP literal and pre-flight DNS address info resolution.
 - **[2026-10-22] 10-Minute Sliding Window Alert Deduplication**: Group alerts by `(org_id, agent_id, rule_id or "anomaly")` within a 10-minute window, incrementing occurrence count and refreshing `last_seen` to prevent alert fatigue.
 - **[2026-10-22] Cryptographic SHA-256 Hash Chaining for Audit Log**: Chain each audit entry to the prior record using `SHA256(prev_hash:ts:org_id:actor:action:target:details)` to ensure tamper-evident security compliance verifiable via `GET /api/v1/audit-log/verify`.
+- **[2026-10-22] Decoupled Autonomous Simulator as External HTTP Client**: Converted simulation engine from direct database mutations to an external HTTP client using `POST /api/v1/actions/batch` and enterprise API keys, ensuring synthetic traffic exercises the exact same normalization, policy evaluation, ML anomaly detection, alert deduplication, and webhook dispatch pipelines as real customer agents.
 
