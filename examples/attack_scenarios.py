@@ -129,7 +129,7 @@ def main():
     print(f"{CYAN}{BOLD}  AgentShield AI — 5 Targeted Agentic Attack Scenarios & Guardrail Evaluation{RESET}")
     print(f"{CYAN}{BOLD}{'=' * 80}{RESET}\n")
 
-    api_key = os.getenv("AGENTSHIELD_API_KEY", "ashield_live_attack_tester_66666")
+    api_key = os.getenv("AGENTSHIELD_API_KEY", "ashield_test_default_demo_key_12345")
     endpoint = os.getenv("AGENTSHIELD_ENDPOINT", "http://localhost:8000/api/v1")
 
     shield = AgentShield(

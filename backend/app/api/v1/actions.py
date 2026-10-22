@@ -336,7 +336,7 @@ def ping(auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_k
 
 @router.post("/evaluate", response_model=EvaluateResponse)
 @router.post("/actions/evaluate", response_model=EvaluateResponse)
-def evaluate_action_preflight(
+async def evaluate_action_preflight(
     req: EvaluateRequest,
     auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key),
     db: Session = Depends(get_db),
@@ -369,6 +369,22 @@ def evaluate_action_preflight(
     reasons = [action.reason] if action.reason else []
     violated_rule_ids = [r.id for r in matched_rules]
 
+    # Broadcast evaluation event to WebSockets so Mission Control shows live popup
+    ws_event = {
+        "type": "EVALUATE_EVENT",
+        "org_id": org.id,
+        "action_id": action.id,
+        "agent": req.agent_id,
+        "action": req.action_type,
+        "risk": action.risk_score,
+        "anomaly": action.anomaly_score,
+        "decision": action.decision,
+        "status": "Critical" if action.decision == "deny" else action.severity.capitalize(),
+        "reason": action.reason or (f"Policy violation: {', '.join(violated_rule_ids)}" if violated_rule_ids else "Pre-flight evaluation"),
+        "time": action.timestamp.strftime("%H:%M:%S") if action.timestamp else datetime.now(timezone.utc).strftime("%H:%M:%S"),
+    }
+    await ws_manager.broadcast_agent_event(req.agent_id, ws_event)
+
     return EvaluateResponse(
         decision=action.decision,
         risk_score=action.risk_score,
@@ -385,7 +401,7 @@ def evaluate_action_preflight(
 @router.post("/actions", status_code=status.HTTP_200_OK)
 @router.post("/actions/batch", status_code=status.HTTP_202_ACCEPTED, response_model=BatchIngestResponse)
 async def ingest_actions_batch(
-    payload: Union[BatchIngestRequest, ActionEvent, Dict[str, Any]],
+    payload: Union[BatchIngestRequest, ActionEvent, List[ActionEvent], List[Dict[str, Any]], Dict[str, Any]],
     request: Request,
     auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key),
     db: Session = Depends(get_db),
@@ -401,6 +417,8 @@ async def ingest_actions_batch(
     events: List[ActionEvent] = []
     if isinstance(payload, BatchIngestRequest):
         events = payload.events
+    elif isinstance(payload, list):
+        events = [ev if isinstance(ev, ActionEvent) else ActionEvent(**ev) for ev in payload]
     elif isinstance(payload, ActionEvent):
         events = [payload]
     elif isinstance(payload, dict):

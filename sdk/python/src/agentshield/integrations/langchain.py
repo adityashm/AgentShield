@@ -57,8 +57,8 @@ class AgentShieldCallbackHandler(BaseCallbackHandler):
         r_id = str(run_id) if run_id else tool_name
         self._start_times[r_id] = time.perf_counter()
 
-        # Parse parameters
-        params = {"input": input_str}
+        # Parse parameters with aliases for command/path/prompt rule matching
+        params = {"input": input_str, "command": input_str, "path": input_str, "prompt": input_str}
         if isinstance(kwargs.get("inputs"), dict):
             params.update(kwargs["inputs"])
 

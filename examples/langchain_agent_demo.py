@@ -73,7 +73,7 @@ def run_demo():
     print(f"{CYAN}{BOLD}  AgentShield AI — LangChain Agent Security Integration Demo (Offline){RESET}")
     print(f"{CYAN}{BOLD}{'=' * 75}{RESET}\n")
 
-    api_key = os.getenv("AGENTSHIELD_API_KEY", "ashield_live_langchain_demo_key_77777")
+    api_key = os.getenv("AGENTSHIELD_API_KEY", "ashield_test_default_demo_key_12345")
     endpoint = os.getenv("AGENTSHIELD_ENDPOINT", "http://localhost:8000/api/v1")
 
     print(f"[{YELLOW}CONFIG{RESET}] AgentShield Endpoint : {endpoint}")

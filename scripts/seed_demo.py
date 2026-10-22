@@ -26,7 +26,7 @@ def seed_via_direct_db():
     print("[SEED: DB] Connecting to database via SQLAlchemy...")
     from app.database import engine, Base, SessionLocal
     from app.db.models import Organization, User, APIKey, Agent, Action, Rule
-    from app.services.auth import seed_default_org_and_key
+    from app.services.auth import seed_default_org_and_key, hash_key
     from app.core.security import hash_password
     from app.services.rule_engine import RuleEngine
     from app.simulator.scenarios import SIMULATED_AGENTS, NORMAL_ACTIONS

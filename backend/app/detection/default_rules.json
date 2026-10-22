@@ -9,7 +9,7 @@
     "owasp_id": "ASI03",
     "mitre_id": "AML.T0098",
     "enabled": true,
-    "condition_json": "{\"field\": \"parameters.path\", \"operator\": \"regex_match\", \"pattern\": \"^(/etc/(shadow|passwd|sudoers)|\\\\.env|credentials\\\\.json|.*id_rsa|C:\\\\\\\\Windows\\\\\\\\System32|.*\\\\.sam)\"}"
+    "condition_json": "{\"field\": \"parameters.path\", \"operator\": \"regex_match\", \"pattern\": \"(/etc/(shadow|passwd|sudoers)|\\\\.env|credentials\\\\.json|.*id_rsa|C:\\\\\\\\Windows\\\\\\\\System32|.*\\\\.sam)\"}"
   },
   {
     "rule_id": "RUL-002",

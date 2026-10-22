@@ -28,10 +28,37 @@ function Icon({ name, fill = false }: { name: string; fill?: boolean }) {
 export default function AppShell({ children }: PropsWithChildren) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { status } = useWebSocket()
+  const { status, messages } = useWebSocket()
   const { user, logout } = useAuth()
   const [currentTime, setCurrentTime] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
+  const [activeToast, setActiveToast] = useState<any | null>(null)
+  const lastProcessedKeyRef = React.useRef<string | null>(null)
+
+  // Real-time threat alert toast popup
+  useEffect(() => {
+    if (!messages || messages.length === 0) return
+    const newest = messages[0]
+    const key = `${newest.agent}_${newest.action}_${newest.time}_${newest.risk}`
+    if (lastProcessedKeyRef.current === key) return
+    lastProcessedKeyRef.current = key
+
+    const riskNum = Number(newest.risk || 0)
+    const isThreat =
+      riskNum >= 70 ||
+      newest.status === 'Critical' ||
+      newest.status === 'High' ||
+      newest.decision === 'deny' ||
+      newest.tone === 'danger'
+
+    if (isThreat) {
+      setActiveToast(newest)
+      const timer = setTimeout(() => {
+        setActiveToast((curr: any) => (curr === newest ? null : curr))
+      }, 9000)
+      return () => clearTimeout(timer)
+    }
+  }, [messages])
 
   // Real-time UTC ticking clock
   useEffect(() => {
@@ -248,6 +275,65 @@ export default function AppShell({ children }: PropsWithChildren) {
 
         {/* Page Content */}
         <main className="min-h-0 flex-1 overflow-y-auto bg-[var(--bg-base)] p-[24px]">{children}</main>
+
+        {/* Real-time Threat / Enforce Block Toast Popup */}
+        {activeToast && (
+          <div className="fixed bottom-6 right-6 z-50 flex max-w-md animate-bounce-once items-start gap-3 rounded-lg border-2 border-red-500 bg-[#0d1117] p-4 shadow-2xl shadow-red-950/80 backdrop-blur-md">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-red-500/20 text-red-400">
+              <span className="material-symbols-outlined text-2xl">
+                {activeToast.decision === 'deny' ? 'gavel' : 'warning'}
+              </span>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                  {activeToast.decision === 'deny' ? 'THREAT BLOCKED (ENFORCE)' : 'SECURITY ALERT DETECTED'}
+                </span>
+                <button
+                  onClick={() => setActiveToast(null)}
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+              <div className="mt-1 font-semibold text-white text-sm">
+                {activeToast.action || 'Suspicious Agent Action'}
+              </div>
+              <div className="mt-1 flex items-center gap-3 text-xs text-gray-300">
+                <span className="font-mono text-cyan-400">
+                  Agent: {activeToast.agent || 'AGT-UNKNOWN'}
+                </span>
+                <span className="font-bold text-red-400">
+                  Risk: {Math.round(Number(activeToast.risk || 90))}/100
+                </span>
+                {activeToast.time && (
+                  <span className="text-gray-400 font-mono text-[11px]">{activeToast.time}</span>
+                )}
+              </div>
+              {activeToast.reason && (
+                <div className="mt-1.5 text-xs text-red-200/90 line-clamp-2 bg-red-950/40 p-1.5 rounded border border-red-900/40">
+                  {activeToast.reason}
+                </div>
+              )}
+              <div className="mt-2.5 flex items-center gap-2">
+                <Link
+                  to="/alerts"
+                  onClick={() => setActiveToast(null)}
+                  className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-500 transition-colors shadow"
+                >
+                  View Alerts →
+                </Link>
+                <button
+                  onClick={() => setActiveToast(null)}
+                  className="rounded border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-gray-300 hover:bg-gray-700 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

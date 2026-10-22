@@ -88,8 +88,10 @@ class RulesEngine:
         existing_ids = {r.id for r in db.query(Rule.id).all()}
 
         added = 0
+        updated = 0
         for r in rules_data:
             rule_id = r.get("rule_id", r.get("id"))
+            cond_str = r["condition_json"] if isinstance(r["condition_json"], str) else json.dumps(r["condition_json"])
             if rule_id not in existing_ids:
                 rule = Rule(
                     id=rule_id,
@@ -101,13 +103,19 @@ class RulesEngine:
                     mode=r.get("mode", "alert"),
                     owasp_id=r.get("owasp_id"),
                     mitre_id=r.get("mitre_id"),
-                    condition_json=r["condition_json"] if isinstance(r["condition_json"], str) else json.dumps(r["condition_json"]),
+                    condition_json=cond_str,
                     enabled=r.get("enabled", True),
                     matches_count=0,
                 )
                 db.add(rule)
                 added += 1
+            else:
+                existing_rule = db.query(Rule).filter(Rule.id == rule_id).first()
+                if existing_rule:
+                    existing_rule.condition_json = cond_str
+                    existing_rule.mode = r.get("mode", existing_rule.mode)
+                    updated += 1
 
-        if added > 0:
+        if added > 0 or updated > 0:
             db.commit()
-            logger.info(f"Seeded {added} default detection rules into database.")
+            logger.info(f"Seeded {added} new, updated {updated} existing rules in database.")
