@@ -280,4 +280,63 @@ This document maintains an evidence-backed record of all transformation phases, 
   ```
 - **Phase 4 Status**: PASSED.
 
+---
+
+## 2026-10-22 — Phase 5: Python SDK, Framework Integrations & Demos
+
+### Work Performed
+1. **Python SDK Architecture (`sdk/python/`)**:
+   - `pyproject.toml`: Modern Hatchling build system, PEP 561 compliance (`py.typed`), optional dependency extras (`langchain`, `crewai`, `openai`, `cli`, `all`).
+   - Redaction Engine (`agentshield.redaction`): Scans and sanitizes OpenAI keys, Anthropic keys, AWS credentials, GitHub tokens, JWTs, Slack tokens, and private keys before telemetry dispatch.
+   - Context Scoping (`agentshield.context`): Thread-safe, async-safe `contextvars` scoping via `with shield.session(agent_id=..., session_id=...)`.
+   - Non-Blocking Background Queue (`agentshield.queue`): Thread-safe queue buffering up to 50 items or 0.5s intervals with circuit breaker and bounded backpressure.
+   - Pre-Flight Evaluation Guard (`agentshield.guard`): Synchronous and asynchronous pre-flight evaluate checks with strict timeout budget and configurable fail-open/fail-closed semantics.
+   - Core Client (`agentshield.client`): `AgentShield` class supporting `@shield.monitor` decorator, `shield.log_action`, `shield.evaluate`, `shield.ping`, `shield.session`, and context managers.
+   - Command-Line Diagnostics (`agentshield.cli`): CLI tool providing `agentshield ping` and `agentshield send-test-event`.
+2. **Framework Integrations (`sdk/python/src/agentshield/integrations/`)**:
+   - `langchain.py`: `AgentShieldCallbackHandler` instrumenting LLM invocations, chain runs, and tool actions with synchronous pre-flight security evaluation and async telemetry streaming.
+   - `crewai.py`: `CrewAIShieldListener` instrumenting multi-agent task lifecycles (`on_task_start`, `before_tool_execution`, `after_tool_execution`, `on_task_complete`).
+   - `openai.py`: `OpenAIAgentShield` providing tool evaluation and `@openai_shield.tool` decorator for OpenAI Assistants and tool calls.
+3. **SDK Test Suite (`sdk/python/tests/`)**:
+   - 25 automated unit and integration tests across CLI diagnostics, core client, session scoping, sync/async `@monitor`, synchronous/asynchronous pre-flight evaluate guards, fail-open/fail-closed error handling, framework integrations (LangChain, CrewAI, OpenAI), and redaction engine.
+   - Achieved 86% statement coverage.
+4. **Offline-Runnable Demos (`examples/`)**:
+   - `examples/langchain_agent_demo.py`: Demonstrates LangChain agent handling legitimate financial tool calculations and catching an adversarial prompt injection/goal hijack attempt.
+   - `examples/crewai_demo.py`: Demonstrates multi-agent crew collaboration and blocking a poisoned inter-agent exfiltration directive.
+   - `examples/openai_agents_demo.py`: Demonstrates OpenAI Assistants tool calls and blocking unauthorized terminal code execution.
+   - `examples/attack_scenarios.py`: 5 targeted attack scenarios mapped to OWASP ASI 2026 (ASI01-ASI05) and MITRE ATLAS (AML.T0051-AML.T0101) with 5/5 blocked.
+   - All examples run 100% offline without requiring paid third-party API keys, automatically connecting to live backend when running or falling back to local guardrails.
+
+### Verification Gate Status
+- **SDK Test Suite**:
+  ```
+  Command: python -m pytest sdk/python/tests/ -v --cov=agentshield
+  Result: 25 passed in 23.00s, 86% total coverage
+  Test breakdown:
+    sdk/python/tests/test_cli.py (5 passed)
+    sdk/python/tests/test_client.py (6 passed)
+    sdk/python/tests/test_enforce_guard.py (8 passed)
+    sdk/python/tests/test_integrations.py (4 passed)
+    sdk/python/tests/test_redaction.py (2 passed)
+  ```
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 33 passed, 6 warnings in 2.89s
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 10.78s, 0 errors, 110 modules transformed
+  ```
+- **Offline Demos Verification**:
+  ```
+  python examples/langchain_agent_demo.py -> Exit 0 [SUCCESS]
+  python examples/crewai_demo.py          -> Exit 0 [SUCCESS]
+  python examples/openai_agents_demo.py   -> Exit 0 [SUCCESS]
+  python examples/attack_scenarios.py     -> Exit 0 [SUCCESS, 5/5 Blocked]
+  ```
+- **Phase 5 Status**: PASSED.
+
+
 
