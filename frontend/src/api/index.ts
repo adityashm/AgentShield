@@ -93,6 +93,11 @@ export async function getAlerts(params?: { severity?: string; status?: string; a
   return r.data
 }
 
+export async function getAlert(alertId: string): Promise<Alert> {
+  const r = await api.get(`/alerts/${alertId}`)
+  return r.data
+}
+
 export async function updateAlertStatus(
   alertId: string,
   status: 'open' | 'acknowledged' | 'resolved' | 'false_positive' | string,

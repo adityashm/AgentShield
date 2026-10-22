@@ -53,3 +53,4 @@ class Agent(Base):
     # Synonyms for backward compatibility
     agent_id = synonym("id")
     current_risk_score = synonym("risk_score")
+    created_at = synonym("first_seen")

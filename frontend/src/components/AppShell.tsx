@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useState, useEffect } from 'react'
 import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useWebSocket } from '../ws/WebSocketContext'
 import { useAuth } from '../context/AuthContext'
+import { getAlerts, Alert } from '../api'
 
 const primaryNav = [
   { to: '/', label: 'Dashboard', icon: 'dashboard' },
@@ -33,7 +34,33 @@ export default function AppShell({ children }: PropsWithChildren) {
   const [currentTime, setCurrentTime] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
   const [activeToast, setActiveToast] = useState<any | null>(null)
+  const [topAlerts, setTopAlerts] = useState<Alert[]>([])
   const lastProcessedKeyRef = React.useRef<string | null>(null)
+
+  // Live alerts count for sidebar badge and top bell
+  useEffect(() => {
+    async function loadAlerts() {
+      try {
+        const data = await getAlerts()
+        if (data) {
+          const openOnly = data.filter((a: any) => ['Open', 'open'].includes(a.status))
+          setTopAlerts(openOnly.slice(0, 5))
+        }
+      } catch {}
+    }
+    loadAlerts()
+  }, [messages])
+
+  const dynamicNav = [
+    { to: '/', label: 'Dashboard', icon: 'dashboard' },
+    { to: '/onboarding', label: 'Quickstart', icon: 'rocket_launch' },
+    { to: '/agents', label: 'Agents', icon: 'group' },
+    { to: '/alerts', label: 'Alerts', icon: 'notifications_active', badge: topAlerts.length > 0 ? `${topAlerts.length}` : undefined },
+    { to: '/rules', label: 'Rules', icon: 'policy' },
+    { to: '/logs', label: 'Logs', icon: 'terminal' },
+    { to: '/audit', label: 'Audit Log', icon: 'verified_user' },
+    { to: '/settings', label: 'Settings', icon: 'settings' },
+  ]
 
   // Real-time threat alert toast popup
   useEffect(() => {
@@ -113,7 +140,7 @@ export default function AppShell({ children }: PropsWithChildren) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 px-2">
-          {primaryNav.map((item) => {
+          {dynamicNav.map((item) => {
             return (
               <NavLink
                 key={item.to}
@@ -238,27 +265,33 @@ export default function AppShell({ children }: PropsWithChildren) {
                     <span className="font-mono text-xs font-semibold text-[var(--text-main)] uppercase tracking-wider">
                       Security Alerts
                     </span>
-                    <span className="rounded-sm bg-[var(--status-danger)]/20 px-1.5 py-0.5 font-mono text-[10px] text-[var(--status-danger)]">
-                      3 Active
+                    <span className="rounded-sm bg-[var(--status-danger)]/20 px-1.5 py-0.5 font-mono text-[10px] text-[var(--status-danger)] font-bold">
+                      {topAlerts.length} Active
                     </span>
                   </div>
-                  <div className="space-y-2 text-xs font-mono">
-                    <Link
-                      to="/alerts/triage/ALT-9921"
-                      onClick={() => setShowNotifications(false)}
-                      className="block p-2 rounded hover:bg-[var(--bg-hover)] border-l-2 border-l-[var(--status-danger)]"
-                    >
-                      <div className="text-[var(--status-danger)] font-bold">ALT-9921 • Unauthorized DB Access</div>
-                      <div className="text-[var(--text-muted)] text-[11px]">AGT-009 • Risk: 98.4</div>
-                    </Link>
-                    <Link
-                      to="/alerts/triage/ALT-9920"
-                      onClick={() => setShowNotifications(false)}
-                      className="block p-2 rounded hover:bg-[var(--bg-hover)] border-l-2 border-l-[var(--status-warning)]"
-                    >
-                      <div className="text-[var(--status-warning)] font-bold">ALT-9920 • Prompt Injection Pattern</div>
-                      <div className="text-[var(--text-muted)] text-[11px]">AGT-NY-12 • Risk: 82.1</div>
-                    </Link>
+                  <div className="space-y-2 text-xs font-mono max-h-64 overflow-y-auto">
+                    {topAlerts.length > 0 ? (
+                      topAlerts.map((al) => (
+                        <Link
+                          key={al.id || al.alert_id}
+                          to={`/alerts/triage/${al.id || al.alert_id}`}
+                          onClick={() => setShowNotifications(false)}
+                          className="block p-2 rounded hover:bg-[var(--bg-hover)] border-l-2 border-l-[var(--status-danger)] transition-colors"
+                        >
+                          <div className="text-[var(--status-danger)] font-bold truncate">
+                            {al.id || al.alert_id} • {al.title || al.trigger_type || 'Security Violation'}
+                          </div>
+                          <div className="text-[var(--text-muted)] text-[11px] mt-0.5 flex items-center justify-between">
+                            <span>{al.agent_id}</span>
+                            <span className="font-bold text-red-400">Risk: {Math.round(al.risk_score)}</span>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="py-4 text-center text-[var(--text-muted)] text-xs">
+                        No open security alerts
+                      </div>
+                    )}
                   </div>
                   <Link
                     to="/alerts"

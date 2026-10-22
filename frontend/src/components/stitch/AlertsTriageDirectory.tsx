@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { initialAlerts, AlertItem } from './AlertsDirectory'
-import { getAlertComments, addAlertComment, quarantineAgent, haltAgent, AlertComment } from '../../api'
+import { getAlert, getAlertComments, addAlertComment, quarantineAgent, haltAgent, AlertComment } from '../../api'
 
 interface DetailedAlert {
   id: string
@@ -70,22 +70,43 @@ export default function AlertsTriageDirectory() {
   const navigate = useNavigate()
   const currentAlertId = id || 'ALT-9921'
 
+  const [realAlert, setRealAlert] = useState<any | null>(null)
   const [copied, setCopied] = useState(false)
   const [isolatedAgents, setIsolatedAgents] = useState<Record<string, boolean>>({})
   const [alertStatuses, setAlertStatuses] = useState<Record<string, string>>({})
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadAlert() {
+      try {
+        const data = await getAlert(currentAlertId)
+        if (data) setRealAlert(data)
+      } catch {}
+    }
+    loadAlert()
+  }, [currentAlertId])
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  // Find matching basic alert info or default
-  const baseAlert = initialAlerts.find((a) => a.id === currentAlertId) || initialAlerts[0]
+  // Find matching basic alert info from real alert or fallback
+  const baseAlert = realAlert ? {
+    id: realAlert.id || realAlert.alert_id,
+    agentId: realAlert.agent_id,
+    triggerType: realAlert.trigger_type || 'policy_violation',
+    severity: realAlert.severity || 'Critical',
+    riskScore: realAlert.risk_score || 90.0,
+    timestamp: realAlert.created_at || 'Recent',
+    status: realAlert.status || 'Open',
+    description: realAlert.notes || realAlert.title || 'Security policy violation detected.',
+  } : (initialAlerts.find((a) => a.id === currentAlertId) || initialAlerts[0])
+
   const details = detailedAlertMap[currentAlertId] || {
-    action: baseAlert.triggerType,
-    title: `${baseAlert.triggerType.replace(/_/g, ' ').toUpperCase()}`,
-    payload: {
+    action: realAlert?.trigger_type || baseAlert.triggerType,
+    title: realAlert?.title || realAlert?.notes || `${baseAlert.triggerType.replace(/_/g, ' ').toUpperCase()}`,
+    payload: realAlert?.action || {
       event_id: `evt_${currentAlertId.toLowerCase()}`,
       timestamp: baseAlert.timestamp,
       agent_id: baseAlert.agentId,
@@ -94,6 +115,7 @@ export default function AlertsTriageDirectory() {
       details: baseAlert.description,
     },
     analysis:
+      realAlert?.notes ||
       baseAlert.description ||
       `Automated anomaly score for ${baseAlert.agentId} exceeded the risk tolerance threshold of 70. Action flagged for immediate analyst review.`,
   }

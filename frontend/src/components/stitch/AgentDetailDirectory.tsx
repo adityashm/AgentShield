@@ -1,13 +1,48 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { getAgent, quarantineAgent, releaseAgent } from '../../api'
 
 export default function AgentDetailDirectory() {
   const { id } = useParams()
   const currentAgentId = id || 'AGT-009'
   const [agentStatus, setAgentStatus] = useState<'active' | 'suspended'>('active')
+  const [agentData, setAgentData] = useState<any | null>(null)
 
-  const handleIsolateAgent = (): void => {
-    setAgentStatus('suspended')
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getAgent(currentAgentId)
+        if (data) {
+          setAgentData(data)
+          if (data.status === 'quarantined' || data.status === 'halted' || data.status === 'suspended') {
+            setAgentStatus('suspended')
+          } else {
+            setAgentStatus('active')
+          }
+        }
+      } catch {
+        // Fallback default
+      }
+    }
+    load()
+  }, [currentAgentId])
+
+  const handleIsolateAgent = async (): Promise<void> => {
+    try {
+      await quarantineAgent(currentAgentId)
+      setAgentStatus('suspended')
+    } catch {
+      setAgentStatus('suspended')
+    }
+  }
+
+  const handleReleaseAgent = async (): Promise<void> => {
+    try {
+      await releaseAgent(currentAgentId)
+      setAgentStatus('active')
+    } catch {
+      setAgentStatus('active')
+    }
   }
 
   return (
@@ -58,18 +93,23 @@ export default function AgentDetailDirectory() {
           <button className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-main)] font-mono text-[12px] uppercase tracking-wider hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">file_download</span> EXPORT REPORT
           </button>
-          <button
-            onClick={handleIsolateAgent}
-            disabled={agentStatus === 'suspended'}
-            className={`px-4 py-2 font-mono text-[12px] uppercase tracking-wider transition-all flex items-center gap-2 ${
-              agentStatus === 'suspended'
-                ? 'bg-[var(--border-color)] text-[var(--text-muted)] border border-transparent cursor-not-allowed'
-                : 'border border-[var(--status-danger)] bg-[rgba(248,81,73,0.1)] text-[var(--status-danger)] hover:bg-[var(--status-danger)] hover:text-white'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">block</span>
-            {agentStatus === 'suspended' ? 'ISOLATED' : 'ISOLATE AGENT'}
-          </button>
+          {agentStatus === 'suspended' ? (
+            <button
+              onClick={handleReleaseAgent}
+              className="px-4 py-2 font-mono text-[12px] uppercase tracking-wider transition-all flex items-center gap-2 border border-[var(--status-success)] bg-[rgba(35,134,54,0.1)] text-[var(--status-success)] hover:bg-[var(--status-success)] hover:text-white cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">check_circle</span>
+              RELEASE AGENT
+            </button>
+          ) : (
+            <button
+              onClick={handleIsolateAgent}
+              className="px-4 py-2 font-mono text-[12px] uppercase tracking-wider transition-all flex items-center gap-2 border border-[var(--status-danger)] bg-[rgba(248,81,73,0.1)] text-[var(--status-danger)] hover:bg-[var(--status-danger)] hover:text-white cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">block</span>
+              ISOLATE AGENT
+            </button>
+          )}
         </div>
       </section>
 
@@ -80,7 +120,9 @@ export default function AgentDetailDirectory() {
           <div>
             <h3 className="text-[14px] text-[var(--text-muted)] mb-1">Current Risk Score</h3>
             <div className="flex items-baseline gap-1">
-              <span className="font-mono text-3xl font-bold text-[var(--status-danger)]">84</span>
+              <span className={`font-mono text-3xl font-bold ${(agentData?.current_risk_score || 0) >= 70 ? 'text-[var(--status-danger)]' : 'text-[var(--status-warning)]'}`}>
+                {Math.round(agentData?.current_risk_score ?? agentData?.risk_score ?? 84)}
+              </span>
               <span className="font-mono text-[var(--text-muted)] text-sm">/100</span>
             </div>
           </div>

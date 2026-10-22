@@ -70,8 +70,11 @@ class AgentResponse(BaseModel):
     name: str
     current_risk_score: float
     status: str
-    created_at: datetime
-    last_seen: datetime
+    created_at: Optional[datetime] = None
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
+    framework: Optional[str] = "custom"
+    environment: Optional[str] = "production"
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getAlerts, updateAlertStatus } from '../../api'
+import { useWebSocket } from '../../ws/WebSocketContext'
 
 export interface AlertItem {
   id: string
@@ -77,15 +79,9 @@ export const initialAlerts: AlertItem[] = [
 
 export default function AlertsDirectory() {
   const navigate = useNavigate()
-  const [alerts, setAlerts] = useState<AlertItem[]>(() => {
-    const saved = localStorage.getItem('agentshield_alerts')
-    if (saved) {
-      try {
-        return JSON.parse(saved)
-      } catch {}
-    }
-    return initialAlerts
-  })
+  const { messages } = useWebSocket()
+  const [alerts, setAlerts] = useState<AlertItem[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [severityFilter, setSeverityFilter] = useState('all')
   const [searchAgent, setSearchAgent] = useState('')
@@ -97,41 +93,84 @@ export default function AlertsDirectory() {
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  const saveAlerts = (newAlerts: AlertItem[]) => {
-    setAlerts(newAlerts)
-    localStorage.setItem('agentshield_alerts', JSON.stringify(newAlerts))
+  const fetchAlerts = async () => {
+    try {
+      const data = await getAlerts()
+      if (data && data.length > 0) {
+        const mapped: AlertItem[] = data.map((a: any) => ({
+          id: a.id || a.alert_id,
+          agentId: a.agent_id,
+          triggerType: a.trigger_type || 'policy_violation',
+          severity: (a.severity === 'Critical' ? 'Critical' : a.severity === 'High' ? 'High' : a.severity === 'Low' ? 'Low' : 'Medium') as any,
+          riskScore: a.risk_score || 50,
+          timestamp: a.created_at ? new Date(a.created_at).toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : 'Recent',
+          status: (a.status === 'Resolved' || a.status === 'resolved' ? 'Resolved' : a.status === 'Acknowledged' || a.status === 'acknowledged' ? 'Acknowledged' : 'Open') as any,
+          description: a.notes || a.title || 'Security policy violation detected by AgentShield engine.',
+        }))
+        setAlerts(mapped)
+      } else {
+        setAlerts(initialAlerts)
+      }
+    } catch {
+      setAlerts(initialAlerts)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleAcknowledge = (id: string, e?: React.MouseEvent) => {
+  useEffect(() => {
+    fetchAlerts()
+  }, [])
+
+  // Live refresh when WebSocket events arrive
+  useEffect(() => {
+    if (messages.length > 0) {
+      fetchAlerts()
+    }
+  }, [messages])
+
+  const handleAcknowledge = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation()
-    const updated = alerts.map((a) => (a.id === id ? { ...a, status: 'Acknowledged' as const } : a))
-    saveAlerts(updated)
+    try {
+      await updateAlertStatus(id, 'acknowledged')
+    } catch {}
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, status: 'Acknowledged' as const } : a)))
     showToast(`Alert ${id} acknowledged.`)
   }
 
-  const handleResolve = (id: string, e?: React.MouseEvent) => {
+  const handleResolve = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation()
-    const updated = alerts.map((a) => (a.id === id ? { ...a, status: 'Resolved' as const } : a))
-    saveAlerts(updated)
+    try {
+      await updateAlertStatus(id, 'resolved')
+    } catch {}
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, status: 'Resolved' as const } : a)))
     showToast(`Alert ${id} resolved.`)
   }
 
-  const handleBulkAcknowledge = () => {
+  const handleBulkAcknowledge = async () => {
     if (selectedIds.length === 0) return
-    const updated = alerts.map((a) =>
-      selectedIds.includes(a.id) ? { ...a, status: 'Acknowledged' as const } : a
+    for (const id of selectedIds) {
+      try {
+        await updateAlertStatus(id, 'acknowledged')
+      } catch {}
+    }
+    setAlerts((prev) =>
+      prev.map((a) => (selectedIds.includes(a.id) ? { ...a, status: 'Acknowledged' as const } : a))
     )
-    saveAlerts(updated)
     showToast(`Acknowledged ${selectedIds.length} selected alert(s).`)
     setSelectedIds([])
   }
 
-  const handleBulkResolve = () => {
+  const handleBulkResolve = async () => {
     if (selectedIds.length === 0) return
-    const updated = alerts.map((a) =>
-      selectedIds.includes(a.id) ? { ...a, status: 'Resolved' as const } : a
+    for (const id of selectedIds) {
+      try {
+        await updateAlertStatus(id, 'resolved')
+      } catch {}
+    }
+    setAlerts((prev) =>
+      prev.map((a) => (selectedIds.includes(a.id) ? { ...a, status: 'Resolved' as const } : a))
     )
-    saveAlerts(updated)
     showToast(`Resolved ${selectedIds.length} selected alert(s).`)
     setSelectedIds([])
   }
