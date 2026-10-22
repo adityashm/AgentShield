@@ -175,3 +175,83 @@ export interface SystemHealthResponse {
   total_actions_last_hour: number
   open_alerts_count: number
 }
+
+export interface ScenarioSimulateResponse {
+  scenario: string
+  decision: 'allow' | 'deny'
+  risk_score: number
+  violated_rule?: string | null
+  owasp_category: string
+  mitre_id: string
+  latency_ms: number
+  audit_hash: string
+  steps: string[]
+  mode: string
+}
+
+export interface ProxyTestResponse {
+  decision: 'allow' | 'deny'
+  risk_score: number
+  violated_rules: string[]
+  latency_ms: number
+  status_code: number
+  model: string
+  response_text: string
+  tokens: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+export interface RuleProfile {
+  id: string
+  name: string
+  badge: string
+  icon: string
+  description: string
+  active_rules: string[]
+  enforcement_mode: string
+  block_threshold: number
+}
+
+export interface ProfileApplyResponse {
+  profile_id: string
+  profile_name: string
+  rules_enabled: number
+  rules_disabled: number
+  total_rules: number
+  active_rule_ids: string[]
+  audit_hash: string
+}
+
+export interface ComplianceReportResponse {
+  generated_at: string
+  organization_id: string
+  framework: string
+  compliance_status: 'COMPLIANT' | 'ACTION_REQUIRED'
+  cryptographic_audit_chain_valid: boolean
+  total_actions_evaluated: number
+  threat_actions_blocked: number
+  enforcement_block_rate: string
+  mean_evaluation_latency_ms: number
+  active_monitored_agents: number
+  quarantined_agents: number
+  open_critical_alerts: number
+  human_oversight_controls: {
+    preflight_fail_closed: boolean
+    manual_quarantine_available: boolean
+    incident_triage_audit_logged: boolean
+    cryptographic_non_repudiation: boolean
+    max_unreviewed_critical_alerts: number
+  }
+  owasp_coverage: Record<
+    string,
+    {
+      title: string
+      mapped_rules: string[]
+      status: string
+    }
+  >
+}
+

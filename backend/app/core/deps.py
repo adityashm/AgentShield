@@ -47,6 +47,40 @@ def get_current_user(
     request.state.org_id = user.org_id
     return user
 
+def get_optional_user(
+    request: Request,
+    auth: Optional[HTTPAuthorizationCredentials] = Security(bearer_security),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """
+    Attempts to resolve authenticated user from Bearer token or cookie,
+    returning None if unauthenticated instead of raising UnauthorizedError.
+    """
+    try:
+        token = None
+        if auth and auth.credentials:
+            token = auth.credentials
+        elif "access_token" in request.cookies:
+            token = request.cookies.get("access_token")
+
+        if not token:
+            return None
+
+        payload = decode_access_token(token)
+        if not payload or "sub" not in payload:
+            return None
+
+        user_id = payload["sub"]
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        if user:
+            request.state.user = user
+            request.state.org_id = user.org_id
+            return user
+        return None
+    except Exception:
+        return None
+
+
 def require_role(allowed_roles: List[str]) -> Callable:
     """
     Enforces role-based access control (RBAC).

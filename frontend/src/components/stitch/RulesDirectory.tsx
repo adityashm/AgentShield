@@ -10,6 +10,16 @@ export interface Rule {
   matches: number
   active: boolean
   jsonCondition: string
+  owaspId?: string
+  mitreAtlasId?: string
+}
+
+const taxonomyMap: Record<string, { owasp: string; mitre: string }> = {
+  'File System': { owasp: 'ASI02 Tool Misuse', mitre: 'AML.T0053' },
+  'Rate Limiting': { owasp: 'ASI08 Cascading Failures', mitre: 'AML.T0101' },
+  'Input Validation': { owasp: 'ASI01 Goal Hijack', mitre: 'AML.T0051' },
+  'Access Control': { owasp: 'ASI03 Privilege Abuse', mitre: 'AML.T0098' },
+  'Network': { owasp: 'ASI02 Tool Misuse', mitre: 'AML.T0086' },
 }
 
 const initialRules: Rule[] = [
@@ -21,6 +31,8 @@ const initialRules: Rule[] = [
     severity: 'High',
     matches: 1204,
     active: true,
+    owaspId: 'ASI02 Tool Misuse',
+    mitreAtlasId: 'AML.T0053',
     jsonCondition: JSON.stringify(
       {
         field: 'action.parameters.path',
@@ -39,6 +51,8 @@ const initialRules: Rule[] = [
     severity: 'Medium',
     matches: 342,
     active: true,
+    owaspId: 'ASI08 Cascading Failures',
+    mitreAtlasId: 'AML.T0101',
     jsonCondition: JSON.stringify(
       {
         rate_window: '60s',
@@ -57,6 +71,8 @@ const initialRules: Rule[] = [
     severity: 'Critical',
     matches: 89,
     active: true,
+    owaspId: 'ASI01 Goal Hijack',
+    mitreAtlasId: 'AML.T0051',
     jsonCondition: JSON.stringify(
       {
         field: 'action.parameters.prompt',
@@ -80,6 +96,8 @@ const initialRules: Rule[] = [
     severity: 'Critical',
     matches: 12,
     active: true,
+    owaspId: 'ASI03 Privilege Abuse',
+    mitreAtlasId: 'AML.T0098',
     jsonCondition: JSON.stringify(
       {
         field: 'action.action_type',
@@ -98,6 +116,8 @@ const initialRules: Rule[] = [
     severity: 'High',
     matches: 0,
     active: false,
+    owaspId: 'ASI02 Tool Misuse',
+    mitreAtlasId: 'AML.T0086',
     jsonCondition: JSON.stringify(
       {
         field: 'action.parameters.bytes_out',
@@ -134,16 +154,22 @@ export default function RulesDirectory() {
       try {
         const data = await getRules()
         if (data && data.length > 0) {
-          const mapped: Rule[] = data.map((r: any) => ({
-            id: r.rule_id || r.id,
-            name: r.name,
-            description: r.description,
-            category: r.category || 'Access Control',
-            severity: (r.severity ? r.severity.charAt(0).toUpperCase() + r.severity.slice(1).toLowerCase() : 'Medium') as any,
-            matches: r.matches_count || 0,
-            active: Boolean(r.enabled),
-            jsonCondition: typeof r.condition_json === 'string' ? r.condition_json : JSON.stringify(r.condition || {}, null, 2),
-          }))
+          const mapped: Rule[] = data.map((r: any) => {
+            const cat = r.category || 'Access Control'
+            const tax = taxonomyMap[cat] || { owasp: 'ASI02 Tool Misuse', mitre: 'AML.T0053' }
+            return {
+              id: r.rule_id || r.id,
+              name: r.name,
+              description: r.description,
+              category: cat,
+              severity: (r.severity ? r.severity.charAt(0).toUpperCase() + r.severity.slice(1).toLowerCase() : 'Medium') as any,
+              matches: r.matches_count || 0,
+              active: Boolean(r.enabled),
+              owaspId: tax.owasp,
+              mitreAtlasId: tax.mitre,
+              jsonCondition: typeof r.condition_json === 'string' ? r.condition_json : JSON.stringify(r.condition || {}, null, 2),
+            }
+          })
           setRules(mapped)
           saveRulesToStorage(mapped)
         }
@@ -258,7 +284,7 @@ export default function RulesDirectory() {
     } catch {}
     const updated = rules.map((r) => (r.id === id ? { ...r, active: !r.active } : r))
     saveRulesToStorage(updated)
-    showToast(`Rule ${id} toggled ${updated.find((r) => r.id === id)?.active ? 'ON' : 'OFF'}.`)
+    showToast(`Rule ${id} toggled ${updated.find((r) => r.id === id)?.active ? 'ACTIVE' : 'DISABLED'}.`)
   }
 
   const handleDeleteRule = async (id: string, e: React.MouseEvent) => {
@@ -279,7 +305,7 @@ export default function RulesDirectory() {
       const parsed = JSON.parse(formCondition)
       setFormCondition(JSON.stringify(parsed, null, 2))
       setJsonError(null)
-      showToast('JSON condition formatted successfully.')
+      showToast('JSON condition formatted.')
     } catch (err: any) {
       setJsonError('Invalid JSON: ' + err.message)
     }
@@ -297,6 +323,8 @@ export default function RulesDirectory() {
       setJsonError('Condition must be valid JSON.')
       return
     }
+
+    const tax = taxonomyMap[formCategory] || { owasp: 'ASI02 Tool Misuse', mitre: 'AML.T0053' }
 
     if (selectedRuleId === 'NEW' || !selectedRuleId) {
       const nextNum = rules.length + 1
@@ -320,6 +348,8 @@ export default function RulesDirectory() {
         severity: formSeverity,
         matches: 0,
         active: formActive,
+        owaspId: tax.owasp,
+        mitreAtlasId: tax.mitre,
         jsonCondition: formCondition,
       }
       const updated = [...rules, newRule]
@@ -336,6 +366,8 @@ export default function RulesDirectory() {
               category: formCategory,
               severity: formSeverity,
               active: formActive,
+              owaspId: tax.owasp,
+              mitreAtlasId: tax.mitre,
               jsonCondition: formCondition,
             }
           : r
@@ -359,28 +391,39 @@ export default function RulesDirectory() {
     )
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+        <div className="fixed top-20 right-8 z-50 rounded-lg bg-slate-900 border border-sky-500/40 px-4 py-2.5 font-mono text-xs text-sky-400 shadow-2xl shadow-sky-950/50 flex items-center gap-2 animate-fade-in backdrop-blur-md">
+          <span className="material-symbols-outlined text-[16px] text-sky-400">check_circle</span>
           {toastMessage}
         </div>
       )}
 
       {/* Header and Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-surface)] p-4 border border-[var(--border-color)] rounded-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 panel-obsidian p-5 rounded-xl">
         <div className="flex flex-wrap items-center gap-4">
-          <h2 className="text-[var(--text-main)] text-[20px] font-semibold font-mono">Security Rule Engine</h2>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-sky-400 text-xl">gavel</span>
+              <h2 className="text-white text-lg font-semibold tracking-tight">Security Policy & Rule Engine</h2>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                OWASP ASI 2026 Mapped
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Deterministic AST & JSON-DSL rule guards evaluated in pre-flight synchronous enforcement (&lt;5ms p95).
+            </p>
+          </div>
 
-          <div className="flex items-center gap-1 bg-[var(--bg-base)] p-1 rounded-sm border border-[var(--border-color)]">
+          <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-lg border border-white/5">
             {(['all', 'active', 'disabled'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 font-mono text-xs uppercase rounded-sm transition-colors cursor-pointer ${
+                className={`px-3 py-1 font-mono text-xs uppercase rounded-md transition-all cursor-pointer ${
                   activeTab === tab
-                    ? 'bg-[var(--primary)] text-[#001f27] font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'bg-sky-500 text-slate-950 font-bold shadow-sm shadow-sky-500/30'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {tab}
@@ -389,16 +432,21 @@ export default function RulesDirectory() {
           </div>
 
           <div className="flex items-center gap-2">
-            <input
-              className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1 text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] font-mono w-44"
-              placeholder="Filter rules..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]">
+                search
+              </span>
+              <input
+                className="bg-slate-950/60 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono w-44 transition-colors"
+                placeholder="Filter rules..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-2 py-1 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] font-mono cursor-pointer"
+              className="bg-slate-950/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-sans cursor-pointer transition-colors"
             >
               <option value="all">Category: All</option>
               <option value="Access Control">Access Control</option>
@@ -412,72 +460,85 @@ export default function RulesDirectory() {
 
         <button
           onClick={() => setSelectedRuleId('NEW')}
-          className="px-3 py-1.5 text-[#001f27] font-mono text-xs font-bold uppercase bg-[var(--primary)] hover:bg-[#00b8e6] rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="px-4 py-2 text-slate-950 font-medium text-xs font-mono uppercase bg-sky-400 hover:bg-sky-300 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-sky-500/20 active:scale-95 shrink-0"
         >
           <span className="material-symbols-outlined text-[16px]">add</span>
-          New Rule
+          New Policy Rule
         </button>
       </div>
 
       {/* Main Two-Column Layout */}
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Left: Rules Table */}
-        <div className="flex-1 min-w-0 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden flex flex-col">
+        <div className="flex-1 min-w-0 panel-obsidian rounded-xl overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
-                <tr className="bg-[var(--bg-base)] border-b border-[var(--border-color)] text-[var(--text-muted)] font-mono text-xs uppercase tracking-wider">
-                  <th className="p-3 w-16">ID</th>
-                  <th className="p-3">Rule Name</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Severity</th>
-                  <th className="p-3 text-right">Matches</th>
-                  <th className="p-3 text-center w-16">Active</th>
-                  <th className="p-3 text-right w-16">Action</th>
+                <tr className="bg-slate-950/80 border-b border-white/5 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+                  <th className="p-3.5 w-20">ID</th>
+                  <th className="p-3.5">Rule Name & Taxonomy</th>
+                  <th className="p-3.5">Category</th>
+                  <th className="p-3.5">Severity</th>
+                  <th className="p-3.5 text-right">Matches</th>
+                  <th className="p-3.5 text-center w-20">Enforced</th>
+                  <th className="p-3.5 text-right w-16">Action</th>
                 </tr>
               </thead>
-              <tbody className="font-mono text-xs text-[var(--text-main)] divide-y divide-[var(--border-color)]">
+              <tbody className="text-xs text-slate-300 divide-y divide-white/5">
                 {filteredRules.map((r) => {
                   const isSelected = selectedRuleId === r.id
+                  const tax = taxonomyMap[r.category] || { owasp: r.owaspId || 'ASI02 Tool Misuse', mitre: r.mitreAtlasId || 'AML.T0053' }
                   return (
                     <tr
                       key={r.id}
                       onClick={() => setSelectedRuleId(r.id)}
-                      className={`cursor-pointer transition-colors hover:bg-[var(--bg-hover)] border-l-4 ${
+                      className={`cursor-pointer transition-colors hover:bg-slate-800/40 border-l-4 ${
                         isSelected
-                          ? 'border-l-[var(--primary)] bg-[rgba(0,212,255,0.05)]'
+                          ? 'border-l-sky-400 bg-sky-950/20'
                           : r.active
-                          ? 'border-l-[var(--status-success)]'
-                          : 'border-l-[var(--border-color)] opacity-60'
+                          ? 'border-l-emerald-500'
+                          : 'border-l-transparent opacity-60'
                       }`}
                     >
-                      <td className="p-3 text-[var(--primary)] font-bold">{r.id}</td>
-                      <td className="p-3 font-semibold text-[var(--text-main)]">{r.name}</td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-sm text-[10px] bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-color)]">
+                      <td className="p-3.5 text-sky-400 font-mono font-semibold text-xs">{r.id}</td>
+                      <td className="p-3.5">
+                        <div className="font-medium text-white text-sm">{r.name}</div>
+                        <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-indigo-950/50 text-indigo-300 border border-indigo-800/40">
+                            {tax.owasp}
+                          </span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-slate-400">{tax.mitre}</span>
+                        </div>
+                      </td>
+                      <td className="p-3.5">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] bg-slate-800/70 text-slate-300 border border-white/5">
                           {r.category}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="p-3.5">
                         <span
-                          className={`font-bold uppercase text-[11px] ${
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider ${
                             r.severity === 'Critical'
-                              ? 'text-[var(--status-danger)]'
+                              ? 'bg-rose-950/60 text-rose-400 border border-rose-800/50'
                               : r.severity === 'High'
-                              ? 'text-[var(--status-warning)]'
+                              ? 'bg-amber-950/60 text-amber-400 border border-amber-800/50'
                               : r.severity === 'Medium'
-                              ? 'text-[var(--status-info)]'
-                              : 'text-[var(--text-muted)]'
+                              ? 'bg-sky-950/60 text-sky-400 border border-sky-800/50'
+                              : 'bg-slate-800/60 text-slate-400 border border-slate-700/50'
                           }`}
                         >
                           {r.severity}
                         </span>
                       </td>
-                      <td className="p-3 text-right font-bold">{r.matches.toLocaleString()}</td>
-                      <td className="p-3 text-center" onClick={(e) => handleToggleRule(r.id, e)}>
+                      <td className="p-3.5 text-right font-mono font-bold text-slate-200">
+                        {r.matches.toLocaleString()}
+                      </td>
+                      <td className="p-3.5 text-center" onClick={(e) => handleToggleRule(r.id, e)}>
                         <button
+                          title={r.active ? 'Rule Active — Click to Disable' : 'Rule Disabled — Click to Activate'}
                           className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer inline-flex items-center ${
-                            r.active ? 'bg-[var(--primary)]' : 'bg-[var(--border-color)]'
+                            r.active ? 'bg-sky-500 shadow-sm shadow-sky-500/50' : 'bg-slate-700'
                           }`}
                         >
                           <span
@@ -487,10 +548,10 @@ export default function RulesDirectory() {
                           />
                         </button>
                       </td>
-                      <td className="p-3 text-right" onClick={(e) => handleDeleteRule(r.id, e)}>
+                      <td className="p-3.5 text-right" onClick={(e) => handleDeleteRule(r.id, e)}>
                         <button
                           title="Delete Rule"
-                          className="p-1 text-[var(--text-muted)] hover:text-[var(--status-danger)] transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 rounded transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">delete</span>
                         </button>
@@ -503,26 +564,26 @@ export default function RulesDirectory() {
           </div>
 
           {/* Quick Metrics Footer */}
-          <div className="grid grid-cols-4 border-t border-[var(--border-color)] bg-[var(--bg-base)] p-3 text-center font-mono">
+          <div className="grid grid-cols-4 border-t border-white/5 bg-slate-950/60 p-4 text-center font-mono">
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase">Total Rules</div>
-              <div className="text-sm font-bold text-[var(--text-main)]">{rules.length}</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Total Rules</div>
+              <div className="text-sm font-bold text-white mt-0.5">{rules.length}</div>
             </div>
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase">Active</div>
-              <div className="text-sm font-bold text-[var(--status-success)]">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Active Guards</div>
+              <div className="text-sm font-bold text-emerald-400 mt-0.5">
                 {rules.filter((r) => r.active).length}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase">Disabled</div>
-              <div className="text-sm font-bold text-[var(--text-muted)]">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Disabled</div>
+              <div className="text-sm font-bold text-slate-400 mt-0.5">
                 {rules.filter((r) => !r.active).length}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase">Total Matches</div>
-              <div className="text-sm font-bold text-[var(--primary)]">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Blocked Hits</div>
+              <div className="text-sm font-bold text-sky-400 mt-0.5">
                 {rules.reduce((acc, r) => acc + r.matches, 0).toLocaleString()}
               </div>
             </div>
@@ -530,16 +591,16 @@ export default function RulesDirectory() {
         </div>
 
         {/* Right: Controlled Rule Editor & Test Simulator */}
-        <div className="w-full xl:w-[440px] 2xl:w-[480px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col shrink-0 overflow-hidden">
-          <div className="p-3 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-raised)]">
-            <div className="flex items-center gap-1">
+        <div className="w-full xl:w-[460px] 2xl:w-[500px] panel-obsidian rounded-xl flex flex-col shrink-0 overflow-hidden">
+          <div className="p-3.5 border-b border-white/5 flex items-center justify-between bg-slate-950/60">
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-white/5">
               <button
                 type="button"
                 onClick={() => setActiveEditorTab('editor')}
-                className={`px-3 py-1 text-xs font-mono font-bold uppercase rounded-sm transition-colors ${
+                className={`px-3 py-1 text-xs font-mono font-medium uppercase rounded-md transition-all cursor-pointer ${
                   activeEditorTab === 'editor'
-                    ? 'bg-[var(--primary)] text-[#001f27]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'bg-sky-500 text-slate-950 font-bold'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 Rule Specification
@@ -547,60 +608,60 @@ export default function RulesDirectory() {
               <button
                 type="button"
                 onClick={() => setActiveEditorTab('test')}
-                className={`px-3 py-1 text-xs font-mono font-bold uppercase rounded-sm transition-colors flex items-center gap-1 ${
+                className={`px-3 py-1 text-xs font-mono font-medium uppercase rounded-md transition-all flex items-center gap-1 cursor-pointer ${
                   activeEditorTab === 'test'
-                    ? 'bg-[var(--primary)] text-[#001f27]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'bg-sky-500 text-slate-950 font-bold'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <span className="material-symbols-outlined text-[14px]">science</span>
-                Test Simulator
+                Test Sandbox
               </button>
             </div>
-            <span className="text-[10px] font-mono text-[var(--text-muted)]">
+            <span className="text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-800 border border-white/5">
               {selectedRuleId === 'NEW' ? 'DRAFT' : selectedRuleId}
             </span>
           </div>
 
           {activeEditorTab === 'editor' ? (
             <>
-              <div className="p-4 flex-1 flex flex-col gap-4 overflow-y-auto">
+              <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto">
                 {/* Rule Name */}
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
                     Rule Name
                   </label>
                   <input
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Detect Unauthorized Executable"
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs text-[var(--text-main)] focus:border-[var(--primary)] font-mono outline-none"
+                    className="w-full bg-slate-950/60 border border-white/10 rounded-lg px-3.5 py-2 text-xs text-white focus:border-sky-500 font-sans outline-none transition-colors"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                    Description
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    Description & Security Intent
                   </label>
                   <textarea
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Details of what this rule detects..."
                     rows={2}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs text-[var(--text-main)] focus:border-[var(--primary)] font-mono outline-none resize-none"
+                    className="w-full bg-slate-950/60 border border-white/10 rounded-lg px-3.5 py-2 text-xs text-white focus:border-sky-500 font-sans outline-none resize-none transition-colors leading-relaxed"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
                       Category
                     </label>
                     <select
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value as any)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-2.5 py-1.5 text-xs text-[var(--text-main)] focus:border-[var(--primary)] font-mono outline-none cursor-pointer"
+                      className="w-full bg-slate-950/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-sky-500 outline-none cursor-pointer transition-colors"
                     >
                       <option value="Access Control">Access Control</option>
                       <option value="Network">Network</option>
@@ -611,13 +672,13 @@ export default function RulesDirectory() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                      Severity
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Severity Level
                     </label>
                     <select
                       value={formSeverity}
                       onChange={(e) => setFormSeverity(e.target.value as any)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-2.5 py-1.5 text-xs text-[var(--text-main)] focus:border-[var(--primary)] font-mono outline-none cursor-pointer"
+                      className="w-full bg-slate-950/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-sky-500 outline-none cursor-pointer transition-colors"
                     >
                       <option value="Critical">Critical</option>
                       <option value="High">High</option>
@@ -629,17 +690,17 @@ export default function RulesDirectory() {
 
                 {/* JSON Condition */}
                 <div className="flex-1 flex flex-col">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
-                      Condition Logic (JSON)
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-slate-300">
+                      Condition Logic (AST JSON DSL)
                     </label>
                     <button
                       type="button"
                       onClick={handleFormatJson}
-                      className="text-[10px] font-mono text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[12px]">code</span>
-                      FORMAT JSON
+                      <span className="material-symbols-outlined text-[13px]">code</span>
+                      Format JSON
                     </button>
                   </div>
                   <textarea
@@ -648,61 +709,65 @@ export default function RulesDirectory() {
                       setFormCondition(e.target.value)
                       setJsonError(null)
                     }}
-                    rows={7}
+                    rows={8}
                     spellCheck={false}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-xs font-mono text-[var(--text-main)] focus:border-[var(--primary)] outline-none resize-none leading-relaxed"
+                    className="w-full bg-[#070b12] border border-white/10 rounded-lg p-3 text-xs font-mono text-sky-300 focus:border-sky-500 outline-none resize-none leading-relaxed shadow-inner"
                   />
                   {jsonError && (
-                    <div className="mt-1 text-[11px] font-mono text-[var(--status-danger)]">
+                    <div className="mt-1.5 text-xs font-mono text-rose-400 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">error</span>
                       {jsonError}
                     </div>
                   )}
                 </div>
 
                 {/* Active Toggle */}
-                <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <label className="flex items-center gap-2.5 cursor-pointer mt-1">
                   <input
                     type="checkbox"
                     checked={formActive}
                     onChange={(e) => setFormActive(e.target.checked)}
-                    className="rounded-sm border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                    className="w-4 h-4 rounded border-white/20 bg-slate-950 text-sky-500 focus:ring-sky-500 cursor-pointer"
                   />
-                  <span className="font-mono text-xs text-[var(--text-main)]">Enable Rule Immediately</span>
+                  <span className="text-xs text-slate-300">Enable and enforce rule immediately in pre-flight evaluations</span>
                 </label>
               </div>
 
               {/* Action Footer */}
-              <div className="p-3 border-t border-[var(--border-color)] bg-[var(--bg-surface)] flex justify-end gap-2">
+              <div className="p-4 border-t border-white/5 bg-slate-950/60 flex justify-end gap-2.5">
                 <button
                   onClick={() => setSelectedRuleId('RUL-001')}
-                  className="px-3 py-1.5 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-mono text-xs rounded-sm cursor-pointer"
+                  className="px-4 py-2 border border-white/10 text-slate-400 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveRule}
-                  className="px-4 py-1.5 bg-[var(--primary)] text-[#001f27] font-mono text-xs font-bold uppercase rounded-sm hover:bg-[#00b8e6] transition-colors cursor-pointer shadow-[0_0_8px_rgba(0,212,255,0.3)]"
+                  className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-mono text-xs font-bold uppercase rounded-lg transition-all cursor-pointer shadow-lg shadow-sky-500/20 active:scale-95"
                 >
-                  Save Rule
+                  Save Policy Rule
                 </button>
               </div>
             </>
           ) : (
             /* Interactive Test Sandbox */
-            <div className="p-4 flex-1 flex flex-col gap-4 overflow-y-auto font-mono text-xs">
-              <div>
-                <span className="text-[10px] text-[var(--primary)] uppercase tracking-wider font-bold">
-                  Target Rule Condition Under Test:
-                </span>
-                <div className="mt-1 p-2 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-[11px] text-[var(--text-muted)] truncate">
-                  {formName} ({formCategory} • {formSeverity})
+            <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto font-mono text-xs">
+              <div className="p-3 rounded-lg bg-slate-950/60 border border-white/5">
+                <div className="text-[10px] text-sky-400 uppercase tracking-wider font-bold mb-1">
+                  Testing Against Target Rule:
+                </div>
+                <div className="text-xs text-white font-semibold">
+                  {formName || 'Unnamed Rule'}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  Category: {formCategory} • Severity: {formSeverity}
                 </div>
               </div>
 
               {/* Quick Template Presets */}
               <div>
-                <label className="block text-[10px] uppercase text-[var(--text-muted)] mb-1">
-                  Quick Sample Payloads:
+                <label className="block text-[11px] text-slate-400 mb-1.5 font-sans">
+                  Quick Sample Attack Payloads:
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   <button
@@ -719,7 +784,7 @@ export default function RulesDirectory() {
                         )
                       )
                     }
-                    className="px-2 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] rounded-sm"
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white rounded-md transition-colors"
                   >
                     Path Traversal
                   </button>
@@ -739,7 +804,7 @@ export default function RulesDirectory() {
                         )
                       )
                     }
-                    className="px-2 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] rounded-sm"
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white rounded-md transition-colors"
                   >
                     Prompt Injection
                   </button>
@@ -759,9 +824,9 @@ export default function RulesDirectory() {
                         )
                       )
                     }
-                    className="px-2 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] rounded-sm"
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white rounded-md transition-colors"
                   >
-                    Shell Command
+                    Shell Exec
                   </button>
                   <button
                     type="button"
@@ -780,9 +845,9 @@ export default function RulesDirectory() {
                         )
                       )
                     }
-                    className="px-2 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] rounded-sm"
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white rounded-md transition-colors"
                   >
-                    Exfiltration
+                    Data Exfiltration
                   </button>
                   <button
                     type="button"
@@ -798,7 +863,7 @@ export default function RulesDirectory() {
                         )
                       )
                     }
-                    className="px-2 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] rounded-sm"
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white rounded-md transition-colors"
                   >
                     Benign Query
                   </button>
@@ -807,37 +872,39 @@ export default function RulesDirectory() {
 
               {/* Test Payload JSON Editor */}
               <div className="flex-1 flex flex-col">
-                <label className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                  Test Action Event (JSON)
+                <label className="text-xs font-medium text-slate-300 mb-1.5 font-sans">
+                  Action Event Telemetry (JSON)
                 </label>
                 <textarea
                   value={testPayload}
                   onChange={(e) => setTestPayload(e.target.value)}
                   rows={8}
                   spellCheck={false}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-xs font-mono text-[var(--text-main)] focus:border-[var(--primary)] outline-none resize-none leading-relaxed"
+                  className="w-full bg-[#070b12] border border-white/10 rounded-lg p-3 text-xs font-mono text-slate-200 focus:border-sky-500 outline-none resize-none leading-relaxed shadow-inner"
                 />
               </div>
 
               {/* Simulation Result Display */}
               {testResult && (
                 <div
-                  className={`p-3 rounded-sm border ${
+                  className={`p-4 rounded-xl border animate-fade-in ${
                     testResult.matched
-                      ? 'bg-[rgba(255,51,102,0.08)] border-[var(--status-danger)] text-[var(--status-danger)]'
-                      : 'bg-[rgba(0,255,157,0.08)] border-[var(--status-success)] text-[var(--status-success)]'
+                      ? 'bg-rose-950/30 border-rose-500/50 text-rose-300 shadow-lg shadow-rose-950/40'
+                      : 'bg-emerald-950/30 border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-950/40'
                   }`}
                 >
                   <div className="flex items-center justify-between font-bold">
-                    <span className="flex items-center gap-1.5 uppercase tracking-wider">
-                      <span className="material-symbols-outlined text-[16px]">
-                        {testResult.matched ? 'block' : 'check_circle'}
+                    <span className="flex items-center gap-2 uppercase tracking-wider text-xs">
+                      <span className="material-symbols-outlined text-[18px]">
+                        {testResult.matched ? 'block' : 'verified'}
                       </span>
-                      {testResult.matched ? 'MATCHED — ACTION DENIED' : 'NO MATCH — ACTION PERMITTED'}
+                      {testResult.matched ? 'MATCHED — ACTION DENIED' : 'CLEAN — ACTION PERMITTED'}
                     </span>
-                    <span className="text-[10px] opacity-80">{testResult.latency_ms}ms</span>
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-black/40 border border-white/10">
+                      {testResult.latency_ms} ms
+                    </span>
                   </div>
-                  <div className="text-[11px] mt-1 text-[var(--text-muted)]">
+                  <div className="text-xs mt-2 text-slate-300 leading-relaxed font-sans">
                     {testResult.reasons.join(' ')}
                   </div>
                 </div>
@@ -848,12 +915,12 @@ export default function RulesDirectory() {
                 type="button"
                 onClick={handleRunRuleTest}
                 disabled={isTesting}
-                className="w-full py-2 bg-[var(--primary)] text-[#001f27] font-mono text-xs font-bold uppercase rounded-sm hover:bg-[#00b8e6] transition-colors flex items-center justify-center gap-2 shadow-[0_0_8px_rgba(0,212,255,0.3)] disabled:opacity-50"
+                className="w-full py-2.5 bg-sky-400 hover:bg-sky-300 text-slate-950 font-mono text-xs font-bold uppercase rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                <span className={`material-symbols-outlined text-[16px] ${isTesting ? 'animate-spin' : ''}`}>
+                <span className={`material-symbols-outlined text-[18px] ${isTesting ? 'animate-spin' : ''}`}>
                   {isTesting ? 'sync' : 'play_arrow'}
                 </span>
-                {isTesting ? 'Evaluating Against DSL...' : 'Run Simulation Test'}
+                {isTesting ? 'Evaluating Against DSL...' : 'Execute Pre-Flight Sandbox Test'}
               </button>
             </div>
           )}

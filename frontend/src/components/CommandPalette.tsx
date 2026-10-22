@@ -98,7 +98,6 @@ export default function CommandPalette({
       title: 'Go to Command Center Dashboard',
       category: 'Navigation',
       icon: 'dashboard',
-      shortcut: 'G D',
       action: () => {
         navigate('/')
         onClose()
@@ -106,10 +105,9 @@ export default function CommandPalette({
     },
     {
       id: 'nav-agents',
-      title: 'Go to Agents Directory',
+      title: 'View Active Agents Fleet Directory',
       category: 'Navigation',
-      icon: 'group',
-      shortcut: 'G A',
+      icon: 'smart_toy',
       action: () => {
         navigate('/agents')
         onClose()
@@ -117,10 +115,9 @@ export default function CommandPalette({
     },
     {
       id: 'nav-alerts',
-      title: 'Go to Alerts Management & Triage',
+      title: 'Open Incident Alerts Triage Queue',
       category: 'Navigation',
       icon: 'notifications_active',
-      shortcut: 'G L',
       action: () => {
         navigate('/alerts')
         onClose()
@@ -128,29 +125,37 @@ export default function CommandPalette({
     },
     {
       id: 'nav-rules',
-      title: 'Go to Security Rule Engine & Sandbox',
+      title: 'Manage Security Policy & DSL Rules',
       category: 'Navigation',
-      icon: 'policy',
-      shortcut: 'G R',
+      icon: 'gavel',
       action: () => {
         navigate('/rules')
         onClose()
       },
     },
     {
+      id: 'nav-logs',
+      title: 'Inspect Live Telemetry Stream Logs',
+      category: 'Navigation',
+      icon: 'terminal',
+      action: () => {
+        navigate('/logs')
+        onClose()
+      },
+    },
+    {
       id: 'nav-audit',
-      title: 'Go to Cryptographic Audit Log',
+      title: 'Cryptographic SHA-256 Audit Ledger',
       category: 'Navigation',
       icon: 'verified_user',
-      shortcut: 'G C',
       action: () => {
         navigate('/audit')
         onClose()
       },
     },
     {
-      id: 'nav-quickstart',
-      title: 'Go to Quickstart & SDK Integration Guide',
+      id: 'nav-onboarding',
+      title: 'SDK Developer Quickstart & Integration',
       category: 'Navigation',
       icon: 'rocket_launch',
       action: () => {
@@ -158,22 +163,33 @@ export default function CommandPalette({
         onClose()
       },
     },
+    {
+      id: 'nav-settings',
+      title: 'System Settings, API Keys & Webhooks',
+      category: 'Navigation',
+      icon: 'settings',
+      action: () => {
+        navigate('/settings')
+        onClose()
+      },
+    },
+
     // Security Actions
     {
-      id: 'act-proxy-test',
-      title: 'Test Universal Proxy Guardrail (/v1/chat/completions)',
+      id: 'act-test-attack',
+      title: 'Simulate Adversarial Jailbreak Attack via Gateway',
       category: 'Security Actions',
-      icon: 'security',
-      shortcut: '⚡',
+      icon: 'bug_report',
       action: triggerProxyTestAttack,
     },
     {
       id: 'act-retrain-ml',
-      title: 'Retrain Isolation Forest Anomaly Model',
+      title: 'Retrain Isolation Forest Anomaly Baselines',
       category: 'Security Actions',
-      icon: 'model_training',
+      icon: 'psychology',
       action: retrainAnomalyModel,
     },
+
     // Compliance & Reports
     {
       id: 'comp-soc2',
@@ -235,27 +251,27 @@ export default function CommandPalette({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/75 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/80 p-4 backdrop-blur-md animate-fade-in">
       {toastMessage && (
-        <div className="fixed top-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
+        <div className="fixed top-8 z-50 rounded-lg bg-slate-900 border border-sky-500/40 px-4 py-2 font-mono text-xs text-sky-400 shadow-2xl shadow-sky-950/50 flex items-center gap-2 backdrop-blur-md">
           <span className="material-symbols-outlined text-[16px]">info</span>
           {toastMessage}
         </div>
       )}
 
-      <div className="w-full max-w-xl rounded-sm border border-[var(--border-color)] bg-[var(--bg-surface)] shadow-2xl overflow-hidden flex flex-col font-mono text-xs">
+      <div className="w-full max-w-xl rounded-2xl panel-obsidian shadow-2xl overflow-hidden flex flex-col font-mono text-xs border border-white/10">
         {/* Search Input Bar */}
-        <div className="relative border-b border-[var(--border-color)] bg-[var(--bg-base)] p-3 flex items-center gap-3">
-          <span className="material-symbols-outlined text-[var(--primary)] text-[20px]">terminal</span>
+        <div className="relative border-b border-white/5 bg-slate-950/80 p-3.5 flex items-center gap-3">
+          <span className="material-symbols-outlined text-sky-400 text-xl">terminal</span>
           <input
             autoFocus
             type="text"
-            placeholder="Type a command or search... (Esc to close)"
+            placeholder="Search commands, navigate, or run actions... (Esc to close)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none text-sm"
+            className="flex-1 bg-transparent text-white placeholder-slate-500 focus:outline-none text-xs font-mono"
           />
-          <span className="text-[10px] text-[var(--text-muted)] uppercase px-1.5 py-0.5 rounded border border-[var(--border-color)]">
+          <span className="text-[10px] text-slate-400 uppercase px-2 py-0.5 rounded bg-slate-900 border border-white/10">
             ESC
           </span>
         </div>
@@ -263,7 +279,7 @@ export default function CommandPalette({
         {/* Command List */}
         <div className="max-h-80 overflow-y-auto p-2 space-y-1">
           {filteredItems.length === 0 ? (
-            <div className="p-4 text-center text-[var(--text-muted)] text-xs">
+            <div className="p-8 text-center text-slate-500 text-xs">
               No matching commands found.
             </div>
           ) : (
@@ -274,28 +290,28 @@ export default function CommandPalette({
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center justify-between p-2.5 rounded-sm cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[var(--primary)] text-[#001f27] font-bold'
-                      : 'text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
+                      ? 'bg-sky-400 text-slate-950 font-bold shadow-md shadow-sky-500/20'
+                      : 'text-slate-300 hover:bg-slate-800/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <span
                       className="material-symbols-outlined text-[18px]"
-                      style={{ color: isSelected ? '#001f27' : 'var(--primary)' }}
+                      style={{ color: isSelected ? '#020617' : '#38bdf8' }}
                     >
                       {item.icon}
                     </span>
-                    <span>{item.title}</span>
+                    <span className="font-sans text-xs font-medium">{item.title}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[10px] uppercase px-1.5 py-0.5 rounded border ${
+                      className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded-full border ${
                         isSelected
-                          ? 'border-[#001f27] text-[#001f27]'
-                          : 'border-[var(--border-color)] text-[var(--text-muted)]'
+                          ? 'border-slate-950/40 text-slate-950 bg-sky-300/40'
+                          : 'border-white/5 text-slate-400 bg-slate-900'
                       }`}
                     >
                       {item.category}
@@ -311,13 +327,13 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="border-t border-[var(--border-color)] bg-[var(--bg-base)] p-2 px-3 flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+        <div className="border-t border-white/5 bg-slate-950/80 p-2.5 px-4 flex items-center justify-between text-[11px] text-slate-400">
           <div className="flex items-center gap-3">
             <span>↑↓ Navigate</span>
-            <span>↵ Select</span>
-            <span>ESC Close</span>
+            <span>↵ Execute</span>
+            <span>ESC Dismiss</span>
           </div>
-          <span className="text-[var(--primary)]">AgentShield Cockpit v2.0</span>
+          <span className="text-sky-400 font-semibold">AgentShield SOC</span>
         </div>
       </div>
     </div>

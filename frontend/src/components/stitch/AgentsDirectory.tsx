@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAgents, createAgent, quarantineAgent, releaseAgent, Agent } from '../../api'
+import { getAgents, createAgent, quarantineAgent, releaseAgent } from '../../api'
 import { useWebSocket } from '../../ws/WebSocketContext'
 
 export interface AgentCardData {
@@ -49,17 +49,27 @@ const mockAgents: AgentCardData[] = [
     id: 'langchain_agent',
     name: 'LangChain RAG Assistant',
     status: 'online',
-    riskScore: 15,
+    riskScore: 18,
     framework: 'LangChain',
     uptime: 'Active (Live)',
     totalActions: '128',
-    recentRiskTrend: [8, 10, 12, 9, 11, 13, 10, 9, 8],
+    recentRiskTrend: [8, 10, 12, 9, 11, 13, 10, 9, 18],
+  },
+  {
+    id: 'AGT-014',
+    name: 'System Maintenance Bot',
+    status: 'online',
+    riskScore: 22,
+    framework: 'Custom Python',
+    uptime: '18d 06h',
+    totalActions: '62,190',
+    recentRiskTrend: [12, 15, 14, 16, 18, 20, 22, 21, 22],
   },
   {
     id: 'AGT-200',
     name: 'Internal Security Scanner',
     status: 'online',
-    riskScore: 18,
+    riskScore: 15,
     framework: 'Custom Python',
     uptime: '5d 03h',
     totalActions: '50k',
@@ -71,10 +81,12 @@ export default function AgentsDirectory() {
   const [agentsList, setAgentsList] = useState<AgentCardData[]>(mockAgents)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [riskFilter, setRiskFilter] = useState(100)
   const [showProvisionModal, setShowProvisionModal] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const { messages } = useWebSocket()
+  const navigate = useNavigate()
 
   // Provision Form State
   const [newAgentId, setNewAgentId] = useState('')
@@ -110,11 +122,11 @@ export default function AgentsDirectory() {
             riskScore: risk,
             framework: a.framework || 'Custom Python',
             uptime: isSuspended ? 'HALTED / QUARANTINED' : 'Active (Live)',
-            totalActions: `${Math.round(risk * 12 + 58)}`,
+            totalActions: `${Math.round(risk * 12 + 64)}`,
             recentRiskTrend: [
-              Math.max(5, risk - 35),
-              Math.max(8, risk - 22),
-              Math.max(12, risk - 15),
+              Math.max(5, risk - 30),
+              Math.max(8, risk - 20),
+              Math.max(12, risk - 10),
               risk,
             ],
           }
@@ -122,7 +134,7 @@ export default function AgentsDirectory() {
         setAgentsList(mapped)
       }
     } catch {
-      // Keep fallback
+      // Keep default mock
     }
   }
 
@@ -141,10 +153,10 @@ export default function AgentsDirectory() {
     try {
       if (agent.status === 'suspended') {
         await releaseAgent(agent.id)
-        showToast(`Agent ${agent.id} released from quarantine. Status: Active.`)
+        showToast(`Agent ${agent.id} released from quarantine. Actions permitted.`)
       } else {
         await quarantineAgent(agent.id)
-        showToast(`Agent ${agent.id} quarantined. Actions will be denied pre-flight.`)
+        showToast(`Agent ${agent.id} quarantined. All actions will be denied pre-flight.`)
       }
       await loadAgents()
     } catch (err: any) {
@@ -182,58 +194,37 @@ export default function AgentsDirectory() {
     const aid = newAgentId.trim() || 'my_production_agent'
     if (newFramework === 'langchain') {
       return `from langchain.chat_models import ChatOpenAI
-from langchain.agents import initialize_agent, AgentType
-from agentshield.integrations.langchain import AgentShieldCallbackHandler
+from agentshield import AgentShield, AgentShieldCallbackHandler
 
-# 1. Attach AgentShield security guardrail
-shield_callback = AgentShieldCallbackHandler(
-    agent_id="${aid}",
-    api_key="ashield_test_default_demo_key_12345",
-    api_url="http://localhost:8000",
-    mode="${newMode}",  # enforce blocks violations pre-flight (p95 < 50ms)
+# 1. Initialize AgentShield Guardrail
+shield = AgentShield(
+    api_key="ashield_live_your_org_key_here",
+    base_url="http://localhost:8000/api/v1",
+    mode="${newMode}",  # enforce blocks violations pre-flight (p95 < 42ms)
+    fail_open=False,
 )
 
-llm = ChatOpenAI(temperature=0, callbacks=[shield_callback])
-agent = initialize_agent(tools=[], llm=llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, callbacks=[shield_callback])
-agent.run("Execute verified autonomous task")`
+# 2. Attach handler to LangChain
+shield_handler = AgentShieldCallbackHandler(shield=shield, agent_id="${aid}")
+llm = ChatOpenAI(temperature=0, callbacks=[shield_handler])`
     } else if (newFramework === 'crewai') {
-      return `from crewai import Agent, Task, Crew
-from agentshield.integrations.crewai import AgentShieldCrewMonitor
+      return `from crewai import Agent
+from agentshield import AgentShield
 
-# 1. Attach AgentShield CrewAI Guard
-monitor = AgentShieldCrewMonitor(
-    agent_id="${aid}",
-    api_key="ashield_test_default_demo_key_12345",
-    mode="${newMode}",
-)
+shield = AgentShield(api_key="ashield_live_key_here", mode="${newMode}")
 
-researcher = Agent(
-    role="Market Analyst",
-    goal="Gather intelligence safely",
-    backstory="Autonomous analyst subject to AgentShield policy enforcement",
-    callbacks=[monitor.get_callback()],
-)`
+@shield.monitor(agent_id="${aid}", action_type="market_research")
+def research_task(query: str):
+    # Execution is checked pre-flight against Safe AST rules
+    return execute_query(query)`
     } else {
-      return `import agentshield
+      return `from agentshield import AgentShield, ShieldSecurityException
 
-# Initialize AgentShield runtime monitor
-shield = agentshield.init(
-    agent_id="${aid}",
-    api_key="ashield_test_default_demo_key_12345",
-    endpoint="http://localhost:8000",
-    mode="${newMode}",
-)
+shield = AgentShield(api_key="ashield_live_key_here", mode="${newMode}")
 
-# Synchronous Pre-flight check (enforce mode blocks with p95 < 50ms)
-decision = shield.evaluate(
-    action_type="file_read",
-    parameters={"path": "/app/data/customer_export.csv"}
-)
-
-if decision.allowed:
-    print("Action permitted by AgentShield policy engine.")
-else:
-    print(f"Action blocked: {decision.reasons}")`
+@shield.monitor(agent_id="${aid}", action_type="database_query")
+def execute_sql(query: str):
+    return db.execute(query)`
     }
   }
 
@@ -241,7 +232,7 @@ else:
     navigator.clipboard.writeText(getCodeSnippet())
     setCopiedSnippet(true)
     setTimeout(() => setCopiedSnippet(false), 2500)
-    showToast('Code snippet copied to clipboard!')
+    showToast('Integration snippet copied!')
   }
 
   const filteredAgents = agentsList.filter((agent) => {
@@ -259,29 +250,26 @@ else:
   })
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6">
+    <div className="flex-1 overflow-y-auto flex flex-col gap-5 max-w-[1720px] mx-auto w-full pb-10">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
+        <div className="fixed top-20 right-8 z-50 rounded bg-[var(--bg-surface-elevated)] border border-[var(--primary)] px-4 py-2 text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2 font-mono">
           <span className="material-symbols-outlined text-[16px]">check_circle</span>
           {toastMessage}
         </div>
       )}
 
-      {/* Filters & Actions Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-surface)] p-4 border border-[var(--border-color)] rounded-sm shrink-0">
-        <div className="flex flex-1 flex-wrap items-center gap-4">
-          {/* Search Input */}
+      {/* Header & Controls Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 panel-obsidian p-4 shrink-0">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          {/* Search Box */}
           <div className="relative w-full max-w-xs">
-            <span
-              className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              style={{ fontSize: 18 }}
-            >
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[18px]">
               search
             </span>
             <input
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm py-1.5 pl-10 pr-3 text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] font-mono transition-colors"
-              placeholder="Search agent or framework..."
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded py-1.5 pl-9 pr-3 text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] font-mono transition-colors"
+              placeholder="Search agent ID, name, framework..."
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -289,20 +277,20 @@ else:
           </div>
 
           {/* Quick Filter Tabs */}
-          <div className="flex items-center gap-1 bg-[var(--bg-base)] p-1 rounded-sm border border-[var(--border-color)]">
+          <div className="flex items-center gap-1 bg-[var(--bg-canvas)] p-1 rounded border border-[var(--border-color)]">
             {[
-              { id: 'all', label: 'All' },
-              { id: 'online', label: 'Active' },
+              { id: 'all', label: 'All Fleets' },
+              { id: 'online', label: 'Active Nominal' },
               { id: 'suspended', label: 'Quarantined' },
               { id: 'warning', label: 'High Risk' },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3 py-1 font-mono text-xs uppercase rounded-sm transition-colors cursor-pointer ${
+                className={`px-3 py-1 text-xs uppercase font-bold rounded transition-colors cursor-pointer ${
                   statusFilter === tab.id
-                    ? 'bg-[var(--primary)] text-[#001f27] font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'bg-[var(--primary)] text-[#090d16] shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -310,27 +298,49 @@ else:
             ))}
           </div>
 
-          {/* Risk Slider */}
-          <div className="flex items-center gap-3 px-2">
-            <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold font-mono">
+          {/* Risk Range Slider */}
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
               Risk:
             </span>
             <input
-              className="w-24 appearance-none bg-transparent accent-[var(--primary)] cursor-pointer"
+              className="w-20 appearance-none bg-transparent accent-[var(--primary)] cursor-pointer"
               max="100"
               min="0"
               type="range"
               value={riskFilter}
               onChange={(e) => setRiskFilter(Number(e.target.value))}
             />
-            <span className="text-xs font-mono text-[var(--text-main)]">≤ {riskFilter}</span>
+            <span className="text-xs font-mono font-bold text-[var(--primary)]">&le; {riskFilter}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* View Switcher & Action */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center bg-[var(--bg-canvas)] p-1 rounded border border-[var(--border-color)]">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded transition-colors cursor-pointer ${
+                viewMode === 'grid' ? 'bg-[var(--bg-surface-elevated)] text-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-white'
+              }`}
+              title="Grid View"
+            >
+              <span className="material-symbols-outlined text-[18px]">grid_view</span>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded transition-colors cursor-pointer ${
+                viewMode === 'table' ? 'bg-[var(--bg-surface-elevated)] text-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-white'
+              }`}
+              title="Table View"
+            >
+              <span className="material-symbols-outlined text-[18px]">table_rows</span>
+            </button>
+          </div>
+
           <button
             onClick={() => setShowProvisionModal(true)}
-            className="bg-[var(--primary)] hover:bg-[#00b0d4] text-[var(--bg-base)] px-4 py-1.5 text-xs font-mono uppercase font-bold rounded-sm transition-colors flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,212,255,0.25)] cursor-pointer"
+            className="bg-[var(--primary)] hover:bg-sky-400 text-[#090d16] px-3.5 py-1.5 text-xs uppercase font-bold rounded transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
             Provision Agent
@@ -338,29 +348,203 @@ else:
         </div>
       </div>
 
-      {/* Agents Grid (Responsive for Mobile, Laptop & Desktop) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-        {filteredAgents.map((agent) => (
-          <AgentCard
-            key={agent.id}
-            agent={agent}
-            onToggleQuarantine={(e) => handleToggleQuarantine(agent, e)}
-          />
-        ))}
-      </div>
+      {/* View Mode: Grid */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredAgents.map((agent) => (
+            <div
+              key={agent.id}
+              onClick={() => navigate(`/agent/${agent.id}`)}
+              className={`panel-obsidian panel-obsidian-interactive p-4 flex flex-col justify-between border-l-4 ${
+                agent.status === 'suspended'
+                  ? 'border-l-rose-500'
+                  : agent.status === 'warning'
+                  ? 'border-l-amber-500'
+                  : 'border-l-emerald-500'
+              } group cursor-pointer`}
+            >
+              <div>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="size-9 rounded bg-[var(--bg-canvas)] border border-[var(--border-color)] flex items-center justify-center shrink-0 text-[var(--primary)]">
+                      <span className="material-symbols-outlined text-lg">smart_toy</span>
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-sm text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors truncate">
+                        {agent.id}
+                      </h3>
+                      <p className="text-[11px] text-[var(--text-muted)] truncate">{agent.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] block">Risk</span>
+                    <span
+                      className={`font-mono text-base font-extrabold ${
+                        agent.riskScore >= 70
+                          ? 'text-rose-400'
+                          : agent.riskScore >= 40
+                          ? 'text-amber-400'
+                          : 'text-emerald-400'
+                      }`}
+                    >
+                      {agent.riskScore}
+                      <span className="text-[10px] text-[var(--text-muted)] font-normal">/100</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Framework & Status Chips */}
+                <div className="flex items-center justify-between text-xs mt-3 gap-2">
+                  <span className="px-2 py-0.5 rounded bg-[var(--bg-canvas)] border border-[var(--border-color)] text-sky-300 font-mono text-[10px]">
+                    {agent.framework}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                      agent.status === 'suspended'
+                        ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                        : agent.status === 'warning'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    }`}
+                  >
+                    {agent.status === 'suspended' ? 'Quarantined' : agent.status === 'warning' ? 'Elevated' : 'Active'}
+                  </span>
+                </div>
+
+                {/* Details Row */}
+                <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-[var(--border-subtle)] text-[11px] font-mono">
+                  <div>
+                    <span className="text-[9px] uppercase text-[var(--text-muted)] block">Uptime State</span>
+                    <span className="text-[var(--text-main)] font-semibold truncate block">{agent.uptime}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] uppercase text-[var(--text-muted)] block">Actions Audited</span>
+                    <span className="text-[var(--text-main)] font-semibold truncate block">{agent.totalActions}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sparkline & Action Button */}
+              <div className="mt-3 pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] mr-1">Trend:</span>
+                  <div className="flex items-end gap-1 h-3.5">
+                    {agent.recentRiskTrend.map((v, i) => (
+                      <div
+                        key={i}
+                        className="w-1.5 rounded-xs"
+                        style={{
+                          height: `${Math.max(25, Math.min(100, v))}%`,
+                          backgroundColor: v >= 70 ? '#f43f5e' : v >= 40 ? '#f59e0b' : '#10b981',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={(e) => handleToggleQuarantine(agent, e)}
+                  className={`px-2.5 py-1 text-[10px] font-mono uppercase font-bold rounded transition-colors cursor-pointer border ${
+                    agent.status === 'suspended'
+                      ? 'border-emerald-500 text-emerald-400 hover:bg-emerald-500/20'
+                      : 'border-rose-500 text-rose-400 hover:bg-rose-500/20'
+                  }`}
+                >
+                  {agent.status === 'suspended' ? 'Release' : 'Quarantine'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* View Mode: Table */
+        <div className="panel-obsidian overflow-hidden">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--border-color)] bg-[var(--bg-canvas)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                <th className="p-3">AGENT NODE</th>
+                <th className="p-3">FRAMEWORK</th>
+                <th className="p-3">RISK SCORE</th>
+                <th className="p-3">STATUS STATE</th>
+                <th className="p-3">TELEMETRY ACTIONS</th>
+                <th className="p-3 text-right">CONTROLS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-subtle)] font-mono">
+              {filteredAgents.map((agent) => (
+                <tr
+                  key={agent.id}
+                  onClick={() => navigate(`/agent/${agent.id}`)}
+                  className="hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+                >
+                  <td className="p-3 font-bold text-sky-400">
+                    <div>{agent.id}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] font-normal">{agent.name}</div>
+                  </td>
+                  <td className="p-3">
+                    <span className="px-2 py-0.5 rounded bg-[var(--bg-canvas)] border border-[var(--border-color)] text-sky-300 text-[11px]">
+                      {agent.framework}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`font-bold ${
+                        agent.riskScore >= 70
+                          ? 'text-rose-400'
+                          : agent.riskScore >= 40
+                          ? 'text-amber-400'
+                          : 'text-emerald-400'
+                      }`}
+                    >
+                      {agent.riskScore}/100
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        agent.status === 'suspended'
+                          ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                          : agent.status === 'warning'
+                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      }`}
+                    >
+                      {agent.status === 'suspended' ? 'Quarantined' : agent.status === 'warning' ? 'Elevated' : 'Active'}
+                    </span>
+                  </td>
+                  <td className="p-3 text-[var(--text-main)] font-semibold">{agent.totalActions}</td>
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={(e) => handleToggleQuarantine(agent, e)}
+                      className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded border transition-colors cursor-pointer ${
+                        agent.status === 'suspended'
+                          ? 'border-emerald-500 text-emerald-400 hover:bg-emerald-500/20'
+                          : 'border-rose-500 text-rose-400 hover:bg-rose-500/20'
+                      }`}
+                    >
+                      {agent.status === 'suspended' ? 'Release' : 'Quarantine'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Provision Agent Modal */}
       {showProvisionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-sm border border-[var(--border-color)] bg-[var(--bg-surface)] p-6 shadow-2xl">
-            <div className="flex items-start justify-between border-b border-[var(--border-color)] pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded panel-elevated p-6 shadow-2xl font-mono">
+            <div className="flex items-start justify-between border-b border-[var(--border-color)] pb-3">
               <div>
-                <h3 className="text-lg font-bold font-mono text-[var(--text-main)] flex items-center gap-2">
+                <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
                   <span className="material-symbols-outlined text-[var(--primary)]">smart_toy</span>
-                  Provision & Integrate External AI Agent
+                  Provision &amp; Integrate External AI Agent
                 </h3>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">
-                  Register your autonomous agent with the policy enforcement engine and copy integration snippet.
+                <p className="mt-1 text-xs text-[var(--text-muted)] font-sans">
+                  Register your autonomous agent with the policy enforcement engine and copy the integration snippet.
                 </p>
               </div>
               <button
@@ -371,80 +555,80 @@ else:
               </button>
             </div>
 
-            <form onSubmit={handleCreateAgentSubmit} className="mt-4 space-y-4">
+            <form onSubmit={handleCreateAgentSubmit} className="mt-4 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1">
-                    Agent ID *
+                  <label className="block text-[11px] uppercase text-[var(--text-muted)] mb-1">
+                    Agent Identifier *
                   </label>
                   <input
                     required
-                    placeholder="e.g. crewai_customer_ops"
+                    placeholder="e.g. AGT-CUSTOMER-CREW"
                     value={newAgentId}
                     onChange={(e) => setNewAgentId(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs font-mono text-[var(--text-main)] focus:border-[var(--primary)] outline-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded px-3 py-2 text-[var(--text-main)] focus:border-[var(--primary)] outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1">
+                  <label className="block text-[11px] uppercase text-[var(--text-muted)] mb-1">
                     Display Name
                   </label>
                   <input
-                    placeholder="e.g. Customer Operations Agent"
+                    placeholder="e.g. Customer Support Crew"
                     value={newAgentName}
                     onChange={(e) => setNewAgentName(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs text-[var(--text-main)] focus:border-[var(--primary)] outline-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded px-3 py-2 text-[var(--text-main)] focus:border-[var(--primary)] outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1">
-                    Framework
+                  <label className="block text-[11px] uppercase text-[var(--text-muted)] mb-1">
+                    Agent Framework
                   </label>
                   <select
                     value={newFramework}
                     onChange={(e) => setNewFramework(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs font-mono text-[var(--text-main)] focus:border-[var(--primary)] outline-none cursor-pointer"
+                    className="w-full bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded px-3 py-2 text-[var(--text-main)] focus:border-[var(--primary)] outline-none cursor-pointer"
                   >
                     <option value="langchain">LangChain (Python)</option>
                     <option value="crewai">CrewAI</option>
                     <option value="openai">OpenAI Agents SDK</option>
-                    <option value="custom">Custom Python SDK</option>
+                    <option value="custom">Custom Python Client</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1">
-                    Runtime Mode
+                  <label className="block text-[11px] uppercase text-[var(--text-muted)] mb-1">
+                    Enforcement Mode
                   </label>
                   <select
                     value={newMode}
                     onChange={(e) => setNewMode(e.target.value as any)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs font-mono text-[var(--text-main)] focus:border-[var(--primary)] outline-none cursor-pointer"
+                    className="w-full bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded px-3 py-2 text-[var(--text-main)] focus:border-[var(--primary)] outline-none cursor-pointer"
                   >
-                    <option value="enforce">Enforce (Pre-flight synchronous block)</option>
+                    <option value="enforce">Enforce (Pre-flight synchronous blocking)</option>
                     <option value="observe">Observe (Background telemetry audit)</option>
                   </select>
                 </div>
               </div>
 
-              {/* Integration Snippet Box */}
+              {/* Code Snippet Box */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--primary)]">
-                    Integration Code Snippet:
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--primary)] font-bold">
+                    Python SDK Integration Snippet:
                   </span>
                   <button
                     type="button"
                     onClick={copyToClipboard}
-                    className="text-[11px] font-mono text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer font-bold"
                   >
                     <span className="material-symbols-outlined text-[14px]">content_copy</span>
                     {copiedSnippet ? 'COPIED!' : 'COPY CODE'}
                   </button>
                 </div>
-                <pre className="p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm font-mono text-[11px] text-[#A8E8FF] overflow-x-auto max-h-40 leading-relaxed">
+                <pre className="p-3 bg-[var(--bg-canvas)] border border-[var(--border-color)] rounded text-sky-300 overflow-x-auto max-h-40 leading-relaxed text-[11px]">
                   {getCodeSnippet()}
                 </pre>
               </div>
@@ -453,186 +637,22 @@ else:
                 <button
                   type="button"
                   onClick={() => setShowProvisionModal(false)}
-                  className="px-4 py-1.5 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-mono text-xs rounded-sm cursor-pointer"
+                  className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-white text-xs rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-1.5 bg-[var(--primary)] text-[#001f27] font-mono text-xs font-bold uppercase rounded-sm hover:bg-[#00b0d4] transition-colors shadow-[0_0_8px_rgba(0,212,255,0.3)] disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 bg-[var(--primary)] text-[#090d16] text-xs font-bold uppercase rounded hover:bg-sky-400 transition-colors cursor-pointer"
                 >
-                  {isSubmitting ? 'Registering...' : 'Register & Provision Agent'}
+                  {isSubmitting ? 'Registering...' : 'Provision Agent Node'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function AgentCard({
-  agent,
-  onToggleQuarantine,
-}: {
-  agent: AgentCardData
-  onToggleQuarantine: (e: React.MouseEvent) => void
-}) {
-  const navigate = useNavigate()
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'online':
-        return 'border-l-[var(--status-success)]'
-      case 'suspended':
-        return 'border-l-[var(--status-danger)]'
-      case 'warning':
-        return 'border-l-[var(--status-warning)]'
-      default:
-        return 'border-l-[var(--border-color)]'
-    }
-  }
-
-  return (
-    <div
-      onClick={() => navigate(`/agent/${agent.id}`)}
-      className={`group relative bg-[var(--bg-surface)] border border-[var(--border-color)] border-l-4 ${getStatusClass(
-        agent.status
-      )} rounded-sm p-4 flex flex-col gap-3 transition-all duration-200 cursor-pointer hover:border-[var(--primary)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)]`}
-    >
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="relative flex items-center justify-center size-9 shrink-0 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm">
-            <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: 20,
-                color:
-                  agent.status === 'suspended'
-                    ? 'var(--status-danger)'
-                    : agent.status === 'warning'
-                    ? 'var(--status-warning)'
-                    : 'var(--primary)',
-              }}
-            >
-              smart_toy
-            </span>
-            <div
-              className={`absolute -top-1 -right-1 size-2 rounded-full ${
-                agent.status === 'suspended'
-                  ? 'bg-[var(--status-danger)] shadow-[0_0_6px_#f85149] animate-pulse'
-                  : agent.status === 'warning'
-                  ? 'bg-[var(--status-warning)]'
-                  : 'bg-[var(--status-success)] shadow-[0_0_6px_#238636]'
-              }`}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3
-              className="text-[var(--text-main)] font-mono font-semibold text-sm leading-tight group-hover:text-[var(--primary)] transition-colors truncate"
-              title={agent.id}
-            >
-              {agent.id}
-            </h3>
-            <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate" title={agent.name}>
-              {agent.name}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end shrink-0 pl-1 text-right">
-          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold font-mono whitespace-nowrap">
-            Risk Score
-          </span>
-          <span
-            className={`font-mono font-bold text-base whitespace-nowrap ${
-              agent.riskScore >= 70
-                ? 'text-[var(--status-danger)]'
-                : agent.riskScore >= 40
-                ? 'text-[var(--status-warning)]'
-                : 'text-[var(--status-success)]'
-            }`}
-          >
-            {agent.riskScore}
-            <span className="text-[10px] text-[var(--text-muted)] font-normal">/100</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Framework & Status Badges */}
-      <div className="flex items-center justify-between text-[11px] font-mono gap-2">
-        <span className="px-2 py-0.5 rounded-sm bg-[var(--bg-base)] text-[var(--primary)] border border-[rgba(0,212,255,0.2)] truncate max-w-[140px]" title={agent.framework}>
-          {agent.framework}
-        </span>
-        <span
-          className={`px-2 py-0.5 rounded-sm uppercase font-semibold text-[10px] shrink-0 whitespace-nowrap ${
-            agent.status === 'suspended'
-              ? 'bg-[rgba(248,81,73,0.15)] text-[var(--status-danger)] border border-[rgba(248,81,73,0.3)]'
-              : agent.status === 'warning'
-              ? 'bg-[rgba(210,153,34,0.15)] text-[var(--status-warning)] border border-[rgba(210,153,34,0.3)]'
-              : 'bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[rgba(35,134,54,0.3)]'
-          }`}
-        >
-          {agent.status === 'suspended' ? 'Quarantined' : agent.status === 'warning' ? 'Elevated' : 'Active'}
-        </span>
-      </div>
-
-      {/* Uptime & Actions */}
-      <div className="grid grid-cols-2 gap-3 py-2 border-y border-[var(--border-color)] text-xs font-mono">
-        <div className="min-w-0">
-          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block truncate">
-            Status State
-          </span>
-          <span className="text-[var(--text-main)] text-[11px] truncate block font-medium" title={agent.uptime}>
-            {agent.uptime}
-          </span>
-        </div>
-        <div className="min-w-0 text-right">
-          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block truncate">
-            Telemetry Actions
-          </span>
-          <span className="text-[var(--text-main)] text-[11px] truncate block font-medium">
-            {agent.totalActions}
-          </span>
-        </div>
-      </div>
-
-      {/* Footer Sparkline & Quick Action Button */}
-      <div className="flex items-center justify-between pt-1 gap-2">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-mono text-[var(--text-muted)] whitespace-nowrap">Risk:</span>
-          <div className="flex items-end gap-1 h-3.5">
-            {agent.recentRiskTrend.map((val, idx) => (
-              <div
-                key={idx}
-                className="w-1.5 rounded-xs transition-all"
-                style={{
-                  height: `${Math.max(20, Math.min(100, val))}%`,
-                  backgroundColor:
-                    val >= 70
-                      ? 'var(--status-danger)'
-                      : val >= 40
-                      ? 'var(--status-warning)'
-                      : 'var(--primary)',
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={onToggleQuarantine}
-          className={`px-2.5 py-1 text-[10px] font-mono uppercase font-bold rounded-sm transition-colors border cursor-pointer whitespace-nowrap shrink-0 ${
-            agent.status === 'suspended'
-              ? 'border-[var(--status-success)] text-[var(--status-success)] hover:bg-[rgba(35,134,54,0.15)]'
-              : 'border-[var(--status-danger)] text-[var(--status-danger)] hover:bg-[rgba(248,81,73,0.15)]'
-          }`}
-        >
-          {agent.status === 'suspended' ? 'Release' : 'Quarantine'}
-        </button>
-      </div>
     </div>
   )
 }

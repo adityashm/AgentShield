@@ -14,6 +14,7 @@ ACTION_TYPE_MAP = {
     "database_query": 6,
     "prompt_execution": 7,
     "api_call": 8,
+    "chat_completion": 8,
     "api_burst_flood": 9,
     "unauthorized_access": 10,
     "privilege_escalation": 11,

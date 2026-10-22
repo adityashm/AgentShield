@@ -95,7 +95,6 @@ export default function SettingsDirectory() {
       const data = await getUsers()
       setUsers(data)
     } catch {
-      // Fallback local mock users
       setUsers([
         {
           id: 'usr_admin_01',
@@ -142,7 +141,6 @@ export default function SettingsDirectory() {
       setInviteName('')
       fetchUsers()
     } catch {
-      // Offline fallback
       setUsers((prev) => [
         ...prev,
         {
@@ -166,14 +164,12 @@ export default function SettingsDirectory() {
     setTimeout(() => setToastMessage(null), 3500)
   }
 
-  // Load API keys
   const fetchKeys = async () => {
     setIsLoadingKeys(true)
     try {
       const data = await getApiKeys()
       setApiKeys(data)
     } catch {
-      // Fallback local key for offline mode
       setApiKeys([
         {
           key_id: 'key_default_demo',
@@ -189,7 +185,6 @@ export default function SettingsDirectory() {
     }
   }
 
-  // Load Webhooks
   const fetchWebhooks = async () => {
     setIsLoadingWebhooks(true)
     try {
@@ -203,49 +198,45 @@ export default function SettingsDirectory() {
   }
 
   useEffect(() => {
-    if (activeTab === 'api-keys') {
-      fetchKeys()
-    } else if (activeTab === 'webhooks') {
-      fetchWebhooks()
-    } else if (activeTab === 'team') {
-      fetchUsers()
+    const saved = localStorage.getItem('agentshield_settings')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.latency !== undefined) setLatency(parsed.latency)
+        if (parsed.jitter !== undefined) setJitter(parsed.jitter)
+        if (parsed.packetLoss !== undefined) setPacketLoss(parsed.packetLoss)
+        if (parsed.apiThrottling !== undefined) setApiThrottling(parsed.apiThrottling)
+        if (parsed.autoKill !== undefined) setAutoKill(parsed.autoKill)
+        if (parsed.interceptOutbound !== undefined) setInterceptOutbound(parsed.interceptOutbound)
+        if (parsed.readOnlyFs !== undefined) setReadOnlyFs(parsed.readOnlyFs)
+        if (parsed.riskThreshold !== undefined) setRiskThreshold(parsed.riskThreshold)
+        if (parsed.logRetention !== undefined) setLogRetention(parsed.logRetention)
+        if (parsed.alertHistory !== undefined) setAlertHistory(parsed.alertHistory)
+      } catch {}
     }
-  }, [activeTab])
+    fetchKeys()
+    fetchWebhooks()
+    fetchUsers()
+  }, [])
 
-  // Handle Create API Key
   const handleGenerateKey = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newKeyName.trim()) return
     try {
+      const scopes = newKeyScopes.split(',').map((s) => s.trim())
       const res = await createApiKey({
         name: newKeyName.trim(),
+        scopes,
         is_test: newKeyEnv === 'test',
-        scopes: newKeyScopes,
       })
-      setCreatedKeySecret(res.api_key)
-      setNewKeyName('')
+      setCreatedKeySecret(res.key)
       fetchKeys()
-      showToast('API Key generated successfully.')
+      showToast('API key successfully generated.')
     } catch (err: any) {
-      showToast(`Error generating key: ${err?.message || 'Server error'}`)
+      showToast(`Key generation failed: ${err.message || 'Error'}`)
     }
   }
 
-  // Handle Revoke Key
-  const handleRevokeKey = async (keyId: string) => {
-    if (!confirm('Are you sure you want to permanently revoke this API key? Connected agents using this key will be blocked immediately.')) {
-      return
-    }
-    try {
-      await revokeApiKey(keyId)
-      fetchKeys()
-      showToast('API Key revoked.')
-    } catch (err: any) {
-      showToast(`Failed to revoke key: ${err?.message || 'Server error'}`)
-    }
-  }
-
-  // Copy Key to Clipboard
   const handleCopyKey = () => {
     if (createdKeySecret) {
       navigator.clipboard.writeText(createdKeySecret)
@@ -254,7 +245,19 @@ export default function SettingsDirectory() {
     }
   }
 
-  // Handle Create Webhook
+  const handleRevokeKey = async (keyId: string) => {
+    if (!confirm('Are you certain you want to revoke this API key? Connected agents will immediately fail authentication.')) {
+      return
+    }
+    try {
+      await revokeApiKey(keyId)
+      showToast('API key revoked.')
+      fetchKeys()
+    } catch (err: any) {
+      showToast(`Revocation failed: ${err.message || 'Error'}`)
+    }
+  }
+
   const handleCreateWebhook = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!whName.trim() || !whUrl.trim()) return
@@ -271,62 +274,55 @@ export default function SettingsDirectory() {
       setWhName('')
       setWhUrl('')
       setWhSecret('')
+      showToast('Webhook registered successfully.')
       fetchWebhooks()
-      showToast('Webhook endpoint registered.')
     } catch (err: any) {
-      showToast(`Failed to create webhook: ${err?.message || 'Server error'}`)
+      showToast(`Webhook registration failed: ${err.message || 'Error'}`)
     }
   }
 
-  // Handle Toggle Webhook Enabled
-  const handleToggleWebhook = async (ep: WebhookItem) => {
+  const handleToggleWebhook = async (item: WebhookItem) => {
     try {
-      await updateWebhook(ep.endpoint_id, { enabled: !ep.enabled })
+      await updateWebhook(item.endpoint_id, { enabled: !item.enabled })
+      showToast(`Webhook ${!item.enabled ? 'enabled' : 'paused'}.`)
       fetchWebhooks()
-      showToast(`Webhook ${!ep.enabled ? 'enabled' : 'paused'}.`)
     } catch (err: any) {
-      showToast(`Update failed: ${err?.message || 'Server error'}`)
+      showToast(`Failed: ${err.message || 'Error'}`)
     }
   }
 
-  // Handle Delete Webhook
-  const handleDeleteWebhook = async (epId: string) => {
-    if (!confirm('Are you sure you want to delete this webhook endpoint?')) return
+  const handleDeleteWebhook = async (endpointId: string) => {
+    if (!confirm('Delete this incident webhook endpoint?')) return
     try {
-      await deleteWebhook(epId)
+      await deleteWebhook(endpointId)
+      showToast('Webhook endpoint deleted.')
       fetchWebhooks()
-      showToast('Webhook deleted.')
     } catch (err: any) {
-      showToast(`Delete failed: ${err?.message || 'Server error'}`)
+      showToast(`Failed: ${err.message || 'Error'}`)
     }
   }
 
-  // Handle Test Webhook
-  const handleTestWebhook = async (epId: string) => {
-    setIsTesting(epId)
+  const handleTestWebhook = async (endpointId: string) => {
+    setIsTesting(endpointId)
     setTestResult(null)
     try {
-      const res = await testWebhook(epId)
+      const res = await testWebhook(endpointId)
       setTestResult({
-        id: epId,
+        id: endpointId,
         success: res.success,
-        msg: res.message || (res.success ? 'HTTP 200 OK' : 'Failed'),
+        msg: res.message || (res.success ? 'Delivered successfully (200 OK)' : 'Delivery failed'),
       })
-      showToast(res.success ? 'Webhook test succeeded!' : 'Webhook test ping failed.')
-      fetchWebhooks()
     } catch (err: any) {
       setTestResult({
-        id: epId,
+        id: endpointId,
         success: false,
-        msg: `Error: ${err?.message || 'Network failure'}`,
+        msg: err.message || 'Dispatch timeout',
       })
-      showToast('Webhook test failed.')
     } finally {
       setIsTesting(null)
     }
   }
 
-  // Security Defaults & ML
   const handleResetDefaults = () => {
     setLatency(120)
     setJitter(15)
@@ -338,7 +334,7 @@ export default function SettingsDirectory() {
     setRiskThreshold(70)
     setLogRetention(90)
     setAlertHistory(50000)
-    showToast('Settings reset to system default values.')
+    showToast('Reset configuration to default parameters.')
   }
 
   const handleSaveConfig = () => {
@@ -376,33 +372,40 @@ export default function SettingsDirectory() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6 font-mono pb-24">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6 pb-28">
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">tune</span>
+        <div className="fixed top-20 right-8 z-50 rounded-lg bg-slate-900 border border-sky-500/40 px-4 py-2.5 font-mono text-xs text-sky-400 shadow-2xl shadow-sky-950/50 flex items-center gap-2 backdrop-blur-md animate-fade-in">
+          <span className="material-symbols-outlined text-[16px] text-sky-400">tune</span>
           {toastMessage}
         </div>
       )}
 
       {/* Header & Section Navigation Tabs */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-color)] pb-4">
+      <div className="panel-obsidian p-5 rounded-xl flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-[var(--text-main)] text-[22px] font-bold tracking-tight">
-            System Settings &amp; Security Controls
-          </h1>
-          <p className="text-[var(--text-muted)] text-xs mt-1">
-            Configure multi-tenant API keys, incident webhooks, simulation variables, and guardrail policies.
-          </p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400">
+              <span className="material-symbols-outlined text-xl">settings</span>
+            </div>
+            <div>
+              <h1 className="text-white text-lg font-semibold tracking-tight">
+                System Administration &amp; Security Controls
+              </h1>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Configure multi-tenant API keys, incident response webhooks, simulation variables, and guardrail policies.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Tab Controls (Responsive Horizontal Scroll) */}
-        <div className="flex overflow-x-auto max-w-full bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-1 text-xs whitespace-nowrap">
+        {/* Tab Controls */}
+        <div className="flex overflow-x-auto max-w-full bg-slate-950/60 border border-white/5 rounded-lg p-1 text-xs whitespace-nowrap">
           <button
             onClick={() => setActiveTab('security')}
-            className={`px-3 py-1.5 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-md flex items-center gap-1.5 font-mono transition-all cursor-pointer ${
               activeTab === 'security'
-                ? 'bg-[var(--primary)] text-[#001f27] font-bold shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                ? 'bg-sky-400 text-slate-950 font-bold shadow-sm shadow-sky-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">tune</span>
@@ -410,10 +413,10 @@ export default function SettingsDirectory() {
           </button>
           <button
             onClick={() => setActiveTab('api-keys')}
-            className={`px-3 py-1.5 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-md flex items-center gap-1.5 font-mono transition-all cursor-pointer ${
               activeTab === 'api-keys'
-                ? 'bg-[var(--primary)] text-[#001f27] font-bold shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                ? 'bg-sky-400 text-slate-950 font-bold shadow-sm shadow-sky-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">key</span>
@@ -421,10 +424,10 @@ export default function SettingsDirectory() {
           </button>
           <button
             onClick={() => setActiveTab('webhooks')}
-            className={`px-3 py-1.5 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-md flex items-center gap-1.5 font-mono transition-all cursor-pointer ${
               activeTab === 'webhooks'
-                ? 'bg-[var(--primary)] text-[#001f27] font-bold shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                ? 'bg-sky-400 text-slate-950 font-bold shadow-sm shadow-sky-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">webhook</span>
@@ -432,10 +435,10 @@ export default function SettingsDirectory() {
           </button>
           <button
             onClick={() => setActiveTab('team')}
-            className={`px-3 py-1.5 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-md flex items-center gap-1.5 font-mono transition-all cursor-pointer ${
               activeTab === 'team'
-                ? 'bg-[var(--primary)] text-[#001f27] font-bold shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                ? 'bg-sky-400 text-slate-950 font-bold shadow-sm shadow-sky-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">badge</span>
@@ -450,20 +453,19 @@ export default function SettingsDirectory() {
           {/* Left Column (7 cols) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Environment Parameters */}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--primary)]" />
+            <div className="panel-obsidian p-5 rounded-xl relative overflow-hidden">
               <div className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-[var(--primary)] text-[20px]">tune</span>
-                <h2 className="text-[var(--text-main)] text-sm font-bold uppercase tracking-wider">
+                <span className="material-symbols-outlined text-sky-400 text-[20px]">tune</span>
+                <h2 className="text-white text-sm font-semibold uppercase tracking-wider font-mono">
                   Environment &amp; Simulation Parameters
                 </h2>
               </div>
 
-              <div className="space-y-4 text-xs">
+              <div className="space-y-4 text-xs font-mono">
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[var(--text-muted)]">Latency Simulation</span>
-                    <span className="text-[var(--primary)] font-bold">{latency} ms</span>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-slate-400 font-sans">Telemetry Latency Simulation</span>
+                    <span className="text-sky-400 font-bold">{latency} ms</span>
                   </div>
                   <input
                     type="range"
@@ -471,14 +473,14 @@ export default function SettingsDirectory() {
                     max="500"
                     value={latency}
                     onChange={(e) => setLatency(parseInt(e.target.value))}
-                    className="w-full accent-[var(--primary)] cursor-pointer"
+                    className="w-full accent-sky-400 cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[var(--text-muted)]">Network Jitter Deviation</span>
-                    <span className="text-[var(--primary)] font-bold">{jitter} %</span>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-slate-400 font-sans">Network Jitter Deviation</span>
+                    <span className="text-sky-400 font-bold">{jitter} %</span>
                   </div>
                   <input
                     type="range"
@@ -486,14 +488,14 @@ export default function SettingsDirectory() {
                     max="100"
                     value={jitter}
                     onChange={(e) => setJitter(parseInt(e.target.value))}
-                    className="w-full accent-[var(--primary)] cursor-pointer"
+                    className="w-full accent-sky-400 cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[var(--text-muted)]">Packet Loss Emulation</span>
-                    <span className="text-[var(--primary)] font-bold">{packetLoss} %</span>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-slate-400 font-sans">Packet Loss Emulation</span>
+                    <span className="text-sky-400 font-bold">{packetLoss} %</span>
                   </div>
                   <input
                     type="range"
@@ -502,14 +504,14 @@ export default function SettingsDirectory() {
                     step="0.5"
                     value={packetLoss}
                     onChange={(e) => setPacketLoss(parseFloat(e.target.value))}
-                    className="w-full accent-[var(--primary)] cursor-pointer"
+                    className="w-full accent-sky-400 cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[var(--text-muted)]">API Rate Throttle Limit</span>
-                    <span className="text-[var(--primary)] font-bold">{apiThrottling} req/min</span>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-slate-400 font-sans">API Rate Throttle Limit</span>
+                    <span className="text-sky-400 font-bold">{apiThrottling} req/min</span>
                   </div>
                   <input
                     type="range"
@@ -518,27 +520,26 @@ export default function SettingsDirectory() {
                     step="50"
                     value={apiThrottling}
                     onChange={(e) => setApiThrottling(parseInt(e.target.value))}
-                    className="w-full accent-[var(--primary)] cursor-pointer"
+                    className="w-full accent-sky-400 cursor-pointer"
                   />
                 </div>
               </div>
             </div>
 
             {/* Global Threat Guardrails */}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--status-danger)]" />
+            <div className="panel-obsidian p-5 rounded-xl relative overflow-hidden">
               <div className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-[var(--status-danger)] text-[20px]">security</span>
-                <h2 className="text-[var(--text-main)] text-sm font-bold uppercase tracking-wider">
+                <span className="material-symbols-outlined text-rose-400 text-[20px]">security</span>
+                <h2 className="text-white text-sm font-semibold uppercase tracking-wider font-mono">
                   Automated Security Guardrails
                 </h2>
               </div>
 
-              <div className="space-y-3">
-                <label className="flex items-center justify-between p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm hover:border-[var(--primary)] cursor-pointer transition-colors">
+              <div className="space-y-3 font-sans">
+                <label className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-white/5 rounded-lg hover:border-white/10 cursor-pointer transition-colors">
                   <div>
-                    <div className="text-xs font-bold text-[var(--text-main)]">Auto-Quarantine Rogue Processes</div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
+                    <div className="text-xs font-semibold text-white">Auto-Quarantine Rogue Processes</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
                       Instantly terminate and isolate agents exhibiting anomaly scores &gt; 0.85
                     </div>
                   </div>
@@ -546,14 +547,14 @@ export default function SettingsDirectory() {
                     type="checkbox"
                     checked={autoKill}
                     onChange={(e) => setAutoKill(e.target.checked)}
-                    className="h-4 w-4 rounded-sm border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                    className="h-4 w-4 rounded border-white/20 bg-slate-900 text-sky-500 focus:ring-sky-500 cursor-pointer"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm hover:border-[var(--primary)] cursor-pointer transition-colors">
+                <label className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-white/5 rounded-lg hover:border-white/10 cursor-pointer transition-colors">
                   <div>
-                    <div className="text-xs font-bold text-[var(--text-main)]">Intercept Outbound External Requests</div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
+                    <div className="text-xs font-semibold text-white">Intercept Outbound External Requests</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
                       Block unverified egress endpoints and prompt injection attempts
                     </div>
                   </div>
@@ -561,14 +562,14 @@ export default function SettingsDirectory() {
                     type="checkbox"
                     checked={interceptOutbound}
                     onChange={(e) => setInterceptOutbound(e.target.checked)}
-                    className="h-4 w-4 rounded-sm border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                    className="h-4 w-4 rounded border-white/20 bg-slate-900 text-sky-500 focus:ring-sky-500 cursor-pointer"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm hover:border-[var(--primary)] cursor-pointer transition-colors">
+                <label className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-white/5 rounded-lg hover:border-white/10 cursor-pointer transition-colors">
                   <div>
-                    <div className="text-xs font-bold text-[var(--text-main)]">Read-Only File System Sandbox</div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
+                    <div className="text-xs font-semibold text-white">Read-Only File System Sandbox</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
                       Prevent agents from writing or altering system configuration files
                     </div>
                   </div>
@@ -576,7 +577,7 @@ export default function SettingsDirectory() {
                     type="checkbox"
                     checked={readOnlyFs}
                     onChange={(e) => setReadOnlyFs(e.target.checked)}
-                    className="h-4 w-4 rounded-sm border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                    className="h-4 w-4 rounded border-white/20 bg-slate-900 text-sky-500 focus:ring-sky-500 cursor-pointer"
                   />
                 </label>
               </div>
@@ -586,11 +587,10 @@ export default function SettingsDirectory() {
           {/* Right Column (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             {/* Risk Thresholds & Visual Gauge */}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--status-warning)]" />
+            <div className="panel-obsidian p-5 rounded-xl relative overflow-hidden">
               <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-[var(--status-warning)] text-[20px]">speed</span>
-                <h2 className="text-[var(--text-main)] text-sm font-bold uppercase tracking-wider">
+                <span className="material-symbols-outlined text-amber-400 text-[20px]">speed</span>
+                <h2 className="text-white text-sm font-semibold uppercase tracking-wider font-mono">
                   Risk Alert Threshold
                 </h2>
               </div>
@@ -603,7 +603,7 @@ export default function SettingsDirectory() {
                       cy="50"
                       fill="transparent"
                       r="40"
-                      stroke="var(--border-color)"
+                      stroke="rgba(255,255,255,0.08)"
                       strokeDasharray="188 63"
                       strokeDashoffset="0"
                       strokeLinecap="round"
@@ -614,16 +614,16 @@ export default function SettingsDirectory() {
                       cy="50"
                       fill="transparent"
                       r="40"
-                      stroke="var(--status-warning)"
+                      stroke="#f59e0b"
                       strokeDasharray={`${Math.min(riskThreshold, 100)} 120`}
                       strokeDashoffset="0"
                       strokeLinecap="round"
                       strokeWidth="8"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[30px] font-bold text-[var(--status-warning)]">{riskThreshold}</span>
-                    <span className="text-[10px] text-[var(--text-muted)] uppercase">Alert Trigger</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
+                    <span className="text-[32px] font-bold text-amber-400">{riskThreshold}</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-sans">Alert Trigger</span>
                   </div>
                 </div>
 
@@ -634,25 +634,25 @@ export default function SettingsDirectory() {
                     max="90"
                     value={riskThreshold}
                     onChange={(e) => setRiskThreshold(parseInt(e.target.value))}
-                    className="w-full accent-[var(--status-warning)] cursor-pointer"
+                    className="w-full accent-amber-400 cursor-pointer"
                   />
                 </div>
 
-                <div className="w-full grid grid-cols-2 gap-2 mt-3 p-2 bg-[var(--bg-base)] rounded-sm text-[10px]">
-                  <div className="flex items-center gap-1.5 text-[var(--status-success)]">
-                    <span className="h-2 w-2 rounded-full bg-[var(--status-success)]" />
+                <div className="w-full grid grid-cols-2 gap-2 mt-4 p-3 bg-slate-950/60 rounded-lg border border-white/5 text-[11px] font-mono">
+                  <div className="flex items-center gap-1.5 text-emerald-400">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     <span>Safe: 0–25</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[var(--primary)]">
-                    <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+                  <div className="flex items-center gap-1.5 text-sky-400">
+                    <span className="h-2 w-2 rounded-full bg-sky-400" />
                     <span>Low: 26–50</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[var(--status-warning)]">
-                    <span className="h-2 w-2 rounded-full bg-[var(--status-warning)]" />
+                  <div className="flex items-center gap-1.5 text-amber-400">
+                    <span className="h-2 w-2 rounded-full bg-amber-400" />
                     <span>Medium: 51–75</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[var(--status-danger)]">
-                    <span className="h-2 w-2 rounded-full bg-[var(--status-danger)]" />
+                  <div className="flex items-center gap-1.5 text-rose-400">
+                    <span className="h-2 w-2 rounded-full bg-rose-400" />
                     <span>High: 76–100</span>
                   </div>
                 </div>
@@ -660,26 +660,25 @@ export default function SettingsDirectory() {
             </div>
 
             {/* Machine Learning Model Retrain Card */}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--primary)]" />
+            <div className="panel-obsidian p-5 rounded-xl relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[var(--primary)] text-[20px]">smart_toy</span>
-                  <h2 className="text-[var(--text-main)] text-sm font-bold uppercase tracking-wider">
+                  <span className="material-symbols-outlined text-indigo-400 text-[20px]">smart_toy</span>
+                  <h2 className="text-white text-sm font-semibold uppercase tracking-wider font-mono">
                     Isolation Forest ML Engine
                   </h2>
                 </div>
-                <span className="px-1.5 py-0.5 rounded-sm bg-[rgba(0,212,255,0.1)] border border-[var(--primary)]/30 text-[var(--primary)] text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-indigo-950/60 border border-indigo-800/40 text-indigo-300 text-[10px] font-mono">
                   v1.2 ACTIVE
                 </span>
               </div>
 
-              <p className="text-[11px] text-[var(--text-muted)] mb-3 leading-relaxed">
-                Unsupervised anomaly detection scoring action feature vectors (action_type, params, call_rate, duration).
+              <p className="text-xs text-slate-400 mb-3 leading-relaxed font-sans">
+                Unsupervised anomaly detection scoring action feature vectors (action_type, parameters, call_frequency, duration).
               </p>
 
               {retrainSuccess && (
-                <div className="p-2 mb-3 bg-[rgba(35,134,54,0.15)] border border-[var(--status-success)] rounded-sm text-[11px] text-[var(--status-success)]">
+                <div className="p-3 mb-3 bg-emerald-950/20 border border-emerald-500/40 rounded-lg text-xs text-emerald-300 font-mono">
                   {retrainSuccess}
                 </div>
               )}
@@ -687,10 +686,10 @@ export default function SettingsDirectory() {
               <button
                 onClick={handleTriggerRetrain}
                 disabled={isRetraining}
-                className={`w-full py-2 px-3 rounded-sm border border-[var(--primary)] font-mono text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full py-2.5 px-3 rounded-lg border font-mono text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   isRetraining
-                    ? 'bg-[rgba(0,212,255,0.2)] text-[var(--text-muted)]'
-                    : 'bg-[rgba(0,212,255,0.1)] text-[var(--primary)] hover:bg-[rgba(0,212,255,0.2)]'
+                    ? 'bg-slate-900 border-white/10 text-slate-500'
+                    : 'bg-indigo-950/40 border-indigo-800/50 text-indigo-300 hover:bg-indigo-900/50'
                 }`}
               >
                 <span className={`material-symbols-outlined text-[16px] ${isRetraining ? 'animate-spin' : ''}`}>
@@ -701,18 +700,17 @@ export default function SettingsDirectory() {
             </div>
 
             {/* Data Retention */}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--text-muted)]" />
-              <h2 className="text-[var(--text-main)] text-sm font-bold uppercase tracking-wider mb-3">
+            <div className="panel-obsidian p-5 rounded-xl relative overflow-hidden">
+              <h2 className="text-white text-sm font-semibold uppercase tracking-wider mb-3 font-mono">
                 Data Retention &amp; Audit Log
               </h2>
-              <div className="space-y-3 text-xs">
+              <div className="space-y-3 text-xs font-sans">
                 <div>
-                  <label className="block text-[var(--text-muted)] mb-1">Telemetry Log Retention</label>
+                  <label className="block text-slate-400 mb-1">Telemetry Log Retention</label>
                   <select
                     value={logRetention}
                     onChange={(e) => setLogRetention(parseInt(e.target.value))}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)] cursor-pointer"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer"
                   >
                     <option value={30}>30 Days</option>
                     <option value={90}>90 Days</option>
@@ -720,11 +718,11 @@ export default function SettingsDirectory() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[var(--text-muted)] mb-1">Max Incident Event Buffer</label>
+                  <label className="block text-slate-400 mb-1">Max Incident Event Buffer</label>
                   <select
                     value={alertHistory}
                     onChange={(e) => setAlertHistory(parseInt(e.target.value))}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)] cursor-pointer"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer"
                   >
                     <option value={10000}>10,000 Events</option>
                     <option value={50000}>50,000 Events</option>
@@ -741,19 +739,18 @@ export default function SettingsDirectory() {
       {activeTab === 'api-keys' && (
         <div className="flex flex-col gap-6">
           {/* Org & Key Info Banner */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--primary)]" />
+          <div className="panel-obsidian p-6 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
             <div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[var(--primary)]">apartment</span>
-                <h2 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider">
+                <span className="material-symbols-outlined text-sky-400">apartment</span>
+                <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
                   Organization Tenant: Acme AI Corp
                 </h2>
-                <span className="text-[10px] bg-[rgba(0,212,255,0.1)] text-[var(--primary)] border border-[var(--primary)]/30 px-1.5 py-0.5 rounded-sm">
+                <span className="text-[10px] font-mono bg-sky-950/60 text-sky-400 border border-sky-800/40 px-2 py-0.5 rounded-full">
                   org_default
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+              <p className="text-xs text-slate-400 mt-1 font-sans">
                 Keys authenticate agent clusters, LangChain runtimes, and external telemetry ingestion. Stored using constant-time SHA-256 hashes.
               </p>
             </div>
@@ -762,7 +759,7 @@ export default function SettingsDirectory() {
                 setShowNewKeyModal(true)
                 setCreatedKeySecret(null)
               }}
-              className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold text-xs uppercase rounded-sm hover:bg-[#00b8e6] transition-colors flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,212,255,0.3)] cursor-pointer shrink-0"
+              className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs font-mono uppercase rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/20 active:scale-95 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
               Generate New API Key
@@ -770,15 +767,15 @@ export default function SettingsDirectory() {
           </div>
 
           {/* Keys Table */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden">
-            <div className="p-3 bg-[var(--bg-base)] border-b border-[var(--border-color)] flex items-center justify-between">
-              <span className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">vpn_key</span>
+          <div className="panel-obsidian rounded-xl overflow-hidden flex flex-col">
+            <div className="p-4 bg-slate-950/80 border-b border-white/5 flex items-center justify-between font-mono">
+              <span className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-sky-400">vpn_key</span>
                 Active Authentication Keys ({apiKeys.length})
               </span>
               <button
                 onClick={fetchKeys}
-                className="text-[11px] text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center gap-1 cursor-pointer"
+                className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-[14px]">refresh</span>
                 Refresh
@@ -786,28 +783,28 @@ export default function SettingsDirectory() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+              <table className="w-full text-left text-xs font-mono border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
-                    <th className="p-3">KEY NAME</th>
-                    <th className="p-3">PREFIX / LOOKUP</th>
-                    <th className="p-3">SCOPES</th>
-                    <th className="p-3">CREATED</th>
-                    <th className="p-3">LAST USED</th>
-                    <th className="p-3">STATUS</th>
-                    <th className="p-3 text-right">ACTIONS</th>
+                  <tr className="border-b border-white/5 text-slate-400 bg-slate-950/60 text-[11px] uppercase tracking-wider">
+                    <th className="p-3.5">KEY NAME</th>
+                    <th className="p-3.5">PREFIX / LOOKUP</th>
+                    <th className="p-3.5">SCOPES</th>
+                    <th className="p-3.5">CREATED</th>
+                    <th className="p-3.5">LAST USED</th>
+                    <th className="p-3.5">STATUS</th>
+                    <th className="p-3.5 text-right">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
+                <tbody className="divide-y divide-white/5 text-slate-300">
                   {isLoadingKeys ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-[var(--text-muted)]">
+                      <td colSpan={7} className="p-6 text-center text-slate-500">
                         Loading API keys...
                       </td>
                     </tr>
                   ) : apiKeys.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-[var(--text-muted)]">
+                      <td colSpan={7} className="p-6 text-center text-slate-500">
                         No API keys configured yet. Generate one above to connect real agents.
                       </td>
                     </tr>
@@ -815,50 +812,50 @@ export default function SettingsDirectory() {
                     apiKeys.map((key) => {
                       const isRevoked = Boolean(key.revoked_at)
                       return (
-                        <tr key={key.key_id} className="hover:bg-[var(--bg-base)]/50 transition-colors">
-                          <td className="p-3 font-bold text-[var(--text-main)] flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[14px] text-[var(--text-muted)]">key</span>
+                        <tr key={key.key_id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3.5 font-bold text-white flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">key</span>
                             {key.name}
                           </td>
-                          <td className="p-3 text-[var(--primary)]">
+                          <td className="p-3.5 text-sky-400">
                             <code>{key.prefix}...</code>
                           </td>
-                          <td className="p-3 text-[var(--text-muted)]">
-                            <span className="px-1.5 py-0.5 rounded-sm bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px]">
+                          <td className="p-3.5 text-slate-400">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-white/5 text-[10px]">
                               {key.scopes}
                             </span>
                           </td>
-                          <td className="p-3 text-[var(--text-muted)]">
+                          <td className="p-3.5 text-slate-400">
                             {formatISTDate(key.created_at)}
                           </td>
-                          <td className="p-3 text-[var(--text-muted)]">
+                          <td className="p-3.5 text-slate-400">
                             {key.last_used_at ? formatISTDateTime(key.last_used_at) : 'Never'}
                           </td>
-                          <td className="p-3">
+                          <td className="p-3.5">
                             {isRevoked ? (
-                              <span className="px-2 py-0.5 rounded-sm bg-[rgba(239,68,68,0.15)] text-[var(--status-danger)] border border-[var(--status-danger)]/30 text-[10px] uppercase font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-950/60 text-rose-400 border border-rose-800/50 text-[10px] uppercase font-bold">
                                 Revoked
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-sm bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 text-[10px] uppercase font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 text-[10px] uppercase font-bold">
                                 Active
                               </span>
                             )}
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3.5 text-right">
                             {!isRevoked && (
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   onClick={() => handleRotateKey(key.key_id)}
                                   title="Rotate key with 24-hour overlap grace window"
-                                  className="px-2 py-1 text-[11px] text-[var(--primary)] border border-[var(--primary)]/40 hover:bg-[var(--primary)]/10 rounded-sm transition-colors cursor-pointer flex items-center gap-1"
+                                  className="px-2.5 py-1 text-[11px] text-sky-400 border border-sky-800/50 hover:bg-sky-950/40 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                                 >
                                   <span className="material-symbols-outlined text-[13px]">published_with_changes</span>
                                   Rotate
                                 </button>
                                 <button
                                   onClick={() => handleRevokeKey(key.key_id)}
-                                  className="px-2 py-1 text-[11px] text-[var(--status-danger)] border border-[var(--status-danger)]/40 hover:bg-[var(--status-danger)]/10 rounded-sm transition-colors cursor-pointer"
+                                  className="px-2.5 py-1 text-[11px] text-rose-400 border border-rose-800/50 hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                                 >
                                   Revoke
                                 </button>
@@ -873,38 +870,6 @@ export default function SettingsDirectory() {
               </table>
             </div>
           </div>
-
-          {/* Quick Integration Guide */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4">
-            <h3 className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">terminal</span>
-              Python SDK Integration Snippet
-            </h3>
-            <p className="text-xs text-[var(--text-muted)] mb-3">
-              Embed pre-flight guardrails into your agents using the official Python client:
-            </p>
-            <div className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-3 text-xs text-[var(--text-main)] overflow-x-auto">
-              <pre className="text-[11px] leading-relaxed text-[#a5d6ff]">
-{`from agentshield import AgentShield, ShieldSecurityException
-
-# Initialize with your enterprise ingestion key
-shield = AgentShield(
-    api_key="ashield_live_your_key_here",
-    base_url="http://localhost:8000/api/v1",
-    mode="enforce",      # Pre-flight blocking guardrails
-    fail_open=False      # Block execution if threat detected
-)
-
-@shield.monitor(agent_id="AGT-PROD-01", action_type="database_query")
-def execute_database_query(sql_query: str):
-    return db.execute(sql_query)
-
-# LangChain integration
-from agentshield import AgentShieldCallbackHandler
-callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01")`}
-              </pre>
-            </div>
-          </div>
         </div>
       )}
 
@@ -912,22 +877,21 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
       {activeTab === 'webhooks' && (
         <div className="flex flex-col gap-6">
           {/* Webhook Header & Action */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--status-warning)]" />
+          <div className="panel-obsidian p-6 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
             <div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[var(--status-warning)]">notifications_active</span>
-                <h2 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider">
+                <span className="material-symbols-outlined text-amber-400">notifications_active</span>
+                <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
                   Outbound Threat Webhook Dispatcher
                 </h2>
               </div>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+              <p className="text-xs text-slate-400 mt-1 font-sans">
                 Deliver instant HMAC-signed incident alerts directly to Slack, Discord, or your SIEM SOC pipeline. Anti-flapping logic prevents alert storms.
               </p>
             </div>
             <button
               onClick={() => setShowNewWebhookModal(true)}
-              className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold text-xs uppercase rounded-sm hover:bg-[#00b8e6] transition-colors flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,212,255,0.3)] cursor-pointer shrink-0"
+              className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs font-mono uppercase rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/20 active:scale-95 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">add_link</span>
               Register Webhook
@@ -935,15 +899,15 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
           </div>
 
           {/* Webhooks Table */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden">
-            <div className="p-3 bg-[var(--bg-base)] border-b border-[var(--border-color)] flex items-center justify-between">
-              <span className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">hub</span>
+          <div className="panel-obsidian rounded-xl overflow-hidden flex flex-col">
+            <div className="p-4 bg-slate-950/80 border-b border-white/5 flex items-center justify-between font-mono">
+              <span className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-sky-400">hub</span>
                 Configured Incident Receivers ({webhooks.length})
               </span>
               <button
                 onClick={fetchWebhooks}
-                className="text-[11px] text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center gap-1 cursor-pointer"
+                className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-[14px]">refresh</span>
                 Refresh
@@ -951,28 +915,28 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+              <table className="w-full text-left text-xs font-mono border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
-                    <th className="p-3">RECEIVER NAME</th>
-                    <th className="p-3">DESTINATION</th>
-                    <th className="p-3">URL</th>
-                    <th className="p-3">MIN SEVERITY</th>
-                    <th className="p-3">HMAC AUTH</th>
-                    <th className="p-3">STATUS</th>
-                    <th className="p-3 text-right">ACTIONS</th>
+                  <tr className="border-b border-white/5 text-slate-400 bg-slate-950/60 text-[11px] uppercase tracking-wider">
+                    <th className="p-3.5">RECEIVER NAME</th>
+                    <th className="p-3.5">DESTINATION</th>
+                    <th className="p-3.5">URL</th>
+                    <th className="p-3.5">MIN SEVERITY</th>
+                    <th className="p-3.5">HMAC AUTH</th>
+                    <th className="p-3.5">STATUS</th>
+                    <th className="p-3.5 text-right">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
+                <tbody className="divide-y divide-white/5 text-slate-300">
                   {isLoadingWebhooks ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-[var(--text-muted)]">
+                      <td colSpan={7} className="p-6 text-center text-slate-500">
                         Loading webhook endpoints...
                       </td>
                     </tr>
                   ) : webhooks.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-[var(--text-muted)]">
+                      <td colSpan={7} className="p-6 text-center text-slate-500">
                         No incident webhooks configured. Register a Slack or Discord webhook to receive real-time threat notifications.
                       </td>
                     </tr>
@@ -981,63 +945,63 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                       const isTestingCurrent = isTesting === ep.endpoint_id
                       const hasResult = testResult && testResult.id === ep.endpoint_id
                       return (
-                        <tr key={ep.endpoint_id} className="hover:bg-[var(--bg-base)]/50 transition-colors">
-                          <td className="p-3 font-bold text-[var(--text-main)] flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[14px] text-[var(--primary)]">
+                        <tr key={ep.endpoint_id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3.5 font-bold text-white flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-sky-400">
                               {ep.target_type === 'slack' ? 'chat' : ep.target_type === 'discord' ? 'forum' : 'webhook'}
                             </span>
                             {ep.name}
                           </td>
-                          <td className="p-3">
-                            <span className="px-2 py-0.5 rounded-sm bg-[var(--bg-base)] border border-[var(--border-color)] text-[10px] uppercase font-bold text-[var(--text-main)]">
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-white/5 text-[10px] uppercase font-bold text-slate-200">
                               {ep.target_type}
                             </span>
                           </td>
-                          <td className="p-3 text-[var(--text-muted)] max-w-xs truncate" title={ep.url}>
+                          <td className="p-3.5 text-slate-400 max-w-xs truncate" title={ep.url}>
                             <code>{ep.url}</code>
                           </td>
-                          <td className="p-3">
+                          <td className="p-3.5">
                             <span
-                              className={`px-1.5 py-0.5 rounded-sm text-[10px] font-bold uppercase ${
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                 ep.min_severity === 'Critical'
-                                  ? 'bg-[rgba(239,68,68,0.15)] text-[var(--status-danger)] border border-[var(--status-danger)]/30'
-                                  : 'bg-[rgba(245,158,11,0.15)] text-[var(--status-warning)] border border-[var(--status-warning)]/30'
+                                  ? 'bg-rose-950/60 text-rose-400 border border-rose-800/50'
+                                  : 'bg-amber-950/60 text-amber-400 border border-amber-800/50'
                               }`}
                             >
                               {ep.min_severity}+
                             </span>
                           </td>
-                          <td className="p-3 text-[var(--status-success)] flex items-center gap-1">
+                          <td className="p-3.5 text-emerald-400 flex items-center gap-1">
                             <span className="material-symbols-outlined text-[14px]">lock</span>
                             <span className="text-[10px]">HMAC-SHA256</span>
                           </td>
-                          <td className="p-3">
+                          <td className="p-3.5">
                             <button
                               onClick={() => handleToggleWebhook(ep)}
-                              className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase cursor-pointer transition-colors ${
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase cursor-pointer transition-colors ${
                                 ep.enabled
-                                  ? 'bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 hover:bg-[rgba(35,134,54,0.3)]'
-                                  : 'bg-[rgba(100,116,139,0.15)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]'
+                                  ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/50'
+                                  : 'bg-slate-800 text-slate-400 border border-white/5 hover:text-white'
                               }`}
                             >
                               {ep.enabled ? 'Enabled' : 'Paused'}
                             </button>
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3.5 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleTestWebhook(ep.endpoint_id)}
                                 disabled={isTestingCurrent}
-                                className="px-2 py-1 text-[11px] text-[var(--primary)] border border-[var(--primary)]/40 hover:bg-[var(--primary)]/10 rounded-sm transition-colors cursor-pointer flex items-center gap-1"
+                                className="px-2.5 py-1 text-[11px] text-sky-400 border border-sky-800/50 hover:bg-sky-950/40 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                               >
-                                <span className={`material-symbols-outlined text-[12px] ${isTestingCurrent ? 'animate-spin' : ''}`}>
+                                <span className={`material-symbols-outlined text-[13px] ${isTestingCurrent ? 'animate-spin' : ''}`}>
                                   {isTestingCurrent ? 'sync' : 'send'}
                                 </span>
                                 {isTestingCurrent ? 'Pinging...' : 'Test Ping'}
                               </button>
                               <button
                                 onClick={() => handleDeleteWebhook(ep.endpoint_id)}
-                                className="px-2 py-1 text-[11px] text-[var(--status-danger)] border border-[var(--status-danger)]/40 hover:bg-[var(--status-danger)]/10 rounded-sm transition-colors cursor-pointer"
+                                className="px-2.5 py-1 text-[11px] text-rose-400 border border-rose-800/50 hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -1045,7 +1009,7 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                             {hasResult && (
                               <div
                                 className={`text-[10px] mt-1 ${
-                                  testResult.success ? 'text-[var(--status-success)]' : 'text-[var(--status-danger)]'
+                                  testResult.success ? 'text-emerald-400' : 'text-rose-400'
                                 }`}
                               >
                                 {testResult.msg}
@@ -1060,56 +1024,42 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
               </table>
             </div>
           </div>
-
-          {/* Webhook HMAC Documentation & Security Details */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-4 text-xs space-y-2">
-            <h3 className="font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">verified_user</span>
-              Webhook Cryptographic Verification Spec
-            </h3>
-            <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">
-              Every dispatched webhook includes an HMAC-SHA256 signature calculated over the UNIX timestamp and JSON body:
-            </p>
-            <div className="bg-[var(--bg-base)] border border-[var(--border-color)] p-3 rounded-sm font-mono text-[11px] text-[var(--text-muted)]">
-              <code>Header: X-AgentShield-Signature: t=1729600000,v1=9c4a7e8b2f3...</code>
-              <br />
-              <code>Computed as: HMAC_SHA256(secret, "$timestamp.$raw_json_body")</code>
-            </div>
-          </div>
         </div>
       )}
 
       {/* TAB 4: TEAM & ACCESS MANAGEMENT */}
       {activeTab === 'team' && (
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
+          <div className="panel-obsidian p-6 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[var(--primary)] text-lg">badge</span>
-                Team Members &amp; RBAC Access Controls
-              </h2>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-sky-400 text-lg">badge</span>
+                <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+                  Team Members &amp; RBAC Access Controls
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 font-sans">
                 Manage organization administrators, security analysts, and read-only viewers with granular role-based permissions.
               </p>
             </div>
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold text-xs uppercase rounded-sm hover:bg-[#00b8e6] transition-colors flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,212,255,0.3)] cursor-pointer"
+              className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs font-mono uppercase rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/20 active:scale-95 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">person_add</span>
               Invite Member
             </button>
           </div>
 
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden">
-            <div className="p-3 bg-[var(--bg-base)] border-b border-[var(--border-color)] flex items-center justify-between">
-              <span className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">group</span>
+          <div className="panel-obsidian rounded-xl overflow-hidden flex flex-col">
+            <div className="p-4 bg-slate-950/80 border-b border-white/5 flex items-center justify-between font-mono">
+              <span className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-sky-400">group</span>
                 Active Members ({users.length})
               </span>
               <button
                 onClick={fetchUsers}
-                className="text-[11px] text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center gap-1 cursor-pointer"
+                className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-[14px]">refresh</span>
                 Refresh
@@ -1117,51 +1067,51 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+              <table className="w-full text-left text-xs font-mono border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
-                    <th className="p-3">MEMBER NAME</th>
-                    <th className="p-3">EMAIL ADDRESS</th>
-                    <th className="p-3">ASSIGNED ROLE</th>
-                    <th className="p-3">JOINED DATE</th>
-                    <th className="p-3">STATUS</th>
+                  <tr className="border-b border-white/5 text-slate-400 bg-slate-950/60 text-[11px] uppercase tracking-wider">
+                    <th className="p-3.5">MEMBER NAME</th>
+                    <th className="p-3.5">EMAIL ADDRESS</th>
+                    <th className="p-3.5">ASSIGNED ROLE</th>
+                    <th className="p-3.5">JOINED DATE</th>
+                    <th className="p-3.5">STATUS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
+                <tbody className="divide-y divide-white/5 text-slate-300">
                   {isLoadingUsers ? (
                     <tr>
-                      <td colSpan={5} className="p-6 text-center text-[var(--text-muted)]">
+                      <td colSpan={5} className="p-6 text-center text-slate-500">
                         Loading team members...
                       </td>
                     </tr>
                   ) : (
                     users.map((u) => (
-                      <tr key={u.id} className="hover:bg-[var(--bg-base)]/50 transition-colors">
-                        <td className="p-3 font-bold text-[var(--text-main)] flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-[var(--bg-raised)] border border-[var(--border-color)] flex items-center justify-center text-[10px] text-[var(--primary)]">
+                      <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="p-3.5 font-bold text-white flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-[10px] text-sky-400 font-mono">
                             {(u.full_name || u.email).substring(0, 2).toUpperCase()}
                           </span>
                           {u.full_name || 'Member'}
                         </td>
-                        <td className="p-3 text-[var(--text-muted)]">{u.email}</td>
-                        <td className="p-3">
+                        <td className="p-3.5 text-slate-400">{u.email}</td>
+                        <td className="p-3.5">
                           <span
-                            className={`px-2 py-0.5 rounded-sm text-[10px] uppercase font-bold border ${
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold border ${
                               u.role === 'admin'
-                                ? 'bg-[rgba(0,212,255,0.15)] text-[var(--primary)] border-[var(--primary)]/30'
+                                ? 'bg-sky-950/60 text-sky-400 border-sky-800/50'
                                 : u.role === 'analyst'
-                                ? 'bg-[rgba(255,184,0,0.15)] text-[var(--status-warning)] border-[var(--status-warning)]/30'
-                                : 'bg-[var(--bg-raised)] text-[var(--text-muted)] border-[var(--border-color)]'
+                                ? 'bg-amber-950/60 text-amber-400 border-amber-800/50'
+                                : 'bg-slate-800 text-slate-400 border-white/5'
                             }`}
                           >
                             {u.role}
                           </span>
                         </td>
-                        <td className="p-3 text-[var(--text-muted)]">
+                        <td className="p-3.5 text-slate-400">
                           {formatISTDate(u.created_at)}
                         </td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded-sm bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 text-[10px] uppercase font-bold">
+                        <td className="p-3.5">
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 text-[10px] uppercase font-bold">
                             Active
                           </span>
                         </td>
@@ -1177,43 +1127,43 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
 
       {/* MODAL: Invite Team Member */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm max-w-md w-full p-6 shadow-2xl relative font-mono">
-            <h3 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-[18px] text-[var(--primary)]">person_add</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="panel-obsidian rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2 mb-4 font-mono">
+              <span className="material-symbols-outlined text-[18px] text-sky-400">person_add</span>
               Invite Organization Member
             </h3>
 
-            <form onSubmit={handleInviteSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleInviteSubmit} className="space-y-4 text-xs font-sans">
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">Full Name</label>
+                <label className="block text-slate-300 mb-1 font-medium">Full Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Jane Doe"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">Email Address</label>
+                <label className="block text-slate-300 mb-1 font-medium">Email Address</label>
                 <input
                   type="email"
                   required
                   placeholder="name@organization.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">Role &amp; Permissions</label>
+                <label className="block text-slate-300 mb-1 font-medium">Role &amp; Permissions</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer"
                 >
                   <option value="analyst">Security Analyst (Triages alerts, quarantines agents, creates rules)</option>
                   <option value="admin">Administrator (Full control, manage API keys, webhooks, team)</option>
@@ -1221,17 +1171,17 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3">
+              <div className="flex justify-end gap-2.5 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-sm cursor-pointer"
+                  className="px-4 py-2 border border-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer transition-colors font-mono"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold uppercase rounded-sm hover:bg-[#00b8e6] cursor-pointer"
+                  className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold uppercase rounded-lg transition-all cursor-pointer font-mono"
                 >
                   Send Invitation
                 </button>
@@ -1243,86 +1193,86 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
 
       {/* MODAL: Generate API Key */}
       {showNewKeyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm max-w-lg w-full p-6 shadow-2xl relative font-mono">
-            <h3 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-[18px] text-[var(--primary)]">vpn_key</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="panel-obsidian rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2 mb-3 font-mono">
+              <span className="material-symbols-outlined text-[18px] text-sky-400">vpn_key</span>
               Generate Enterprise API Key
             </h3>
 
             {!createdKeySecret ? (
-              <form onSubmit={handleGenerateKey} className="space-y-4 text-xs">
+              <form onSubmit={handleGenerateKey} className="space-y-4 text-xs font-sans">
                 <div>
-                  <label className="block text-[var(--text-muted)] mb-1">Key Name / Fleet Description</label>
+                  <label className="block text-slate-300 mb-1 font-medium">Key Name / Fleet Description</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. LangChain Support Agents, Production Cluster"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[var(--text-muted)] mb-1">Environment</label>
+                    <label className="block text-slate-300 mb-1 font-medium">Environment</label>
                     <select
                       value={newKeyEnv}
                       onChange={(e) => setNewKeyEnv(e.target.value as any)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                      className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer font-mono"
                     >
-                      <option value="live">Live (Production: ashield_live_...)</option>
-                      <option value="test">Test (Sandbox: ashield_test_...)</option>
+                      <option value="live">Live (ashield_live_...)</option>
+                      <option value="test">Test (ashield_test_...)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[var(--text-muted)] mb-1">Scopes</label>
+                    <label className="block text-slate-300 mb-1 font-medium">Scopes</label>
                     <input
                       type="text"
                       value={newKeyScopes}
                       onChange={(e) => setNewKeyScopes(e.target.value)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                      className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 font-mono"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 bg-[rgba(0,212,255,0.05)] border border-[var(--primary)]/30 rounded-sm text-[11px] text-[var(--text-muted)]">
-                  The raw API key will be displayed only once upon generation. AgentShield only stores a cryptographic SHA-256 hash.
+                <div className="p-3 bg-sky-950/20 border border-sky-500/30 rounded-lg text-xs text-slate-300">
+                  The raw API key will be displayed only once upon generation. AgentShield stores only a constant-time cryptographic SHA-256 hash.
                 </div>
 
-                <div className="flex justify-end gap-3 pt-3">
+                <div className="flex justify-end gap-2.5 pt-3">
                   <button
                     type="button"
                     onClick={() => setShowNewKeyModal(false)}
-                    className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-sm cursor-pointer"
+                    className="px-4 py-2 border border-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer font-mono"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold uppercase rounded-sm hover:bg-[#00b8e6] cursor-pointer"
+                    className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold uppercase rounded-lg transition-all cursor-pointer font-mono"
                   >
                     Create Key
                   </button>
                 </div>
               </form>
             ) : (
-              <div className="space-y-4 text-xs">
-                <div className="p-3 bg-[rgba(35,134,54,0.15)] border border-[var(--status-success)] rounded-sm text-[var(--status-success)] text-xs font-bold flex items-center gap-2">
+              <div className="space-y-4 text-xs font-mono">
+                <div className="p-3 bg-emerald-950/20 border border-emerald-500/40 rounded-lg text-emerald-300 text-xs font-bold flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px]">check_circle</span>
                   API Key Created Successfully
                 </div>
 
-                <p className="text-[11px] text-[var(--status-warning)]">
+                <p className="text-xs text-amber-400 font-sans">
                   ⚠️ Make sure to copy this key right now. For security purposes, you will never be able to view it again.
                 </p>
 
-                <div className="p-3 bg-[var(--bg-base)] border border-[var(--primary)] rounded-sm flex items-center justify-between gap-2">
-                  <code className="text-[11px] text-[var(--primary)] break-all select-all">{createdKeySecret}</code>
+                <div className="p-3 bg-slate-950/80 border border-sky-500/40 rounded-lg flex items-center justify-between gap-2">
+                  <code className="text-xs text-sky-400 break-all select-all">{createdKeySecret}</code>
                   <button
                     onClick={handleCopyKey}
-                    className="px-3 py-1 bg-[var(--primary)] text-[#001f27] font-bold text-[11px] uppercase rounded-sm hover:bg-[#00b8e6] cursor-pointer shrink-0"
+                    className="px-3 py-1.5 bg-sky-400 text-slate-950 font-bold text-xs uppercase rounded-lg hover:bg-sky-300 cursor-pointer shrink-0"
                   >
                     {copiedKey ? 'COPIED!' : 'COPY'}
                   </button>
@@ -1334,7 +1284,7 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                       setShowNewKeyModal(false)
                       setCreatedKeySecret(null)
                     }}
-                    className="px-5 py-2 bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)] rounded-sm cursor-pointer"
+                    className="px-5 py-2 bg-slate-900 border border-white/10 text-white hover:border-sky-500/40 rounded-lg cursor-pointer"
                   >
                     Done &amp; Close
                   </button>
@@ -1347,33 +1297,33 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
 
       {/* MODAL: Register Webhook */}
       {showNewWebhookModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm max-w-lg w-full p-6 shadow-2xl relative font-mono">
-            <h3 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-[18px] text-[var(--primary)]">add_link</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="panel-obsidian rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2 mb-3 font-mono">
+              <span className="material-symbols-outlined text-[18px] text-sky-400">add_link</span>
               Register Outbound Incident Webhook
             </h3>
 
-            <form onSubmit={handleCreateWebhook} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateWebhook} className="space-y-4 text-xs font-sans">
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">Receiver Name</label>
+                <label className="block text-slate-300 mb-1 font-medium">Receiver Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. SOC Primary Slack, Discord Incident Channel"
                   value={whName}
                   onChange={(e) => setWhName(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[var(--text-muted)] mb-1">Destination Format</label>
+                  <label className="block text-slate-300 mb-1 font-medium">Destination Format</label>
                   <select
                     value={whType}
                     onChange={(e) => setWhType(e.target.value as any)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer"
                   >
                     <option value="slack">Slack Incoming Webhook</option>
                     <option value="discord">Discord Webhook</option>
@@ -1383,11 +1333,11 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                 </div>
 
                 <div>
-                  <label className="block text-[var(--text-muted)] mb-1">Minimum Severity Trigger</label>
+                  <label className="block text-slate-300 mb-1 font-medium">Minimum Severity Trigger</label>
                   <select
                     value={whMinSeverity}
                     onChange={(e) => setWhMinSeverity(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 cursor-pointer"
                   >
                     <option value="Critical">Critical Only (&gt;= 80 Risk)</option>
                     <option value="High">High &amp; Critical (&gt;= 70 Risk)</option>
@@ -1398,41 +1348,41 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
               </div>
 
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">Target Endpoint URL</label>
+                <label className="block text-slate-300 mb-1 font-medium">Target Endpoint URL</label>
                 <input
                   type="url"
                   required
                   placeholder="https://hooks.slack.com/services/... or https://discord.com/api/webhooks/..."
                   value={whUrl}
                   onChange={(e) => setWhUrl(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[var(--text-muted)] mb-1">
-                  Custom HMAC Signing Secret <span className="text-[10px] text-[var(--text-muted)]">(optional, auto-generated if blank)</span>
+                <label className="block text-slate-300 mb-1 font-medium">
+                  Custom HMAC Signing Secret <span className="text-[10px] text-slate-500 font-normal">(optional, auto-generated if blank)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Leave empty to auto-generate random 48-char secret"
                   value={whSecret}
                   onChange={(e) => setWhSecret(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm p-2 text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-sky-500 font-mono"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3">
+              <div className="flex justify-end gap-2.5 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowNewWebhookModal(false)}
-                  className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-sm cursor-pointer"
+                  className="px-4 py-2 border border-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer font-mono"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[var(--primary)] text-[#001f27] font-bold uppercase rounded-sm hover:bg-[#00b8e6] cursor-pointer"
+                  className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold uppercase rounded-lg transition-all cursor-pointer font-mono"
                 >
                   Register Endpoint
                 </button>
@@ -1444,16 +1394,16 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
 
       {/* Persistent Bottom Bar (Visible on Security tab) */}
       {activeTab === 'security' && (
-        <div className="fixed bottom-0 right-0 left-0 md:left-[240px] bg-[var(--bg-surface)] border-t border-[var(--border-color)] p-3 px-6 flex justify-end gap-3 z-30 shadow-2xl">
+        <div className="fixed bottom-0 right-0 left-0 md:left-[260px] bg-slate-950/90 border-t border-white/10 backdrop-blur-xl p-4 px-6 flex justify-end gap-3 z-30 shadow-2xl">
           <button
             onClick={handleResetDefaults}
-            className="px-4 py-1.5 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs rounded-sm cursor-pointer transition-colors"
+            className="px-4 py-2 border border-white/10 text-slate-400 hover:text-white text-xs font-mono rounded-lg cursor-pointer transition-colors"
           >
             Reset Defaults
           </button>
           <button
             onClick={handleSaveConfig}
-            className="px-5 py-1.5 bg-[var(--primary)] text-[#001f27] font-bold text-xs uppercase rounded-sm hover:bg-[#00b8e6] transition-colors cursor-pointer shadow-[0_0_8px_rgba(0,212,255,0.3)]"
+            className="px-5 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-mono font-bold text-xs uppercase rounded-lg transition-all cursor-pointer shadow-lg shadow-sky-500/20 active:scale-95"
           >
             Save Configuration
           </button>

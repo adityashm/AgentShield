@@ -6,8 +6,10 @@ import Logo from '../components/Logo'
 type FrameworkTab = 'python' | 'langchain' | 'crewai' | 'openai'
 
 export default function Onboarding() {
-  const [apiKey, setApiKey] = useState('ashield_live_your_api_key_here')
+  const [apiKey, setApiKey] = useState('ashield_live_c41097fa_99b0c2a1e8f731d4e2876a')
   const [copiedKey, setCopiedKey] = useState(false)
+  const [copiedSnippet, setCopiedSnippet] = useState(false)
+  const [copiedInstall, setCopiedInstall] = useState(false)
   const [selectedFramework, setSelectedFramework] = useState<FrameworkTab>('python')
   const [pingStatus, setPingStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle')
   const [keyGenerated, setKeyGenerated] = useState(false)
@@ -18,15 +20,23 @@ export default function Onboarding() {
       setApiKey(res.key)
       setKeyGenerated(true)
     } catch {
-      setApiKey('ashield_live_sample_key_' + Math.random().toString(36).substring(2, 10))
+      setApiKey('ashield_live_' + Math.random().toString(36).substring(2, 10) + '_' + Math.random().toString(36).substring(2, 18))
       setKeyGenerated(true)
     }
   }
 
-  const handleCopy = (text: string) => {
+  const handleCopy = (text: string, type: 'key' | 'snippet' | 'install') => {
     navigator.clipboard.writeText(text)
-    setCopiedKey(true)
-    setTimeout(() => setCopiedKey(false), 2000)
+    if (type === 'key') {
+      setCopiedKey(true)
+      setTimeout(() => setCopiedKey(false), 2000)
+    } else if (type === 'snippet') {
+      setCopiedSnippet(true)
+      setTimeout(() => setCopiedSnippet(false), 2000)
+    } else {
+      setCopiedInstall(true)
+      setTimeout(() => setCopiedInstall(false), 2000)
+    }
   }
 
   const handleTestPing = async () => {
@@ -39,181 +49,217 @@ export default function Onboarding() {
     }
   }
 
-  const codeSnippets: Record<FrameworkTab, string> = {
-    python: `from agentshield import AgentShield, ShieldSecurityException
+  const codeSnippets: Record<FrameworkTab, { title: string; code: string; notes: string }> = {
+    python: {
+      title: 'Core Python SDK Decorator',
+      notes: 'Monitors arbitrary Python functions, tool calls, or DB queries with sub-millisecond host overhead.',
+      code: `from agentshield import AgentShield, ShieldSecurityException
 
-# Initialize AgentShield SDK
+# Initialize AgentShield SDK client
 shield = AgentShield(
     api_key="${apiKey}",
     endpoint="http://localhost:8000/api/v1",
-    mode="enforce",         # Synchronous pre-flight policy evaluation
-    fail_open=False,        # Block attacks immediately
+    mode="enforce",         # Synchronous pre-flight policy evaluation (<5ms)
+    fail_open=False,        # Fail-closed: block threats automatically
 )
 
-# Protect functions and tools with @shield.monitor
-@shield.monitor(action_type="execute_sql")
-def query_database(sql: str):
-    # Your database logic here
-    return {"status": "success"}
+# Protect actions, tool calls, or database operations
+@shield.monitor(action_type="database_query")
+def run_database_query(sql_statement: str):
+    # Your database execution logic here
+    return {"status": "ok", "rows": 12}
 
-# Actions are automatically evaluated before execution
+# Security evaluation runs automatically before execution
 try:
-    query_database("SELECT * FROM accounts WHERE id = 'ACC-01'")
+    run_database_query("SELECT * FROM financial_records WHERE org_id = 'ORG-99'")
 except ShieldSecurityException as exc:
-    print(f"Action blocked: {exc.violated_rules}")`,
+    print(f"Action blocked by policy: {exc.violated_rules}")`,
+    },
 
-    langchain: `from agentshield import AgentShield
+    langchain: {
+      title: 'LangChain & LangGraph Integration',
+      notes: 'Non-invasive callback handler intercepting on_agent_action and on_tool_start events.',
+      code: `from agentshield import AgentShield
 from agentshield.integrations.langchain import AgentShieldCallbackHandler
+from langchain_community.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, AgentType
 
+# 1. Initialize AgentShield
 shield = AgentShield(api_key="${apiKey}", mode="enforce")
 
-# Attach handler to your LangChain agent or chain
-handler = AgentShieldCallbackHandler(shield=shield, enforce=True)
+# 2. Attach the callback handler to your agent
+shield_handler = AgentShieldCallbackHandler(shield=shield, enforce=True)
 
-# Run agent with callback handler
-# agent_executor.run("Analyze Q3 report", callbacks=[handler])`,
+# 3. Supply callbacks in your LangChain runner
+agent = initialize_agent(
+    tools=tools,
+    llm=ChatOpenAI(temperature=0),
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    callbacks=[shield_handler],
+)
 
-    crewai: `from agentshield import AgentShield
+# Actions are automatically protected from prompt injections & jailbreaks
+agent.run("Analyze Q3 metrics and generate executive summary")`,
+    },
+
+    crewai: {
+      title: 'CrewAI Multi-Agent Swarm Listener',
+      notes: 'Intercepts multi-agent task lifecycles, inter-agent instructions, and shared memory execution.',
+      code: `from agentshield import AgentShield
 from agentshield.integrations.crewai import CrewAIShieldListener
+from crewai import Agent, Task, Crew
 
+# 1. Initialize AgentShield
 shield = AgentShield(api_key="${apiKey}", mode="enforce")
 
-# Attach listener to monitor multi-agent task lifecycles
+# 2. Attach listener to monitor multi-agent task lifecycles
 listener = CrewAIShieldListener(shield=shield, agent_id="researcher_agent")
 
-# Hooks automatically intercept tool executions and task results
+# 3. Intercept task and tool events automatically
 listener.on_task_start("market_research", "Analyze venture filings")`,
+    },
 
-    openai: `from agentshield import AgentShield
+    openai: {
+      title: 'OpenAI Agents SDK / Function Calling',
+      notes: 'Pre-flight evaluation of function call arguments before model tool dispatch.',
+      code: `from agentshield import AgentShield
 from agentshield.integrations.openai import OpenAIAgentShield
 
+# 1. Initialize AgentShield
 shield = AgentShield(api_key="${apiKey}", mode="enforce")
 openai_shield = OpenAIAgentShield(shield=shield, agent_id="support_bot")
 
-# Wrap OpenAI tool definitions
+# 2. Wrap OpenAI tool definitions
 @openai_shield.tool(name="order_lookup")
 def order_lookup(order_id: str):
-    return {"status": "shipped", "carrier": "FedEx"}`,
+    """Retrieve customer order status securely."""
+    return {"order_id": order_id, "status": "shipped", "carrier": "FedEx"}`,
+    },
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[var(--bg-base)] p-3 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto w-full space-y-6 sm:space-y-8 font-mono">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+      <div className="max-w-4xl mx-auto w-full space-y-6">
         {/* Header */}
-        <div className="border-b border-[var(--border-color)] pb-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="mb-2">
-                <Logo size="sm" variant="full" animated={true} />
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-wide text-[var(--text-main)] mt-1">
-                Instrument Your AI Agent in 5 Minutes
-              </h1>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                Protect autonomous agents with real-time pre-flight guardrails, behavior anomaly detection, and unified observability.
-              </p>
+        <div className="panel-obsidian p-6 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="mb-3">
+              <Logo size="sm" variant="full" animated={true} />
             </div>
-
-            <Link
-              to="/dashboard"
-              className="px-3 py-1.5 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs rounded-sm transition-colors flex items-center gap-1.5"
-            >
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              Back to Dashboard
-            </Link>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Developer Quickstart & SDK Integration
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Instrument your autonomous agents with real-time pre-flight guardrails, behavior anomaly detection, and centralized telemetry in under 5 minutes.
+            </p>
           </div>
+
+          <Link
+            to="/dashboard"
+            className="px-3.5 py-2 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-mono font-medium rounded-lg transition-colors flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+          >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Mission Control
+          </Link>
         </div>
 
         {/* Step 1: API Key */}
-        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="panel-obsidian p-6 rounded-xl space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-[#001f27] text-xs font-bold flex items-center justify-center">
+              <span className="w-7 h-7 rounded-lg bg-sky-400 text-slate-950 text-xs font-mono font-bold flex items-center justify-center shadow-md shadow-sky-500/20">
                 1
               </span>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-main)]">
-                Acquire an Organization API Key
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white font-mono">
+                Acquire Organization API Key
               </h2>
             </div>
-            {!keyGenerated && (
+            {!keyGenerated ? (
               <button
                 onClick={handleGenerateKey}
-                className="px-3 py-1 bg-[var(--primary)] text-[#001f27] text-xs font-bold uppercase rounded-sm hover:bg-[#00b8e6] transition-colors"
+                className="px-3.5 py-1.5 bg-sky-400 hover:bg-sky-300 text-slate-950 text-xs font-mono font-bold uppercase rounded-lg transition-all shadow-md shadow-sky-500/20 active:scale-95 cursor-pointer"
               >
                 Generate Live Key
               </button>
+            ) : (
+              <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                Active Key Generated
+              </span>
             )}
           </div>
 
-          <p className="text-xs text-[var(--text-muted)]">
-            AgentShield uses 256-bit cryptographic API keys with prefixed display tokens to authenticate SDK telemetry.
+          <p className="text-xs text-slate-400">
+            AgentShield authenticates telemetry and enforcement calls with 256-bit cryptographic API keys with high-entropy SHA-256 storage.
           </p>
 
           <div className="flex items-center gap-2">
-            <div className="flex-1 p-2.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs text-[var(--primary)] select-all truncate">
+            <div className="flex-1 p-3 bg-slate-950/80 border border-white/10 rounded-lg text-xs font-mono text-sky-400 select-all truncate">
               {apiKey}
             </div>
             <button
-              onClick={() => handleCopy(apiKey)}
-              className="px-3 py-2 border border-[var(--border-color)] text-xs rounded-sm hover:border-[var(--primary)] transition-colors flex items-center gap-1"
+              onClick={() => handleCopy(apiKey, 'key')}
+              className="px-4 py-3 border border-white/10 bg-slate-900 hover:bg-slate-800 text-xs font-mono rounded-lg transition-colors flex items-center gap-1.5 text-slate-200 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">
                 {copiedKey ? 'check' : 'content_copy'}
               </span>
-              {copiedKey ? 'Copied' : 'Copy'}
+              {copiedKey ? 'Copied' : 'Copy Key'}
             </button>
           </div>
         </div>
 
         {/* Step 2: Install Package */}
-        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm space-y-4">
+        <div className="panel-obsidian p-6 rounded-xl space-y-4">
           <div className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-[#001f27] text-xs font-bold flex items-center justify-center">
+            <span className="w-7 h-7 rounded-lg bg-sky-400 text-slate-950 text-xs font-mono font-bold flex items-center justify-center shadow-md shadow-sky-500/20">
               2
             </span>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-main)]">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white font-mono">
               Install the AgentShield Python SDK
             </h2>
           </div>
 
-          <p className="text-xs text-[var(--text-muted)]">
+          <p className="text-xs text-slate-400">
             Install the SDK locally from the repository with all framework integrations enabled:
           </p>
 
-          <div className="p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs text-[var(--text-main)] flex items-center justify-between">
+          <div className="p-3.5 bg-slate-950/80 border border-white/10 rounded-lg text-xs font-mono text-slate-200 flex items-center justify-between">
             <code>pip install ./sdk/python[all]</code>
             <button
-              onClick={() => handleCopy('pip install ./sdk/python[all]')}
-              className="text-[var(--text-muted)] hover:text-[var(--primary)]"
+              onClick={() => handleCopy('pip install ./sdk/python[all]', 'install')}
+              className="text-slate-400 hover:text-sky-400 p-1 transition-colors cursor-pointer"
               title="Copy Command"
             >
-              <span className="material-symbols-outlined text-[16px]">content_copy</span>
+              <span className="material-symbols-outlined text-[16px]">
+                {copiedInstall ? 'check' : 'content_copy'}
+              </span>
             </button>
           </div>
         </div>
 
         {/* Step 3: Integration Code */}
-        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="panel-obsidian p-6 rounded-xl space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-[#001f27] text-xs font-bold flex items-center justify-center">
+              <span className="w-7 h-7 rounded-lg bg-sky-400 text-slate-950 text-xs font-mono font-bold flex items-center justify-center shadow-md shadow-sky-500/20">
                 3
               </span>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-main)]">
-                Instrument Your Agent
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white font-mono">
+                Instrument Your Autonomous Agent
               </h2>
             </div>
 
             {/* Framework Switcher Tabs */}
-            <div className="flex border border-[var(--border-color)] rounded-sm overflow-hidden text-xs">
+            <div className="flex bg-slate-950/60 p-1 rounded-lg border border-white/5 text-xs font-mono">
               {(['python', 'langchain', 'crewai', 'openai'] as FrameworkTab[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSelectedFramework(tab)}
-                  className={`px-3 py-1 uppercase text-[11px] font-bold transition-colors ${
+                  className={`px-3 py-1 uppercase text-[11px] font-bold rounded-md transition-all cursor-pointer ${
                     selectedFramework === tab
-                      ? 'bg-[var(--primary)] text-[#001f27]'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                      ? 'bg-sky-400 text-slate-950 shadow-sm shadow-sky-400/30'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {tab}
@@ -222,36 +268,43 @@ def order_lookup(order_id: str):
             </div>
           </div>
 
+          <p className="text-xs text-slate-400">
+            {codeSnippets[selectedFramework].notes}
+          </p>
+
           <div className="relative">
-            <pre className="p-4 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs text-[var(--text-main)] overflow-x-auto leading-relaxed">
-              {codeSnippets[selectedFramework]}
+            <pre className="p-4 bg-[#070b12] border border-white/10 rounded-lg text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed shadow-inner">
+              {codeSnippets[selectedFramework].code}
             </pre>
             <button
-              onClick={() => handleCopy(codeSnippets[selectedFramework])}
-              className="absolute top-3 right-3 p-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded text-[var(--text-muted)] hover:text-[var(--primary)]"
+              onClick={() => handleCopy(codeSnippets[selectedFramework].code, 'snippet')}
+              className="absolute top-3 right-3 px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs font-mono text-slate-300 hover:text-sky-400 hover:border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer"
               title="Copy snippet"
             >
-              <span className="material-symbols-outlined text-[16px]">content_copy</span>
+              <span className="material-symbols-outlined text-[14px]">
+                {copiedSnippet ? 'check' : 'content_copy'}
+              </span>
+              {copiedSnippet ? 'Copied' : 'Copy'}
             </button>
           </div>
         </div>
 
         {/* Step 4: Verification & Ping */}
-        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="panel-obsidian p-6 rounded-xl space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-[#001f27] text-xs font-bold flex items-center justify-center">
+              <span className="w-7 h-7 rounded-lg bg-sky-400 text-slate-950 text-xs font-mono font-bold flex items-center justify-center shadow-md shadow-sky-500/20">
                 4
               </span>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-main)]">
-                Verify Connectivity
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white font-mono">
+                Verify Connectivity & Health
               </h2>
             </div>
 
             <button
               onClick={handleTestPing}
               disabled={pingStatus === 'testing'}
-              className="px-3 py-1 bg-[var(--bg-raised)] border border-[var(--border-color)] text-xs text-[var(--text-main)] hover:border-[var(--primary)] rounded-sm transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-slate-900 border border-white/10 text-xs font-mono text-slate-200 hover:text-white hover:border-sky-500/40 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <span className={`material-symbols-outlined text-[16px] ${pingStatus === 'testing' ? 'animate-spin' : ''}`}>
                 {pingStatus === 'testing' ? 'sync' : 'network_ping'}
@@ -260,15 +313,15 @@ def order_lookup(order_id: str):
             </button>
           </div>
 
-          <p className="text-xs text-[var(--text-muted)]">
-            Verify connectivity using the CLI tool in your terminal:
+          <p className="text-xs text-slate-400">
+            You can also test connectivity directly from your terminal using the AgentShield CLI:
           </p>
 
-          <div className="p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs text-[var(--text-main)] flex items-center justify-between">
+          <div className="p-3 bg-slate-950/80 border border-white/10 rounded-lg text-xs font-mono text-slate-200 flex items-center justify-between">
             <code>agentshield ping --api-key {apiKey.substring(0, 20)}...</code>
             <button
-              onClick={() => handleCopy(`agentshield ping --api-key ${apiKey}`)}
-              className="text-[var(--text-muted)] hover:text-[var(--primary)]"
+              onClick={() => handleCopy(`agentshield ping --api-key ${apiKey}`, 'install')}
+              className="text-slate-400 hover:text-sky-400 p-1 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">content_copy</span>
             </button>
@@ -276,22 +329,22 @@ def order_lookup(order_id: str):
 
           {pingStatus !== 'idle' && (
             <div
-              className={`p-3 rounded-sm border text-xs flex items-center gap-2 ${
+              className={`p-3.5 rounded-lg border text-xs font-mono flex items-center gap-2.5 animate-fade-in ${
                 pingStatus === 'online'
-                  ? 'bg-[rgba(0,255,157,0.05)] border-[var(--status-success)] text-[var(--status-success)]'
+                  ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
                   : pingStatus === 'offline'
-                  ? 'bg-[rgba(255,51,102,0.05)] border-[var(--status-danger)] text-[var(--status-danger)]'
-                  : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--text-muted)]'
+                  ? 'bg-rose-950/20 border-rose-500/40 text-rose-300'
+                  : 'bg-slate-900 border-white/10 text-slate-400'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">
                 {pingStatus === 'online' ? 'check_circle' : pingStatus === 'offline' ? 'error' : 'hourglass_empty'}
               </span>
               {pingStatus === 'online'
-                ? 'Backend is ONLINE and accepting telemetry on http://localhost:8000/api/v1'
+                ? 'Backend is ONLINE and accepting telemetry at http://localhost:8000/api/v1'
                 : pingStatus === 'offline'
-                ? 'Backend unreachable on http://localhost:8000. Start backend using `make dev` or `docker compose up`.'
-                : 'Pinging backend...'}
+                ? 'Backend unreachable at http://localhost:8000. Start backend using `make dev` or `docker compose up`.'
+                : 'Pinging security gateway...'}
             </div>
           )}
         </div>

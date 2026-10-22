@@ -255,4 +255,46 @@ export async function verifyAuditLog(): Promise<AuditVerificationResponse> {
   return r.data
 }
 
+// Enterprise Simulation Lab
+export async function simulateScenario(
+  scenario: string,
+  mode = 'enforce',
+  agentId?: string
+): Promise<ScenarioSimulateResponse> {
+  const r = await api.post('/demo/simulate-scenario', { scenario, mode, agent_id: agentId })
+  return r.data
+}
+
+// Universal AI Gateway In-Browser Tester
+export async function testProxyPrompt(
+  prompt: string,
+  model = 'gpt-4o',
+  mode = 'enforce',
+  agentId?: string
+): Promise<ProxyTestResponse> {
+  const r = await api.post('/proxy/test', { prompt, model, mode, agent_id: agentId })
+  return r.data
+}
+
+// Industry Guardrail Profiles
+export async function getRuleProfiles(): Promise<RuleProfile[]> {
+  const r = await api.get('/rules/profiles')
+  return r.data
+}
+
+export async function applyRuleProfile(
+  profileId: string,
+  mode = 'enforce'
+): Promise<ProfileApplyResponse> {
+  const r = await api.post('/rules/profiles/apply', { profile_id: profileId, mode })
+  return r.data
+}
+
+// Compliance Dossier & Governance
+export async function getComplianceReport(framework = 'soc2'): Promise<ComplianceReportResponse> {
+  const r = await api.get('/compliance/report', { params: { framework } })
+  return r.data
+}
+
 export default api
+
