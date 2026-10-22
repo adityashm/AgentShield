@@ -565,3 +565,29 @@ This document maintains an evidence-backed record of all transformation phases, 
   Result: Exit 0, 0 errors, 0 warnings
   ```
 - **Phase 9 Status**: PASSED.
+
+---
+
+## 2026-10-22 — Observability, Health Readiness Probes & CI Hardening
+
+### Work Performed
+1. **Health & Readiness API Probes (`backend/app/api/v1/health.py`)**:
+   - `/healthz`: Liveness probe returning immediate JSON status, system uptime, and version.
+   - `/readyz`: Deep readiness probe checking database connectivity (`SELECT 1`), Isolation Forest model initialization, and webhook worker background task status.
+   - `/metrics`: Prometheus text-format metrics exposition exposing HTTP request counters, evaluation latency distributions, and active agent counts with `METRICS_TOKEN` authentication.
+   - Registered endpoints at root (`/healthz`, `/readyz`, `/metrics`) and under `/api/v1/` for orchestrator flexibility.
+2. **Automated Health Test Suite (`backend/tests/test_health.py`)**:
+   - Added unit and integration tests verifying `/healthz`, `/readyz`, and token-authorized `/metrics`.
+   - Backend test count expanded from 39 to **43 passing tests**.
+3. **Continuous Integration Workflow (`.github/workflows/ci.yml`)**:
+   - Configured GitHub Actions matrix testing Python 3.11, 3.12, and 3.13 across backend and SDK.
+   - Added automated frontend build checks and Docker Compose configuration validation.
+4. **Final System Verification**:
+   - Backend test suite: 43/43 passed in 3.28s.
+   - SDK test suite: 25/25 passed in 22.87s.
+   - Frontend build: 0 errors in 4.08s.
+   - Detection corpus: 80/80 attacks verified (100% precision, 100% recall).
+   - Docker Compose: Validated with 0 errors/warnings.
+
+---
+
