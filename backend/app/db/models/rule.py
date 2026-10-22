@@ -38,6 +38,33 @@ class Rule(Base):
 
     organization: Mapped[Optional["Organization"]] = relationship("Organization", back_populates="rules")
 
+    def __init__(self, **kwargs: Any):
+        if "rule_id" in kwargs:
+            kwargs.setdefault("id", kwargs.pop("rule_id"))
+        if "condition_json" in kwargs:
+            c_json = kwargs.pop("condition_json")
+            if isinstance(c_json, str):
+                try:
+                    kwargs.setdefault("condition", json.loads(c_json))
+                except Exception:
+                    kwargs.setdefault("condition", {})
+            elif isinstance(c_json, dict):
+                kwargs.setdefault("condition", c_json)
+        if "category" in kwargs:
+            cat = kwargs.pop("category")
+            cond = kwargs.get("condition")
+            if cond is None or not isinstance(cond, dict):
+                kwargs["condition"] = {"category": cat}
+            else:
+                kwargs["condition"]["category"] = cat
+        if "owasp_id" in kwargs:
+            val = kwargs.pop("owasp_id")
+            kwargs.setdefault("owasp_ids", [val] if val else [])
+        if "mitre_id" in kwargs:
+            val = kwargs.pop("mitre_id")
+            kwargs.setdefault("atlas_ids", [val] if val else [])
+        super().__init__(**kwargs)
+
     # Synonym for backward compatibility
     rule_id = synonym("id")
 

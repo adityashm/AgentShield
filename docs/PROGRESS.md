@@ -159,3 +159,72 @@ This document maintains an evidence-backed record of all transformation phases, 
   ```
 - **Phase 2 Status**: PASSED.
 
+---
+
+## 2026-10-22 — Phase 3: Threat Detection Engine Upgrade (Rules, AST DSL, Normalization & Calibrated Isolation Forest)
+
+### Work Performed
+1. **Threat Taxonomy Configuration (`backend/app/detection/taxonomy.json`)**:
+   - Comprehensive mappings for OWASP Top 10 for Agentic Applications 2026 (ASI01 through ASI10).
+   - MITRE ATLAS technique mappings (AML.T0051 prompt injection direct/indirect, AML.T0053 agent tool invocation, AML.T0086 tool exfiltration, AML.T0101 data destruction, AML.T0080 context poisoning, AML.T0098 tool credential harvesting, AML.T0010.005 supply chain compromise, AML.T0104, AML.T0110).
+2. **Payload Normalization & Deobfuscation Pipeline (`backend/app/detection/normalize.py`)**:
+   - Unicode NFKC normalization.
+   - Zero-width character stripping (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`, etc.).
+   - Homoglyph confusables normalization (Cyrillic and Greek lookalikes translated to standard Latin).
+   - Bounded recursive decoding (depth $\le 3$) for URL percent-encoding, HTML entities, hex escapes (`\x41`), and base64 string segments.
+   - Whitespace collapsing and 64KB input length bounding.
+3. **Safe AST JSON-DSL Evaluator (`backend/app/detection/dsl.py`)**:
+   - Evaluates complex rule trees without `eval()` or `exec()`.
+   - Operators: comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`), membership (`in`, `not_in`), string matching (`contains`, `icontains`, `contains_any`, `contains_all`, `starts_with`, `ends_with`), regex with ReDoS protection, Shannon entropy thresholding (`has_entropy_above`), and length thresholding (`length_gt`).
+   - Dot-separated field path resolution with parameter semantic aliases (`parameters.prompt`, `parameters.path`, `parameters.command`, `parameters.code`).
+4. **20 Default Detection Rules (`backend/app/detection/default_rules.json` & `rules_engine.py`)**:
+   - 20 production security rules covering all 10 OWASP ASI 2026 categories: system file access, prompt injection signatures, API burst floods, privilege escalation, outbound data exfiltration, reverse shells, indirect prompt injection, credential harvesting, dynamic eval/exec code execution, destructive SQL queries, authority spoofing, memory poisoning, runtime package installs, SSRF metadata access, high-entropy secret payloads, rogue persistence, phishing lure generation, resource exhaustion, container socket escape, and tunneling egress.
+5. **Calibrated Hierarchical Isolation Forest (`backend/app/detection/ml.py` & `features.py`)**:
+   - Feature engineering for Feature Set v1 (5 dimensions) and extended Feature Set v2 (9 dimensions: Shannon entropy, byte size, tool diversity, error rates).
+   - Calibrated empirical scoring: maps raw Isolation Forest score to $[0.0, 1.0]$ based on empirical median (p50) and 99th percentile (p99) quantiles of normal traffic.
+   - Hierarchical resolution: Agent-level model $\to$ Org-level model $\to$ Global baseline model.
+6. **Risk Scoring Engine (`backend/app/services/scoring.py`)**:
+   - Implements composite risk formula: $\text{Risk Score} = 0.4 \times \text{RuleScore} + 0.6 \times \text{AnomalyScore} \times 100$.
+   - Guardrail block floor: if blocked by policy, risk score is floored at 90.0.
+   - Rolling recency-weighted window over last 20 actions.
+7. **80-Sample Benchmark Attack Corpus Test Suite (`backend/tests/corpus/`)**:
+   - 40 benign realistic agent actions and 40 malicious actions spanning OWASP ASI01-ASI10 with evasions.
+   - Verified 0 false positives on benign set and 100% recall on malicious set.
+
+### Verification Gate Status
+- **Detection Corpus Benchmark Results**:
+  ```
+  Total Samples      : 80 (40 Benign, 40 Malicious)
+  True Positives (TP): 40 / 40
+  False Positives(FP): 0 / 40
+  True Negatives (TN): 40 / 40
+  False Negatives(FN): 0 / 40
+  ----------------------------------------------------------------
+  Accuracy           : 100.00%
+  Precision          : 100.00%
+  Recall             : 100.00%
+  F1 Score           : 1.0000
+  ```
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 27 passed, 4 warnings in 2.64s
+  Test breakdown:
+    tests/corpus/test_detection_corpus.py (1 passed, 80 samples)
+    tests/test_actions.py (3 passed)
+    tests/test_alerts.py (1 passed)
+    tests/test_api_keys.py (5 passed)
+    tests/test_auth.py (6 passed)
+    tests/test_ml_engine.py (3 passed)
+    tests/test_rule_engine.py (3 passed)
+    tests/test_tenancy.py (2 passed)
+    tests/test_webhooks.py (3 passed)
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 4.66s, 0 errors, 110 modules transformed
+  ```
+- **Phase 3 Status**: PASSED.
+
+

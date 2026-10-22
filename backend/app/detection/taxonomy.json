@@ -1,0 +1,93 @@
+{
+  "owasp_agentic_2026": {
+    "ASI01": {
+      "name": "Agent Goal Hijack",
+      "description": "Adversarial steering or manipulation of the agent's fundamental objective or mission during execution.",
+      "mitre_atlas_ids": ["AML.T0051", "AML.T0051.000", "AML.T0051.001"]
+    },
+    "ASI02": {
+      "name": "Tool Misuse and Exploitation",
+      "description": "Forcing the agent to invoke tools beyond intended operational parameters, unvalidated inputs, or unauthorized tools.",
+      "mitre_atlas_ids": ["AML.T0053", "AML.T0086"]
+    },
+    "ASI03": {
+      "name": "Identity and Privilege Abuse",
+      "description": "Exploiting agent credentials, elevated tokens, or confused-deputy capabilities to access restricted assets.",
+      "mitre_atlas_ids": ["AML.T0098", "AML.T0053"]
+    },
+    "ASI04": {
+      "name": "Agentic Supply Chain Vulnerabilities",
+      "description": "Compromised third-party agent plugins, vulnerable MCP servers, poisoned tool definitions, or untrusted dependencies.",
+      "mitre_atlas_ids": ["AML.T0010.005", "AML.T0104", "AML.T0110"]
+    },
+    "ASI05": {
+      "name": "Unexpected Code Execution (RCE)",
+      "description": "Arbitrary remote code execution via unsafe code interpreters, eval/exec execution, or unsanitized shell commands.",
+      "mitre_atlas_ids": ["AML.T0053", "AML.T0101"]
+    },
+    "ASI06": {
+      "name": "Memory and Context Poisoning",
+      "description": "Tampering with agent memory, conversation context, or long-term vector embeddings with persistent malicious instructions.",
+      "mitre_atlas_ids": ["AML.T0080"]
+    },
+    "ASI07": {
+      "name": "Insecure Inter-Agent Communication",
+      "description": "Spoofing, eavesdropping, or injection of unauthorized instructions between cooperating autonomous agents in multi-agent swarms.",
+      "mitre_atlas_ids": ["AML.T0051.001", "AML.T0053"]
+    },
+    "ASI08": {
+      "name": "Cascading Failures",
+      "description": "Resource exhaustion, recursive tool call loops, runaway hallucination loops, or blast-radius propagation across downstream integrations.",
+      "mitre_atlas_ids": ["AML.T0053", "AML.T0101"]
+    },
+    "ASI09": {
+      "name": "Human-Agent Trust Exploitation",
+      "description": "Social engineering through the agent to manipulate human supervisors into approving dangerous or unauthorized actions.",
+      "mitre_atlas_ids": ["AML.T0051"]
+    },
+    "ASI10": {
+      "name": "Rogue Agents",
+      "description": "Autonomous agents operating completely outside policy boundaries, self-replicating, or executing unauthorized persistent actions.",
+      "mitre_atlas_ids": ["AML.T0053", "AML.T0086", "AML.T0101"]
+    }
+  },
+  "mitre_atlas": {
+    "AML.T0051": {
+      "name": "LLM Prompt Injection",
+      "sub_types": ["direct_injection", "indirect_injection"],
+      "url": "https://atlas.mitre.org/techniques/AML.T0051"
+    },
+    "AML.T0053": {
+      "name": "AI Agent Tool Invocation",
+      "url": "https://atlas.mitre.org/techniques/AML.T0053"
+    },
+    "AML.T0086": {
+      "name": "Exfiltration via AI Agent Tool Invocation",
+      "url": "https://atlas.mitre.org/techniques/AML.T0086"
+    },
+    "AML.T0101": {
+      "name": "Data Destruction via AI Agent Tool Invocation",
+      "url": "https://atlas.mitre.org/techniques/AML.T0101"
+    },
+    "AML.T0080": {
+      "name": "AI Agent Context Poisoning",
+      "url": "https://atlas.mitre.org/techniques/AML.T0080"
+    },
+    "AML.T0098": {
+      "name": "AI Agent Tool Credential Harvesting",
+      "url": "https://atlas.mitre.org/techniques/AML.T0098"
+    },
+    "AML.T0010.005": {
+      "name": "AI Supply Chain Compromise: AI Agent Tool",
+      "url": "https://atlas.mitre.org/techniques/AML.T0010.005"
+    },
+    "AML.T0104": {
+      "name": "Publish Poisoned AI Agent Tool",
+      "url": "https://atlas.mitre.org/techniques/AML.T0104"
+    },
+    "AML.T0110": {
+      "name": "AI Agent Tool Poisoning",
+      "url": "https://atlas.mitre.org/techniques/AML.T0110"
+    }
+  }
+}

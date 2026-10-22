@@ -10,4 +10,7 @@ Format: `[YYYY-MM-DD] Decision: Reason`
 - **[2026-10-22] Re-check MITRE ATLAS IDs at atlas.mitre.org**: Kept all taxonomy IDs in `backend/app/detection/taxonomy.json` so additions and changes to agent threat techniques can be updated without code modifications.
 - **[2026-10-22] In-Batch and Database Deduplication for Batch Ingest**: Maintained an in-batch set of event IDs in addition to DB query checks to guarantee idempotency on `(org_id, event_id)` even when duplicate events appear within a single bulk submission.
 - **[2026-10-22] Key Rotation 24-Hour Overlap Window**: Kept replaced API keys active for `KEY_ROTATION_GRACE_HOURS=24` with `replaced_by` pointer to ensure zero agent downtime during fleet credential rollouts.
+- **[2026-10-22] Safe AST Evaluator Without eval/exec**: Built a dedicated AST recursive interpreter for JSON-DSL rules with ReDoS safe pattern compilation to avoid code execution vulnerabilities in policy evaluations.
+- **[2026-10-22] Layered Deobfuscation Normalization Pipeline**: Applied Unicode NFKC, zero-width stripping, homoglyph translation, and depth-bounded recursive decoding (URL/hex/base64) before rule matching to defeat adversarial evasion.
+- **[2026-10-22] Guardrail Block Floor at 90.0**: Any critical rule violation sets action risk score to at least 90.0 to prevent rolling averages from diluting immediate block enforcement.
 

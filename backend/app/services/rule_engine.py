@@ -100,6 +100,9 @@ DEFAULT_RULES = [
     },
 ]
 
+from ..detection.normalize import normalize_payload
+from ..detection.dsl import SafeASTEvaluator
+
 class RuleEngine:
     """Synchronous rule evaluation module matching actions against security rules."""
 
@@ -113,9 +116,10 @@ class RuleEngine:
         active_rules = db.query(Rule).filter(Rule.enabled == True).all()
         matched_rules: List[Rule] = []
         max_severity_score = 0.0
+        normalized_data = normalize_payload(action_data)
 
         for rule in active_rules:
-            if RuleEngine._matches_rule(action_data, rule.condition_json):
+            if RuleEngine._matches_rule(normalized_data, rule.condition_json):
                 matched_rules.append(rule)
                 # Increment match counter
                 rule.matches_count = (rule.matches_count or 0) + 1
@@ -132,7 +136,8 @@ class RuleEngine:
     @staticmethod
     def _matches_rule(action_data: Dict[str, Any], condition_json_str: str) -> bool:
         try:
-            condition = json.loads(condition_json_str)
+            condition = json.loads(condition_json_str) if isinstance(condition_json_str, str) else condition_json_str
+            return SafeASTEvaluator.evaluate(condition, action_data)
         except Exception:
             return False
 
@@ -197,20 +202,7 @@ class RuleEngine:
         return current
 
     @staticmethod
-    def seed_default_rules(db: Session):
+    def seed_default_rules(db: Session, org_id: str = "org_default"):
         """Seeds initial default security rules into the database if empty."""
-        count = db.query(Rule).count()
-        if count == 0:
-            for r in DEFAULT_RULES:
-                rule_obj = Rule(
-                    rule_id=r["rule_id"],
-                    name=r["name"],
-                    description=r["description"],
-                    category=r["category"],
-                    severity=r["severity"],
-                    enabled=r["enabled"],
-                    condition_json=r["condition_json"],
-                    matches_count=0,
-                )
-                db.add(rule_obj)
-            db.commit()
+        from ..detection.rules_engine import RulesEngine
+        RulesEngine.seed_default_rules(db, org_id=org_id)
