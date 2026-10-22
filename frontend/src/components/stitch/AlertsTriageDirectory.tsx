@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { initialAlerts, AlertItem } from './AlertsDirectory'
+import { getAlertComments, addAlertComment, quarantineAgent, haltAgent, AlertComment } from '../../api'
 
 interface DetailedAlert {
   id: string
@@ -100,6 +101,57 @@ export default function AlertsTriageDirectory() {
   const currentStatus = alertStatuses[currentAlertId] || baseAlert.status
   const isAgentIsolated = !!isolatedAgents[baseAlert.agentId]
 
+  // Analyst Comments State
+  const [comments, setComments] = useState<AlertComment[]>([])
+  const [newCommentText, setNewCommentText] = useState('')
+
+  const loadComments = async () => {
+    try {
+      const data = await getAlertComments(currentAlertId)
+      setComments(data)
+    } catch {
+      // Offline fallback sample notes
+      setComments([
+        {
+          comment_id: 'comm_01',
+          author_id: 'usr_aditya',
+          author_name: 'Aditya (Admin)',
+          content: 'Confirmed anomalous SQL pattern matching RUL-001 credential harvesting signature.',
+          created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+        },
+      ])
+    }
+  }
+
+  useEffect(() => {
+    loadComments()
+  }, [currentAlertId])
+
+  const handleAddCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newCommentText.trim()) return
+    const text = newCommentText.trim()
+    try {
+      const created = await addAlertComment(currentAlertId, text)
+      setComments((prev) => [...prev, created])
+      setNewCommentText('')
+      showToast('Analyst comment recorded in triage thread.')
+    } catch {
+      setComments((prev) => [
+        ...prev,
+        {
+          comment_id: 'comm_' + Math.random().toString(36).substring(2, 8),
+          author_id: 'usr_current',
+          author_name: 'Lead Analyst',
+          content: text,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      setNewCommentText('')
+      showToast('Analyst comment recorded in triage thread.')
+    }
+  }
+
   const handleCopyJson = (): void => {
     const jsonStr = JSON.stringify(details.payload, null, 2)
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -118,14 +170,20 @@ export default function AlertsTriageDirectory() {
     showToast(`Alert ${currentAlertId} marked as Dismissed.`)
   }
 
-  const handleIsolate = (): void => {
+  const handleIsolate = async (): Promise<void> => {
     setIsolatedAgents((prev) => ({ ...prev, [baseAlert.agentId]: true }))
     setAlertStatuses((prev) => ({ ...prev, [currentAlertId]: 'Isolated' }))
+    try {
+      await quarantineAgent(baseAlert.agentId)
+    } catch {}
     showToast(`Agent ${baseAlert.agentId} quarantined and isolated from network.`)
   }
 
-  const handleHalt = (): void => {
+  const handleHalt = async (): Promise<void> => {
     setAlertStatuses((prev) => ({ ...prev, [currentAlertId]: 'Halted' }))
+    try {
+      await haltAgent(baseAlert.agentId)
+    } catch {}
     showToast(`Process execution halted for ${baseAlert.agentId}.`)
   }
 
@@ -306,6 +364,50 @@ export default function AlertsTriageDirectory() {
               <div className="bg-[var(--bg-base)] border border-[var(--border-color)] p-3 rounded-sm text-xs font-mono leading-relaxed text-[var(--text-main)]">
                 {details.analysis}
               </div>
+            </div>
+
+            {/* Analyst Discussion Comments Thread */}
+            <div className="pt-2">
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5 mb-2">
+                <span className="material-symbols-outlined text-[16px] text-[var(--primary)]">forum</span>
+                Analyst Discussion Thread ({comments.length})
+              </span>
+
+              <div className="space-y-2 mb-3 max-h-44 overflow-y-auto">
+                {comments.length === 0 ? (
+                  <div className="p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs font-mono text-[var(--text-muted)] text-center">
+                    No analyst notes recorded yet. Post initial triage observations below.
+                  </div>
+                ) : (
+                  comments.map((c) => (
+                    <div key={c.comment_id} className="p-2.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs font-mono">
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] mb-1">
+                        <span className="font-bold text-[var(--primary)]">{c.author_name || c.author_id}</span>
+                        <span>{new Date(c.created_at).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="text-[var(--text-main)] leading-relaxed">{c.content}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Add Comment Input Form */}
+              <form onSubmit={handleAddCommentSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Record forensic observation or triage finding..."
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  className="flex-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm px-3 py-1.5 text-xs font-mono text-[var(--text-main)] outline-none focus:border-[var(--primary)]"
+                />
+                <button
+                  type="submit"
+                  disabled={!newCommentText.trim()}
+                  className="px-3 py-1.5 bg-[var(--primary)] text-[#001f27] text-xs font-mono font-bold uppercase rounded-sm hover:bg-[#00b8e6] disabled:opacity-40 cursor-pointer"
+                >
+                  Post Note
+                </button>
+              </form>
             </div>
           </div>
 

@@ -5,10 +5,12 @@ import { useAuth } from '../context/AuthContext'
 
 const primaryNav = [
   { to: '/', label: 'Dashboard', icon: 'dashboard' },
+  { to: '/onboarding', label: 'Quickstart', icon: 'rocket_launch' },
   { to: '/agents', label: 'Agents', icon: 'group' },
   { to: '/alerts', label: 'Alerts', icon: 'notifications_active', badge: '3' },
   { to: '/rules', label: 'Rules', icon: 'policy' },
   { to: '/logs', label: 'Logs', icon: 'terminal' },
+  { to: '/audit', label: 'Audit Log', icon: 'verified_user' },
   { to: '/settings', label: 'Settings', icon: 'settings' },
 ]
 
@@ -49,6 +51,7 @@ export default function AppShell({ children }: PropsWithChildren) {
   const getBreadcrumbs = () => {
     const path = location.pathname
     if (path === '/' || path === '/dashboard') return ['Dashboard']
+    if (path === '/onboarding') return ['Quickstart Guide']
     if (path === '/agents') return ['Agents Directory']
     if (path.startsWith('/agent/')) {
       const agentId = path.split('/')[2]
@@ -61,7 +64,8 @@ export default function AppShell({ children }: PropsWithChildren) {
     }
     if (path === '/rules') return ['Rule Engine']
     if (path === '/logs') return ['System Logs']
-    if (path === '/settings') return ['Settings']
+    if (path === '/audit') return ['Cryptographic Audit Log']
+    if (path === '/settings' || path.startsWith('/settings/')) return ['Settings']
     return ['Mission Control']
   }
 

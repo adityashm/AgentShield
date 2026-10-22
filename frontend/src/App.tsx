@@ -10,6 +10,8 @@ import Rules from './pages/Rules'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import Logs from './pages/Logs'
+import Audit from './pages/Audit'
+import Onboarding from './pages/Onboarding'
 
 export default function App() {
   return (
@@ -25,6 +27,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/alerts/triage" element={<AlertsTriage />} />
               <Route path="/alerts/triage/:id" element={<AlertsTriage />} />
@@ -32,7 +35,9 @@ export default function App() {
               <Route path="/agent/:id" element={<AgentDetail />} />
               <Route path="/rules" element={<Rules />} />
               <Route path="/logs" element={<Logs />} />
+              <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/*" element={<Settings />} />
               <Route
                 path="*"
                 element={

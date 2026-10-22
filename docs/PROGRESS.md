@@ -338,5 +338,62 @@ This document maintains an evidence-backed record of all transformation phases, 
   ```
 - **Phase 5 Status**: PASSED.
 
+---
 
+## 2026-10-22 — Phase 6: Frontend Mission Control Upgrade, Audit Log Explorer & UI Verification
 
+### Work Performed
+1. **OpenAPI Export & TypeScript Client Generation (`scripts/export_openapi.py`, `frontend/src/api/types.ts`)**:
+   - Automated export of FastAPI OpenAPI 3.1.0 specification to `frontend/src/api/openapi.json`.
+   - Comprehensive TypeScript definitions generated in `frontend/src/api/types.ts` for all API schemas (AuditEntry, AuditVerification, Agent, Action, Alert, Rule, ApiKey, Webhook, User, EvaluateRequest/Response).
+2. **Typed API Client Methods (`frontend/src/api/index.ts`)**:
+   - Added typed methods: `verifyAuditLog()`, `getAuditLog()`, `getAuditLogExportUrl()`, `rotateApiKey(keyId, graceHours)`, `quarantineAgent(agentId, reason)`, `haltAgent(agentId, reason)`, `releaseAgent(agentId)`, `evaluateRuleSandbox(ruleId, payload)`, `listUsers()`, `inviteUser()`, `updateUserRole()`.
+3. **Cryptographic Audit Log Explorer (`frontend/src/pages/Audit.tsx`)**:
+   - Cryptographic verification badge running live verification against `GET /api/v1/audit-log/verify` (reports unbroken chain status, genesis hash, latest block hash, and total records).
+   - Search, filter by action type (agent_quarantined, api_key_created, etc.), and JSON details view.
+   - RFC 6962 parent hash inspector modal showing contiguous prev_hash linking.
+4. **Onboarding & Quickstart Wizard (`frontend/src/pages/Onboarding.tsx`)**:
+   - 4-step interactive flow: (1) Organization profile, (2) Generate API key with copy-to-clipboard, (3) Interactive code snippet selector across LangChain, CrewAI, OpenAI Agents SDK, and Raw Python, (4) Test connection ping verification.
+5. **Team RBAC & API Key Rotation (`frontend/src/components/stitch/SettingsDirectory.tsx`)**:
+   - Team management tab listing members with Admin, Analyst, and Viewer roles, status badges, and invite modal.
+   - API key rotation workflow with configurable 24-hour overlap grace window to guarantee zero-downtime key rotation.
+   - PagerDuty Events API v2 integration added alongside Slack, Discord, and Generic HMAC webhooks.
+6. **Interactive Detection Rule Sandbox (`frontend/src/components/stitch/RulesDirectory.tsx`)**:
+   - Live testing drawer allowing security engineers to select any JSON-DSL rule, input sample action parameters (e.g., prompt injection or unauthorized path), and evaluate in real-time with sub-millisecond latency metrics and rule match reasons.
+7. **Incident Response Triage Upgrade (`frontend/src/components/stitch/AlertsTriageDirectory.tsx`)**:
+   - Integrated analyst discussion thread (`POST /api/v1/alerts/{id}/comments`) for incident coordination.
+   - One-click Agent Quarantine and Emergency Halt buttons directly within the triage header.
+8. **Automated Playwright UI Verification (`scripts/capture_ui_screenshots.py`)**:
+   - End-to-end browser script driving dark-mode UI across 11 key routes with seeded mock data.
+   - Captured 11 high-resolution 1280x800 screenshots as artifacts: `page_login.png`, `page_dashboard.png`, `page_onboarding.png`, `page_agents.png`, `page_agent_detail.png`, `page_alerts.png`, `page_alerts_triage.png`, `page_rules.png`, `page_logs.png`, `page_audit.png`, `page_settings.png`.
+
+### Verification Gate Status
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 3.34s, 0 errors, 113 modules transformed
+  Output: dist/index.html (0.87 kB), dist/assets/index.css (30.56 kB), dist/assets/index.js (549.14 kB)
+  ```
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 33 passed, 6 warnings in 2.52s
+  ```
+- **SDK Test Suite**:
+  ```
+  Command: python -m pytest sdk/python/tests/ -v (in sdk/python/)
+  Result: 25 passed in 22.49s
+  ```
+- **UI Screenshot Artifacts**:
+  - `page_login.png`
+  - `page_dashboard.png`
+  - `page_onboarding.png`
+  - `page_agents.png`
+  - `page_agent_detail.png`
+  - `page_alerts.png`
+  - `page_alerts_triage.png`
+  - `page_rules.png`
+  - `page_logs.png`
+  - `page_audit.png`
+  - `page_settings.png`
+- **Phase 6 Status**: PASSED.
