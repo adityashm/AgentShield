@@ -30,8 +30,23 @@ class APIKey(Base):
 
     organization: Mapped["Organization"] = relationship("Organization", back_populates="api_keys")
 
+    def __init__(self, **kwargs: Any):
+        if "created_by_user_id" in kwargs:
+            kwargs.setdefault("created_by", kwargs.pop("created_by_user_id"))
+        kwargs.pop("is_test", None)
+        kwargs.pop("rate_limit_per_minute", None)
+        super().__init__(**kwargs)
+
     # Synonyms for backward compatibility
     key_id = synonym("id")
+
+    @property
+    def is_test(self) -> bool:
+        return "test" in self.prefix
+
+    @property
+    def rate_limit_per_minute(self) -> int:
+        return 120
 
     @property
     def is_active(self) -> bool:

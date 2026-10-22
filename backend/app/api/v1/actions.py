@@ -1,243 +1,518 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
 import json
 import uuid
 import asyncio
+from datetime import datetime, timezone, timedelta
+from typing import Dict, Any, List, Optional, Union
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from ...database import get_db
-from ...schemas import ActionCreate, ActionBulkCreate, ActionResponse
-from ...models import Action, Agent, Alert, Organization
+from ...db.models import Action, Agent, Alert, Organization, APIKey, SessionModel
 from ...services.rule_engine import RuleEngine
 from ...services.ml_engine import ml_engine
 from ...services.risk_calculator import RiskCalculator
 from ...services.websocket_manager import ws_manager
 from ...services.webhook_dispatcher import webhook_dispatcher
-from ...services.auth import get_current_org
-from ...config import settings
+from ...core.config import settings
+from ...core.deps import get_current_org_from_key
+from ...core.ratelimit import api_key_limiter
+from ...core.errors import RateLimitExceededError, ForbiddenError, ProblemException
 
-router = APIRouter(prefix="/actions", tags=["actions"])
+router = APIRouter(tags=["Actions & Ingestion"])
+
+# ==============================================================================
+# Request & Response Schemas
+# ==============================================================================
+
+class ActionEvent(BaseModel):
+    event_id: Optional[str] = None
+    agent_id: str
+    agent_name: Optional[str] = None
+    framework: Optional[str] = None
+    environment: Optional[str] = "production"
+    session_id: Optional[str] = None
+    trace_id: Optional[str] = None
+    parent_event_id: Optional[str] = None
+    action_type: str
+    tool_name: Optional[str] = None
+    status: Optional[str] = "started"
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    output: Optional[Union[str, Dict[str, Any]]] = None
+    latency_ms: Optional[float] = None
+    error: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+class BatchIngestRequest(BaseModel):
+    events: List[ActionEvent]
+
+class LegacyBulkCreate(BaseModel):
+    actions: List[ActionEvent]
+
+class MatchedRuleInfo(BaseModel):
+    id: str
+    name: str
+    severity: str
+
+class EventResult(BaseModel):
+    event_id: str
+    risk_score: float
+    severity: str
+    decision: str
+    matched_rules: List[MatchedRuleInfo]
+
+class BatchIngestResponse(BaseModel):
+    accepted: int
+    duplicates: int
+    agent_status: str
+    results: List[EventResult]
 
 class EvaluateRequest(BaseModel):
     agent_id: str
     action_type: str
-    parameters: Dict[str, Any] = {}
+    tool_name: Optional[str] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    session_id: Optional[str] = None
+    persist: Optional[bool] = True
 
 class EvaluateResponse(BaseModel):
     decision: str  # allow, deny, review
     risk_score: float
-    anomaly_score: float
-    violated_rules: List[str]
-    reason: Optional[str] = None
+    severity: str
+    reasons: List[str]
+    matched_rules: List[Dict[str, Any]]
+    agent_status: str
+    evaluation_id: str
+    persisted: bool
+    # Backward compatibility fields
+    violated_rules: List[str] = Field(default_factory=list)
+    anomaly_score: float = 0.0
 
-@router.post("/evaluate", response_model=EvaluateResponse)
-async def evaluate_action_preflight(
-    eval_in: EvaluateRequest,
-    org: Organization = Depends(get_current_org),
-    db: Session = Depends(get_db),
-):
-    """
-    Synchronous pre-action evaluation endpoint for AgentShield SDK 'enforce' mode.
-    Returns allow, deny, or review before the agent executes the tool.
-    """
-    # 1. Rule Engine evaluation
-    eval_payload = {"action_type": eval_in.action_type, "parameters": eval_in.parameters}
-    matched_rules, rule_severity_score = RuleEngine.evaluate_action(eval_payload, db)
+def sanitize_payload(obj: Any, depth: int = 0) -> Any:
+    """Limits parameter recursion depth to 10 and truncates strings at 64 KB."""
+    if depth > 10:
+        return "[MAX_DEPTH_EXCEEDED]"
+    if isinstance(obj, dict):
+        return {str(k): sanitize_payload(v, depth + 1) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [sanitize_payload(x, depth + 1) for x in obj]
+    if isinstance(obj, str) and len(obj) > 65536:
+        return obj[:65536] + " [truncated:true]"
+    return obj
 
-    # 2. ML Engine evaluation
-    anomaly_score = ml_engine.predict_anomaly_score({
-        "action_type": eval_in.action_type,
-        "parameters": eval_in.parameters,
-        "call_frequency": 30.0 if matched_rules else 15.0,
-        "session_duration": 180.0,
-    })
+def check_key_limits(key_record: APIKey, required_scope: str):
+    """Enforces rate limiting and scope checks on the authenticated API key."""
+    # 1. Scope check
+    key_scopes = key_record.scopes if isinstance(key_record.scopes, list) else []
+    scope_aliases = {
+        "ingest": ["ingest", "actions:write", "write", "all", "admin"],
+        "evaluate": ["evaluate", "actions:write", "write", "all", "admin"],
+        "read": ["read", "alerts:read", "actions:read", "all", "admin"],
+    }
+    allowed_aliases = scope_aliases.get(required_scope, [required_scope, "all", "admin"])
+    if not any(s in key_scopes for s in allowed_aliases):
+        raise ForbiddenError(f"API key missing required scope: '{required_scope}'.")
 
-    if rule_severity_score >= 75.0:
-        anomaly_score = max(anomaly_score, 0.85)
-
-    # 3. Risk calculation
-    risk_score = RiskCalculator.calculate_action_risk(rule_severity_score, anomaly_score)
-
-    violated_rule_ids = [r.rule_id for r in matched_rules]
-
-    if risk_score >= settings.ALERT_RISK_THRESHOLD:
-        decision = "deny"
-        reason = f"Violated policy {violated_rule_ids[0]}" if violated_rule_ids else "Exceeded anomaly safety threshold"
-    elif risk_score >= 50.0:
-        decision = "review"
-        reason = "Medium risk activity detected; flagging for analyst review"
-    else:
-        decision = "allow"
-        reason = None
-
-    return EvaluateResponse(
-        decision=decision,
-        risk_score=risk_score,
-        anomaly_score=anomaly_score,
-        violated_rules=violated_rule_ids,
-        reason=reason,
+    # 2. Rate limit check (sliding window per key)
+    allowed, retry_after = api_key_limiter.is_allowed(
+        key=key_record.id,
+        max_requests=settings.RATE_LIMIT_PER_KEY_PER_MIN,
+        window_seconds=60,
     )
+    if not allowed:
+        raise RateLimitExceededError(
+            detail=f"Rate limit of {settings.RATE_LIMIT_PER_KEY_PER_MIN} req/min exceeded.",
+            retry_after=retry_after,
+        )
 
-@router.post("", response_model=ActionResponse)
-async def ingest_action(
-    action_in: ActionCreate,
-    org: Organization = Depends(get_current_org),
-    db: Session = Depends(get_db),
-):
-    """Ingest a single agent action event (SRS FR-01) scoped by organization."""
-    now = action_in.timestamp or datetime.now(timezone.utc)
-    time_str = now.strftime("%H:%M:%S.%f")[:12]
+# ==============================================================================
+# Core Action Evaluation & Processing
+# ==============================================================================
 
-    # Ensure agent exists under this organization
+def process_single_action(
+    event: ActionEvent,
+    org: Organization,
+    db: Session,
+    persist: bool = True,
+) -> tuple[Action, List[MatchedRuleInfo], str]:
+    now = datetime.now(timezone.utc)
+    
+    # Clock skew handling within +/- 24 hours
+    clock_skew = False
+    event_ts = event.timestamp
+    if event_ts:
+        if event_ts.tzinfo is None:
+            event_ts = event_ts.replace(tzinfo=timezone.utc)
+        skew_hours = abs((now - event_ts).total_seconds()) / 3600.0
+        if skew_hours > 24.0:
+            clock_skew = True
+            event_ts = now
+    else:
+        event_ts = now
+
+    event_id = event.event_id or str(uuid.uuid4())
+    sanitized_params = sanitize_payload(event.parameters)
+
+    # 1. Agent auto-registration and status lookup
     agent = (
         db.query(Agent)
-        .filter(Agent.agent_id == action_in.agent_id, Agent.org_id == org.org_id)
+        .filter(Agent.external_id == event.agent_id, Agent.org_id == org.id)
         .first()
     )
     if not agent:
+        existing_pk = db.query(Agent).filter(Agent.id == event.agent_id).first()
+        agent_pk = event.agent_id if not existing_pk else f"{org.id}_{event.agent_id}"
         agent = Agent(
-            agent_id=action_in.agent_id,
-            org_id=org.org_id,
-            name=f"Agent {action_in.agent_id}",
-            current_risk_score=0.0,
+            id=agent_pk,
+            org_id=org.id,
+            external_id=event.agent_id,
+            name=event.agent_name or f"Agent {event.agent_id}",
+            framework=event.framework,
+            environment=event.environment or "production",
             status="active",
+            risk_score=0.0,
+            first_seen=now,
+            last_seen=now,
+            metadata_json=event.metadata or {},
         )
         db.add(agent)
-        db.commit()
+        db.flush()
+    else:
+        agent.last_seen = now
+        if event.agent_name and agent.name != event.agent_name:
+            agent.name = event.agent_name
 
-    # If agent is suspended, reject with 403
-    if agent.status == "suspended":
-        raise HTTPException(
-            status_code=403,
-            detail=f"Agent {action_in.agent_id} is quarantined and suspended from network.",
+    # 2. Session tracking
+    session_pk = None
+    if event.session_id:
+        sess = (
+            db.query(SessionModel)
+            .filter(
+                SessionModel.org_id == org.id,
+                SessionModel.agent_id == agent.id,
+                SessionModel.external_session_id == event.session_id,
+            )
+            .first()
         )
+        if not sess:
+            sess = SessionModel(
+                id=str(uuid.uuid4()),
+                org_id=org.id,
+                agent_id=agent.id,
+                external_session_id=event.session_id,
+                started_at=now,
+                last_event_at=now,
+                event_count=1,
+            )
+            db.add(sess)
+            db.flush()
+        else:
+            sess.last_event_at = now
+            sess.event_count = (sess.event_count or 0) + 1
+        session_pk = sess.id
 
-    # 1. Rule Engine evaluation
-    eval_payload = {"action_type": action_in.action_type, "parameters": action_in.parameters}
+    # 3. Rule evaluation
+    eval_payload = {
+        "action_type": event.action_type,
+        "tool_name": event.tool_name,
+        "parameters": sanitized_params,
+        "output": event.output,
+    }
     matched_rules, rule_severity_score = RuleEngine.evaluate_action(eval_payload, db)
 
-    # 2. ML Engine evaluation
+    # 4. ML Anomaly evaluation
     anomaly_score = ml_engine.predict_anomaly_score({
-        "action_type": action_in.action_type,
-        "parameters": action_in.parameters,
+        "action_type": event.action_type,
+        "parameters": sanitized_params,
         "call_frequency": 30.0 if matched_rules else 15.0,
         "session_duration": 180.0,
     })
-
     if rule_severity_score >= 75.0:
         anomaly_score = max(anomaly_score, 0.85)
 
-    # 3. Risk calculation
+    # 5. Risk score & decision calculation
     risk_score = RiskCalculator.calculate_action_risk(rule_severity_score, anomaly_score)
 
-    # 4. Save action
-    action_id = str(uuid.uuid4())
-    session_id = action_in.session_id or str(uuid.uuid4())
-    action = Action(
-        action_id=action_id,
-        org_id=org.org_id,
-        agent_id=action_in.agent_id,
-        action_type=action_in.action_type,
-        parameters_json=json.dumps(action_in.parameters),
-        timestamp=now,
-        risk_score=risk_score,
-        anomaly_score=anomaly_score,
-        session_id=session_id,
-    )
-    db.add(action)
+    # Quarantine / Halt enforcement logic
+    if agent.status == "quarantined":
+        decision = "deny"
+        reason = "agent_quarantined"
+        severity = "high"
+    elif agent.status == "halted":
+        decision = "deny"
+        reason = "agent_halted"
+        severity = "critical"
+    elif any(getattr(r, "mode", "alert") == "block" or getattr(r, "severity", "medium").lower() in ("critical", "high") for r in matched_rules) or risk_score >= settings.BLOCK_THRESHOLD:
+        decision = "deny"
+        risk_score = max(risk_score, 90.0)
+        severity = "critical" if (matched_rules and getattr(matched_rules[0], "severity", "").lower() == "critical") else "high"
+        reason = f"Blocked by guardrail policy: {matched_rules[0].name}" if matched_rules else "High risk threshold exceeded"
+    elif risk_score >= settings.REVIEW_THRESHOLD:
+        decision = "review"
+        severity = "high"
+        reason = "High anomaly activity requiring analyst review"
+    elif risk_score >= settings.ALERT_THRESHOLD:
+        decision = "allow"
+        severity = "medium"
+        reason = "Elevated risk score observed"
+    else:
+        decision = "allow"
+        severity = "low"
+        reason = None
 
-    # Update rolling risk
-    RiskCalculator.update_agent_rolling_risk(action_in.agent_id, db)
-
-    # 5. Alert generation if risk threshold exceeded
-    alert_info = None
-    if risk_score >= settings.ALERT_RISK_THRESHOLD:
-        severity = "Critical" if risk_score >= 80 else "High"
-        trigger_type = "rule_match" if matched_rules else "anomaly"
-        alert_id = f"ALT-{uuid.uuid4().hex[:6].upper()}"
-        alert = Alert(
-            alert_id=alert_id,
-            org_id=org.org_id,
-            action_id=action_id,
-            agent_id=action_in.agent_id,
-            trigger_type=trigger_type,
-            severity=severity,
-            risk_score=risk_score,
-            status="Open",
-            notes=f"Triggered by {matched_rules[0].name if matched_rules else 'Isolation Forest ML Anomaly'}",
-            created_at=now,
+    matched_rule_models = [
+        MatchedRuleInfo(
+            id=r.id,
+            name=r.name,
+            severity=r.severity,
         )
-        db.add(alert)
-        alert_info = {
-            "alert_id": alert_id,
-            "agent_id": action_in.agent_id,
-            "severity": severity,
-            "risk_score": risk_score,
-        }
+        for r in matched_rules
+    ]
 
-    db.commit()
-    db.refresh(action)
+    action = Action(
+        id=str(uuid.uuid4()),
+        org_id=org.id,
+        agent_id=agent.id,
+        session_id=session_pk,
+        event_id=event_id,
+        parent_event_id=event.parent_event_id,
+        trace_id=event.trace_id,
+        action_type=event.action_type,
+        tool_name=event.tool_name,
+        status=event.status or "started",
+        parameters=sanitized_params,
+        output_excerpt=str(event.output)[:2048] if event.output else None,
+        latency_ms=event.latency_ms,
+        error=event.error,
+        timestamp=event_ts,
+        received_at=now,
+        clock_skew=clock_skew,
+        features={"anomaly_score": anomaly_score, "rule_score": rule_severity_score},
+        rule_score=rule_severity_score,
+        anomaly_score=anomaly_score,
+        risk_score=risk_score,
+        severity=severity,
+        decision=decision,
+        reason=reason,
+        matched_rules=[{"id": r.id, "name": r.name, "severity": r.severity} for r in matched_rules],
+    )
 
-    # 6. Dispatch Webhook notifications asynchronously if alert was triggered
-    if alert_info:
-        asyncio.create_task(
-            webhook_dispatcher.dispatch_alert_async(
-                org_id=org.org_id,
-                alert_data={
-                    "alert_id": alert.alert_id,
-                    "agent_id": alert.agent_id,
-                    "severity": alert.severity,
-                    "risk_score": alert.risk_score,
-                    "trigger_type": alert.trigger_type,
-                    "notes": alert.notes,
-                    "created_at": alert.created_at.isoformat() if alert.created_at else now.isoformat(),
-                },
-                action_data={
-                    "action_id": action_id,
-                    "action_type": action_in.action_type,
-                    "parameters": action_in.parameters,
-                },
+    if persist:
+        db.add(action)
+        RiskCalculator.update_agent_rolling_risk(agent.id, db)
+
+        # Alert creation if threshold exceeded
+        if risk_score >= settings.ALERT_THRESHOLD or matched_rules:
+            alert_id = f"ALT-{uuid.uuid4().hex[:6].upper()}"
+            alert = Alert(
+                id=alert_id,
+                org_id=org.id,
+                agent_id=agent.id,
+                first_action_id=action.id,
+                rule_id=matched_rules[0].id if matched_rules else None,
+                title=f"Security Alert: {matched_rules[0].name if matched_rules else 'Behavioural Anomaly'}",
+                severity="Critical" if risk_score >= 80 else "High" if risk_score >= 60 else "Medium",
+                risk_score=risk_score,
+                status="Open",
+                group_key=f"{agent.id}:{matched_rules[0].id if matched_rules else 'anomaly'}:{now.strftime('%Y%m%d%H%M')[:11]}0",
+                count=1,
+                first_seen=now,
+                last_seen=now,
+                resolution_note=reason,
+            )
+            db.add(alert)
+
+    return action, matched_rule_models, agent.status
+
+# ==============================================================================
+# Endpoints
+# ==============================================================================
+
+@router.get("/ping")
+def ping(auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key)):
+    """Verifies API key validity and returns org name, scopes, and server version."""
+    org, key = auth_info
+    return {
+        "org": org.name,
+        "org_id": org.id,
+        "key_prefix": key.prefix,
+        "scopes": key.scopes,
+        "version": settings.VERSION,
+        "status": "operational",
+    }
+
+@router.post("/evaluate", response_model=EvaluateResponse)
+@router.post("/actions/evaluate", response_model=EvaluateResponse)
+def evaluate_action_preflight(
+    req: EvaluateRequest,
+    auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key),
+    db: Session = Depends(get_db),
+):
+    """
+    Synchronous pre-flight policy evaluation for AgentShield SDK 'enforce' mode.
+    Latency budget: p95 < 50ms.
+    """
+    org, key = auth_info
+    check_key_limits(key, required_scope="evaluate")
+
+    event = ActionEvent(
+        event_id=str(uuid.uuid4()),
+        agent_id=req.agent_id,
+        action_type=req.action_type,
+        tool_name=req.tool_name,
+        parameters=req.parameters,
+        session_id=req.session_id,
+    )
+
+    action, matched_rules, agent_status = process_single_action(
+        event=event,
+        org=org,
+        db=db,
+        persist=req.persist if req.persist is not None else True,
+    )
+    if req.persist:
+        db.commit()
+
+    reasons = [action.reason] if action.reason else []
+    violated_rule_ids = [r.id for r in matched_rules]
+
+    return EvaluateResponse(
+        decision=action.decision,
+        risk_score=action.risk_score,
+        severity=action.severity,
+        reasons=reasons,
+        matched_rules=[{"id": r.id, "name": r.name, "severity": r.severity} for r in matched_rules],
+        agent_status=agent_status,
+        evaluation_id=action.id,
+        persisted=req.persist if req.persist is not None else True,
+        violated_rules=violated_rule_ids,
+        anomaly_score=action.anomaly_score,
+    )
+
+@router.post("/actions", status_code=status.HTTP_200_OK)
+@router.post("/actions/batch", status_code=status.HTTP_202_ACCEPTED, response_model=BatchIngestResponse)
+async def ingest_actions_batch(
+    payload: Union[BatchIngestRequest, ActionEvent, Dict[str, Any]],
+    request: Request,
+    auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key),
+    db: Session = Depends(get_db),
+):
+    """
+    Ingests single or batch telemetry events (up to 500 actions).
+    Idempotent on (org_id, event_id). Duplicates are counted, not re-processed.
+    """
+    org, key = auth_info
+    check_key_limits(key, required_scope="ingest")
+
+    # Normalize input
+    events: List[ActionEvent] = []
+    if isinstance(payload, BatchIngestRequest):
+        events = payload.events
+    elif isinstance(payload, ActionEvent):
+        events = [payload]
+    elif isinstance(payload, dict):
+        if "events" in payload and isinstance(payload["events"], list):
+            events = [ActionEvent(**ev) for ev in payload["events"]]
+        elif "actions" in payload and isinstance(payload["actions"], list):
+            events = [ActionEvent(**ev) for ev in payload["actions"]]
+        else:
+            events = [ActionEvent(**payload)]
+
+    if len(events) > 500:
+        raise ProblemException(
+            status_code=400,
+            title="Batch Limit Exceeded",
+            detail="Maximum allowed batch size is 500 events per request.",
+        )
+
+    accepted_count = 0
+    duplicate_count = 0
+    results: List[EventResult] = []
+    latest_agent_status = "active"
+    seen_event_ids_in_batch = set()
+
+    for event in events:
+        # Idempotency check on (org_id, event_id)
+        if event.event_id:
+            if event.event_id in seen_event_ids_in_batch:
+                duplicate_count += 1
+                continue
+            existing = (
+                db.query(Action)
+                .filter(Action.org_id == org.id, Action.event_id == event.event_id)
+                .first()
+            )
+            if existing:
+                duplicate_count += 1
+                continue
+            seen_event_ids_in_batch.add(event.event_id)
+
+        action, matched_rules, agent_status = process_single_action(
+            event=event,
+            org=org,
+            db=db,
+            persist=True,
+        )
+        accepted_count += 1
+        latest_agent_status = agent_status
+
+        results.append(
+            EventResult(
+                event_id=action.event_id,
+                risk_score=action.risk_score,
+                severity=action.severity,
+                decision=action.decision,
+                matched_rules=matched_rules,
             )
         )
 
-    # Broadcast over WebSocket
-    ws_event = {
-        "type": "ACTION_EVENT",
-        "org_id": org.org_id,
-        "action_id": action_id,
-        "agent": action_in.agent_id,
-        "action": action_in.action_type,
-        "risk": risk_score,
-        "anomaly": anomaly_score,
-        "tone": "danger" if risk_score >= 75 else "warning" if risk_score >= 45 else "success",
-        "time": time_str,
-        "status": "Critical" if risk_score >= 80 else "Suspicious" if risk_score >= 50 else "Normal",
-        "alert": alert_info,
-    }
-    await ws_manager.broadcast_agent_event(action_in.agent_id, ws_event)
+        # Broadcast telemetry event over WebSockets
+        ws_event = {
+            "type": "ACTION_EVENT",
+            "org_id": org.id,
+            "action_id": action.id,
+            "agent": event.agent_id,
+            "action": event.action_type,
+            "risk": action.risk_score,
+            "anomaly": action.anomaly_score,
+            "status": action.severity.capitalize(),
+            "time": action.timestamp.strftime("%H:%M:%S"),
+        }
+        await ws_manager.broadcast_agent_event(event.agent_id, ws_event)
 
-    return ActionResponse(
-        action_id=action.action_id,
-        agent_id=action.agent_id,
-        action_type=action.action_type,
-        parameters=action.parameters,
-        timestamp=action.timestamp,
-        risk_score=action.risk_score,
-        anomaly_score=action.anomaly_score,
-        session_id=action.session_id,
+    db.commit()
+
+    # If it was a single event called via legacy POST /actions, return legacy response shape if requested
+    if len(events) == 1 and "/batch" not in request.url.path:
+        first_res = results[0] if results else None
+        return {
+            "action_id": first_res.event_id if first_res else "unknown",
+            "agent_id": events[0].agent_id,
+            "action_type": events[0].action_type,
+            "risk_score": first_res.risk_score if first_res else 0.0,
+            "decision": first_res.decision if first_res else "allow",
+            "agent_status": latest_agent_status,
+        }
+
+    return BatchIngestResponse(
+        accepted=accepted_count,
+        duplicates=duplicate_count,
+        agent_status=latest_agent_status,
+        results=results,
     )
 
-@router.post("/bulk")
-async def bulk_ingest(
-    bulk_in: ActionBulkCreate,
-    org: Organization = Depends(get_current_org),
+@router.post("/actions/bulk")
+async def bulk_ingest_compat(
+    bulk_in: LegacyBulkCreate,
+    request: Request,
+    auth_info: tuple[Organization, APIKey] = Depends(get_current_org_from_key),
     db: Session = Depends(get_db),
 ):
-    """Bulk ingest actions from CSV/JSON import scoped by organization."""
-    count = 0
-    for act in bulk_in.actions:
-        await ingest_action(act, org, db)
-        count += 1
-    return {"status": "success", "ingested_count": count}
+    """Legacy endpoint backward compatibility alias."""
+    return await ingest_actions_batch(
+        payload=BatchIngestRequest(events=bulk_in.actions),
+        request=request,
+        auth_info=auth_info,
+        db=db,
+    )

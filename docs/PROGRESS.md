@@ -107,3 +107,55 @@ This document maintains an evidence-backed record of all transformation phases, 
   Result: built in 3.15s, 0 errors, 110 modules transformed
   ```
 - **Phase 1 Status**: PASSED.
+
+---
+
+## 2026-10-22 — Phase 2: API Keys, Ingestion & Pre-Action Evaluation
+
+### Work Performed
+1. **API Key Lifecycle API (`backend/app/api/v1/api_keys.py`)**:
+   - `POST /api/v1/api-keys`: 256-bit cryptographic keys (`ashield_live_...` / `ashield_test_...`), display prefix generation (`ashield_live_xxxxxxxx`), peppered HMAC-SHA256 hash lookup index, and audit logging.
+   - `GET /api/v1/api-keys`: Scoped list of active/expired/revoked keys with masked prefixes and last-used timestamps.
+   - `POST /api/v1/api-keys/{key_id}/rotate`: Key rotation with configurable overlap grace period (`KEY_ROTATION_GRACE_HOURS=24`), tracking `replaced_by` and retaining validity of both old and new keys during grace period.
+   - `POST /api/v1/api-keys/{key_id}/revoke` & `DELETE /api/v1/api-keys/{key_id}`: Immediate key revocation with audit log.
+2. **Action Ingestion & Evaluation API (`backend/app/api/v1/actions.py`)**:
+   - `POST /api/v1/actions`: Single telemetry event ingestion with backwards compatibility.
+   - `POST /api/v1/actions/batch`: High-throughput batch ingestion ($\le 500$ events, returning HTTP 202 Accepted) with deduplication and idempotency on `(org_id, event_id)` across both database and within-batch records.
+   - `POST /api/v1/evaluate` & `POST /api/v1/actions/evaluate`: Synchronous pre-flight evaluate endpoint returning `decision` (`allow`, `review`, `deny`), `risk_score`, `reasons`, and `matched_rules`.
+   - `GET /api/v1/ping`: Key connectivity verification returning organization name, prefix, and scopes.
+   - Bounds and safety validation: string truncation at 64KB, max depth 10, payload limit 1MB, clock skew tolerance $\pm 24\text{h}$.
+3. **Agent Quarantine, Halt & Release API (`backend/app/api/v1/agents.py`)**:
+   - `POST /api/v1/agents/{id}/quarantine` (and legacy `/isolate`): Marks agent quarantined, pre-flight `/evaluate` immediately denies actions with `reason: agent_quarantined`.
+   - `POST /api/v1/agents/{id}/halt`: Emergency hard freeze, pre-flight `/evaluate` immediately denies actions with `reason: agent_halted`.
+   - `POST /api/v1/agents/{id}/release` (and legacy `/restore`): Restores agent to active status.
+   - All state transitions write tamper-evident records to `audit_log`.
+4. **Pre-flight Evaluation Benchmark Script (`scripts/loadtest.py`)**:
+   - Async benchmarking tool executing against `POST /api/v1/evaluate` at configurable concurrency (default 10) and volume (default 200).
+   - Computes p50, p90, p95, p99, min, max, avg latencies, and throughput.
+5. **Phase 2 Test Suite Additions (`backend/tests/test_api_keys.py`)**:
+   - Added `test_api_key_rotation_and_grace_period`: validates dual-key validity during grace window and rejection upon revocation.
+   - Added `test_batch_ingest_idempotency`: validates in-batch and database deduplication returning 202 with `accepted` and `duplicates` count.
+   - Added `test_quarantine_halt_and_evaluate_enforcement`: validates pre-flight evaluation denial on quarantined and halted agents, followed by recovery upon release.
+
+### Verification Gate Status
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 26 passed, 4 warnings in 2.44s
+  Test breakdown:
+    tests/test_actions.py (3 passed)
+    tests/test_alerts.py (1 passed)
+    tests/test_api_keys.py (5 passed)
+    tests/test_auth.py (6 passed)
+    tests/test_ml_engine.py (3 passed)
+    tests/test_rule_engine.py (3 passed)
+    tests/test_tenancy.py (2 passed)
+    tests/test_webhooks.py (3 passed)
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 5.20s, 0 errors, 110 modules transformed
+  ```
+- **Phase 2 Status**: PASSED.
+

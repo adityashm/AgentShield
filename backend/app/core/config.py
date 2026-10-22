@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     # Risk & Evaluation Thresholds
     ALERT_THRESHOLD: float = 60.0
     REVIEW_THRESHOLD: float = 70.0
+    BLOCK_THRESHOLD: float = 80.0
     RISK_WEIGHT_RULE: float = 0.4
     RISK_WEIGHT_ANOMALY: float = 0.6
     ANOMALY_HIGH_THRESHOLD: float = 0.70
