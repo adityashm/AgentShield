@@ -25,6 +25,7 @@ Format: `[YYYY-MM-DD] Decision: Reason`
 - **[2026-10-22] Multi-Turn Crescendo & Velocity Anomaly Detection (Phase 13)**: Implemented decaying cumulative risk ($\gamma=0.85$) with risk velocity tracking ($\Delta \text{risk} / \Delta t$) and ROT13/Base64 deobfuscation to defeat multi-turn jailbreak attempts and creeping semantic drift.
 - **[2026-10-22] Cryptographically Verified Compliance Reporting (Phase 14)**: Added `/api/v1/compliance/report` generating machine-readable audit dossiers mapped to SOC 2 Type II (CC6.1, CC6.6, CC7.2), EU AI Act Article 14 (Human Oversight), and OWASP ASI01–ASI10, backed by cryptographic SHA-256 audit log hash chain validation.
 - **[2026-10-22] Cockpit Global Command Palette (Phase 15)**: Integrated keyboard-driven `Ctrl+K` command palette in `AppShell.tsx` enabling instant cross-navigation, 1-click SOC 2 JSON export, proxy threat simulation, and ML model retraining.
+- **[2026-10-22] Indian Standard Time (IST - UTC+05:30) & Full Responsive Viewports**: Standardized UI timestamps and live ticker clock on Indian Standard Time (`Asia/Kolkata`) via `frontend/src/utils/time.ts`. Upgraded dashboard layout with mobile off-canvas drawer navigation, responsive table scroll containers, adaptive headers, and unified scalable SVG cyber-shield brand logo (`Logo.tsx`).
 
 
 

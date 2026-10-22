@@ -14,6 +14,7 @@ import {
   inviteUser,
   User,
 } from '../../api'
+import { formatISTDate, formatISTDateTime } from '../../utils/time'
 
 interface APIKeyItem {
   key_id: string
@@ -375,7 +376,7 @@ export default function SettingsDirectory() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 font-mono pb-24">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6 font-mono pb-24">
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px]">tune</span>
@@ -394,8 +395,8 @@ export default function SettingsDirectory() {
           </p>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-1 text-xs">
+        {/* Tab Controls (Responsive Horizontal Scroll) */}
+        <div className="flex overflow-x-auto max-w-full bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-1 text-xs whitespace-nowrap">
           <button
             onClick={() => setActiveTab('security')}
             className={`px-3 py-1.5 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -828,10 +829,10 @@ export default function SettingsDirectory() {
                             </span>
                           </td>
                           <td className="p-3 text-[var(--text-muted)]">
-                            {new Date(key.created_at).toLocaleDateString()}
+                            {formatISTDate(key.created_at)}
                           </td>
                           <td className="p-3 text-[var(--text-muted)]">
-                            {key.last_used_at ? new Date(key.last_used_at).toLocaleTimeString() : 'Never'}
+                            {key.last_used_at ? formatISTDateTime(key.last_used_at) : 'Never'}
                           </td>
                           <td className="p-3">
                             {isRevoked ? (
@@ -1156,7 +1157,7 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
                         </span>
                       </td>
                       <td className="p-3 text-[var(--text-muted)]">
-                        {new Date(u.created_at).toLocaleDateString()}
+                        {formatISTDate(u.created_at)}
                       </td>
                       <td className="p-3">
                         <span className="px-2 py-0.5 rounded-sm bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 text-[10px] uppercase font-bold">

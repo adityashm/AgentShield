@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createApiKey, getSystemHealth } from '../api'
+import Logo from '../components/Logo'
 
 type FrameworkTab = 'python' | 'langchain' | 'crewai' | 'openai'
 
@@ -96,16 +97,16 @@ def order_lookup(order_id: str):
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[var(--bg-base)] p-8">
-      <div className="max-w-4xl mx-auto w-full space-y-8 font-mono">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[var(--bg-base)] p-3 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto w-full space-y-6 sm:space-y-8 font-mono">
         {/* Header */}
         <div className="border-b border-[var(--border-color)] pb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] uppercase tracking-[0.25em] text-[var(--primary)] font-bold">
-                Quickstart Guide
-              </span>
-              <h1 className="text-2xl font-bold tracking-wide text-[var(--text-main)] mt-1">
+              <div className="mb-2">
+                <Logo size="sm" variant="full" animated={true} />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-wide text-[var(--text-main)] mt-1">
                 Instrument Your AI Agent in 5 Minutes
               </h1>
               <p className="text-xs text-[var(--text-muted)] mt-1">

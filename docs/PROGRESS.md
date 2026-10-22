@@ -623,4 +623,30 @@ This document maintains an evidence-backed record of all transformation phases, 
    - Python SDK tests: **25 passed** in 26.02s.
    - Frontend build: **0 errors** (vite build succeeded in 6.13s, 114 modules transformed).
 
+---
+
+## 2026-10-22 — Indian Standard Time (IST), Responsive Mobile/Laptop Architecture & Brand Identity Suite
+
+### Work Performed
+1. **Indian Standard Time (IST — UTC+05:30) Standardized Suite (`frontend/src/utils/time.ts`)**:
+   - Built centralized time utility supporting `getLiveISTTime()`, `formatISTDateTime()`, `formatISTDate()`, `formatISTTime()`, and `formatISTCompact()`.
+   - Updated top navigation header in `AppShell.tsx` to display real-time ticking Indian Standard Time with Indian national flag badge (`🇮🇳 HH:mm:ss IST`).
+   - Standardized `Audit.tsx` cryptographic ledger table header to `Timestamp (IST)` and formatted all block timestamps in IST.
+   - Formatted all security alert triage timestamps, comment discussions, terminal logs, and system metrics using IST standards across `AlertsDirectory.tsx`, `AlertsTriageDirectory.tsx`, `Dashboard.tsx`, `LogsDirectory.tsx`, and `SettingsDirectory.tsx`.
+2. **Cross-Device Responsive Architecture (Mobile, Tablet, Laptop & Desktop)**:
+   - `AppShell.tsx`: Implemented slide-out off-canvas drawer navigation for mobile viewports (`< lg`) with backdrop overlay, auto-closing on route navigation, and close button. Added hamburger menu toggle on mobile headers.
+   - Optimized header components: Breadcrumbs and status pills collapse gracefully on small viewports without horizontal clipping or overflow.
+   - Replaced fixed padding (`p-[24px]`) across all views with fluid responsive padding (`p-3 sm:p-5 lg:p-6`).
+   - Wrapped all dense data tables (`LogsDirectory`, `Audit`, `AlertsDirectory`, `RulesDirectory`) in horizontal scroll containers (`overflow-x-auto min-w-[...]`) with custom cybersecurity scrollbars (`frontend/src/styles/tailwind.css`).
+   - Adapted `AgentsDirectory` card layout to responsive auto-scaling (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`).
+3. **Brand Identity, Vector Emblem & Logo Suite**:
+   - `frontend/src/components/Logo.tsx`: Versatile, responsive React SVG component supporting size presets (`xs`, `sm`, `md`, `lg`, `xl`), full wordmark, or standalone icon emblem with glowing cyan/emerald cyber gradients.
+   - `frontend/public/favicon.svg`: Scalable vector favicon for browser tabs and PWA shortcuts.
+   - `frontend/public/logo.svg`: Full vector brand badge asset.
+   - Rendered ultra-realistic 3D metallic obsidian shield logo and icon badge renders saved into `frontend/public/brand-logo.jpg` and `frontend/public/brand-icon.jpg`.
+   - Updated `Login.tsx`, `Onboarding.tsx`, `index.html`, and `AppShell.tsx` with unified brand presentation.
+4. **Build Verification**:
+   - Frontend build (`npm run build`): **0 errors**, built in 5.56s (116 modules transformed).
+
+
 

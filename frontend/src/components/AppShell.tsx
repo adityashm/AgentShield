@@ -4,6 +4,8 @@ import { useWebSocket } from '../ws/WebSocketContext'
 import { useAuth } from '../context/AuthContext'
 import { getAlerts, Alert } from '../api'
 import CommandPalette from './CommandPalette'
+import Logo from './Logo'
+import { getLiveISTTime } from '../utils/time'
 
 const primaryNav = [
   { to: '/', label: 'Dashboard', icon: 'dashboard' },
@@ -37,7 +39,13 @@ export default function AppShell({ children }: PropsWithChildren) {
   const [activeToast, setActiveToast] = useState<any | null>(null)
   const [topAlerts, setTopAlerts] = useState<Alert[]>([])
   const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const lastProcessedKeyRef = React.useRef<string | null>(null)
+
+  // Auto-close mobile drawer on route navigation
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
   // Live alerts count for sidebar badge and top bell
   useEffect(() => {
@@ -89,14 +97,10 @@ export default function AppShell({ children }: PropsWithChildren) {
     }
   }, [messages])
 
-  // Real-time UTC ticking clock
+  // Real-time Indian Standard Time (IST) ticking clock
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date()
-      const hours = now.getUTCHours().toString().padStart(2, '0')
-      const minutes = now.getUTCMinutes().toString().padStart(2, '0')
-      const seconds = now.getUTCSeconds().toString().padStart(2, '0')
-      setCurrentTime(`${hours}:${minutes}:${seconds} UTC`)
+      setCurrentTime(getLiveISTTime())
     }
     updateTime()
     const timer = setInterval(updateTime, 1000)
@@ -141,25 +145,42 @@ export default function AppShell({ children }: PropsWithChildren) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-main)]">
+      {/* Mobile Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="z-50 flex h-full w-[240px] flex-col border-r border-[var(--border-color)] bg-[var(--bg-surface)]">
-        <div className="px-4 pb-6 pt-3">
-          <Link to="/" className="flex items-center gap-2 text-[18px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-            <Icon name="shield" fill />
-            Mission Control
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[260px] flex-col border-r border-[var(--border-color)] bg-[var(--bg-surface)] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 pb-5 pt-3.5 border-b border-[var(--border-color)] lg:border-b-0">
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="hover:opacity-95 transition-opacity">
+            <Logo size="md" />
           </Link>
-          <div className="mt-1 text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)] opacity-70">
-            AgentShield AI v1.0
-          </div>
+          {/* Mobile Close Drawer Button */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="lg:hidden p-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+            title="Close Menu"
+          >
+            <Icon name="close" />
+          </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 px-2">
+        <nav className="flex flex-1 flex-col gap-1 px-2 overflow-y-auto">
           {dynamicNav.map((item) => {
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.to === '/'}
+                onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) => [
                   'flex items-center gap-3 rounded-sm px-3 py-2 text-[12px] font-medium transition-colors',
                   isActive
@@ -222,41 +243,61 @@ export default function AppShell({ children }: PropsWithChildren) {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-surface)] px-[24px]">
-          {/* Dynamic Breadcrumb */}
-          <div className="flex items-center gap-2 text-[14px] text-[var(--text-muted)]">
-            <span>AgentShield AI</span>
-            {breadcrumbs.map((crumb, idx) => (
-              <React.Fragment key={crumb}>
-                <span className="text-[14px] opacity-50">›</span>
-                <span className={idx === breadcrumbs.length - 1 ? 'font-semibold text-[var(--text-main)]' : ''}>
-                  {crumb}
-                </span>
-              </React.Fragment>
-            ))}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-surface)] px-3 sm:px-6">
+          {/* Left: Mobile Toggle, Brand & Breadcrumbs */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-1.5 -ml-1 text-[var(--text-muted)] hover:text-white rounded hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+              title="Open Navigation"
+            >
+              <Icon name="menu" />
+            </button>
+
+            <div className="lg:hidden shrink-0">
+              <Link to="/">
+                <Logo size="xs" variant="icon" />
+              </Link>
+            </div>
+
+            {/* Dynamic Breadcrumbs */}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs sm:text-sm text-[var(--text-muted)] truncate">
+              <span className="opacity-70 font-mono">AgentShield</span>
+              {breadcrumbs.map((crumb, idx) => (
+                <React.Fragment key={crumb}>
+                  <span className="opacity-40">›</span>
+                  <span className={`truncate ${idx === breadcrumbs.length - 1 ? 'font-semibold text-[var(--text-main)]' : ''}`}>
+                    {crumb}
+                  </span>
+                </React.Fragment>
+              ))}
+            </div>
           </div>
 
           {/* Right Header Badges & Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Quick Command & Search Pill */}
             <button
               onClick={() => setIsPaletteOpen(true)}
-              className="flex items-center gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-2.5 py-1.5 text-xs text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] transition-colors cursor-pointer group"
+              className="flex items-center gap-1.5 sm:gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-2 sm:px-2.5 py-1.5 text-xs text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] transition-colors cursor-pointer group"
               title="Quick Command & Search (Ctrl+K / Cmd+K)"
             >
               <Icon name="search" />
-              <span className="hidden md:inline font-mono text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-main)]">
+              <span className="hidden xl:inline font-mono text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-main)]">
                 Command Palette...
               </span>
-              <kbd className="hidden sm:inline-block rounded bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] border border-[var(--border-color)]">
+              <kbd className="hidden md:inline-block rounded bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] border border-[var(--border-color)]">
                 Ctrl K
               </kbd>
             </button>
 
             {/* System Status Pill */}
-            <div className="flex items-center gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-3 py-1.5">
+            <div
+              className="flex items-center gap-1.5 sm:gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-2 sm:px-3 py-1.5"
+              title={status === 'LIVE' ? 'Realtime Telemetry Active' : 'Connecting'}
+            >
               <span
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2 w-2 rounded-full shrink-0 ${
                   status === 'LIVE'
                     ? 'bg-[var(--status-success)] shadow-[0_0_4px_#238636]'
                     : status === 'CONNECTING'
@@ -264,18 +305,22 @@ export default function AppShell({ children }: PropsWithChildren) {
                     : 'bg-[var(--status-danger)]'
                 }`}
               />
-              <span className="text-xs font-semibold text-[var(--text-main)]">
+              <span className="hidden sm:inline text-xs font-semibold text-[var(--text-main)]">
                 {status === 'LIVE'
-                  ? 'System Operational'
+                  ? 'Operational'
                   : status === 'CONNECTING'
-                  ? 'Reconnecting Telemetry'
-                  : 'Telemetry Dev Mode'}
+                  ? 'Reconnecting'
+                  : 'Dev Mode'}
               </span>
             </div>
 
-            {/* Live UTC Clock */}
-            <div className="rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-3 py-1.5 font-mono text-sm text-[var(--text-muted)]">
-              {currentTime || '00:00:00 UTC'}
+            {/* Live Indian Standard Time (IST) Clock */}
+            <div
+              className="flex items-center gap-1 rounded-sm border border-cyan-800/60 bg-[var(--bg-raised)] px-2 sm:px-2.5 py-1.5 font-mono text-xs text-cyan-300 shadow-sm"
+              title="Indian Standard Time (IST - UTC+05:30)"
+            >
+              <span className="text-[10px] opacity-80" role="img" aria-label="India">🇮🇳</span>
+              <span>{currentTime || '00:00:00 IST'}</span>
             </div>
 
             {/* Notification Bell with Dropdown */}
@@ -289,7 +334,7 @@ export default function AppShell({ children }: PropsWithChildren) {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 rounded-sm border border-[var(--border-color)] bg-[var(--bg-surface)] p-3 shadow-2xl z-50">
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-sm border border-[var(--border-color)] bg-[var(--bg-surface)] p-3 shadow-2xl z-50">
                   <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
                     <span className="font-mono text-xs font-semibold text-[var(--text-main)] uppercase tracking-wider">
                       Security Alerts
@@ -336,7 +381,7 @@ export default function AppShell({ children }: PropsWithChildren) {
         </header>
 
         {/* Page Content */}
-        <main className="min-h-0 flex-1 overflow-y-auto bg-[var(--bg-base)] p-[24px]">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto bg-[var(--bg-base)] p-3 sm:p-5 lg:p-6">{children}</main>
 
         {/* Real-time Threat / Enforce Block Toast Popup */}
         {activeToast && (

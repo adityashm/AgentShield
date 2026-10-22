@@ -69,4 +69,28 @@
 	.font-button-label {
 		font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 	}
+
+	/* Custom dark cybersecurity scrollbars */
+	::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+	::-webkit-scrollbar-track {
+		background: #0d1117;
+	}
+	::-webkit-scrollbar-thumb {
+		background: #21262d;
+		border-radius: 3px;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: #38424e;
+	}
+
+	.scrollbar-none::-webkit-scrollbar {
+		display: none;
+	}
+	.scrollbar-none {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
 }

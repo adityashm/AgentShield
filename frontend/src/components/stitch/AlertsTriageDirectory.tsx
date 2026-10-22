@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { initialAlerts, AlertItem } from './AlertsDirectory'
 import { getAlert, getAlertComments, addAlertComment, quarantineAgent, haltAgent, AlertComment } from '../../api'
+import { formatISTTime } from '../../utils/time'
 
 interface DetailedAlert {
   id: string
@@ -210,7 +211,7 @@ export default function AlertsTriageDirectory() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6">
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px]">security</span>
@@ -405,7 +406,7 @@ export default function AlertsTriageDirectory() {
                     <div key={c.comment_id} className="p-2.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-xs font-mono">
                       <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] mb-1">
                         <span className="font-bold text-[var(--primary)]">{c.author_name || c.author_id}</span>
-                        <span>{new Date(c.created_at).toLocaleTimeString()}</span>
+                        <span>{formatISTTime(c.created_at)}</span>
                       </div>
                       <div className="text-[var(--text-main)] leading-relaxed">{c.content}</div>
                     </div>

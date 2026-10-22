@@ -14,6 +14,7 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { useWebSocket, WSMessage } from '../ws/WebSocketContext'
+import { formatISTTime, getLiveISTTime } from '../utils/time'
 
 ChartJS.register(
   CategoryScale,
@@ -109,7 +110,7 @@ function MetricChart() {
   useEffect(() => {
     if (!messages || messages.length === 0) return
     const latest = messages[0]
-    const timeLabel = latest.time ? latest.time.split('.')[0] : new Date().toLocaleTimeString().slice(0, 5)
+    const timeLabel = latest.time ? latest.time.split('.')[0] : getLiveISTTime().slice(0, 5)
     const newRisk = typeof latest.risk === 'number' ? latest.risk : parseFloat(latest.risk || '50') || 50
     const newAnomaly = Math.min(100, Math.max(10, Math.round(newRisk * (latest.tone === 'danger' ? 1.05 : 0.85))))
     const newCpu = Math.round(30 + Math.random() * 15)
@@ -446,7 +447,7 @@ export default function Dashboard() {
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Agent ID</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Action Event</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Risk Score</th>
-                    <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Timestamp</th>
+                    <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Timestamp (IST)</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Status</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] text-right">Inspect</th>
                   </tr>
@@ -486,7 +487,9 @@ export default function Dashboard() {
                           <td className="p-3">
                             <StatBadge tone={toneVal}>{riskVal}</StatBadge>
                           </td>
-                          <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">{timeVal}</td>
+                          <td className="p-3 font-mono text-[12px] text-[var(--text-muted)] whitespace-nowrap">
+                            {timeVal.includes('IST') ? timeVal : `${timeVal} IST`}
+                          </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <span

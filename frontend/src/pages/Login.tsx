@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Logo from '../components/Logo'
 
 export default function Login() {
   const [username, setUsername] = useState('analyst_01')
@@ -50,13 +51,8 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-[440px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm p-8 shadow-2xl">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 rounded-sm bg-[rgba(0,212,255,0.1)] flex items-center justify-center mb-3 border border-[var(--primary)] shadow-[0_0_12px_rgba(0,212,255,0.25)]">
-            <span
-              className="material-symbols-outlined text-[var(--primary)]"
-              style={{ fontVariationSettings: "'FILL' 1", fontSize: '32px' }}
-            >
-              shield
-            </span>
+          <div className="mb-4">
+            <Logo size="xl" variant="icon" animated={true} />
           </div>
           <h1 className="text-[22px] font-semibold text-[var(--text-main)] tracking-wider uppercase font-mono">
             AgentShield AI

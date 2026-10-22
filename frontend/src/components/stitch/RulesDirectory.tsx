@@ -359,7 +359,7 @@ export default function RulesDirectory() {
     )
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 sm:gap-6">
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 rounded-sm bg-[var(--bg-raised)] border border-[var(--primary)] px-4 py-2 font-mono text-xs text-[var(--primary)] shadow-2xl flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px]">check_circle</span>

@@ -68,10 +68,10 @@ export default function AgentDetailDirectory() {
       )}
 
       {/* HEADER SECTION */}
-      <section className="flex justify-between items-end mb-8">
+      <section className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-4">
-            <h2 className="font-mono text-[42px] leading-none font-bold text-[var(--primary)] tracking-tighter">{currentAgentId}</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-mono text-2xl sm:text-[38px] leading-none font-bold text-[var(--primary)] tracking-tighter">{currentAgentId}</h2>
             {agentStatus === 'suspended' ? (
               <span className="px-3 py-1 bg-[var(--status-danger)] text-white text-[10px] font-mono tracking-widest uppercase font-bold">
                 SUSPENDED / ISOLATED
@@ -82,11 +82,11 @@ export default function AgentDetailDirectory() {
               </span>
             )}
           </div>
-          <p className="text-[14px] text-[var(--text-muted)] mt-2 max-w-xl">
+          <p className="text-[13px] sm:text-[14px] text-[var(--text-muted)] mt-2 max-w-xl">
             Deep-packet inspection agent deployed on Network Segment 04. Current behavioral anomalies detected in file-transfer protocols.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-main)] font-mono text-[12px] uppercase tracking-wider hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">description</span> VIEW LOGS
           </button>

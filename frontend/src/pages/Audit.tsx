@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getAuditLogs, verifyAuditLog, AuditLogEntry, AuditVerificationResponse } from '../api'
+import { formatISTDateTime, formatISTTime } from '../utils/time'
 
 export default function Audit() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([])
@@ -145,17 +146,17 @@ export default function Audit() {
             </div>
 
             <div className="text-right text-xs text-[var(--text-muted)]">
-              <div>Last Verified: {new Date(verification.verification_timestamp).toLocaleTimeString()}</div>
-              <div className="text-[10px] uppercase tracking-wider text-[var(--primary)]">SHA-256 Chained</div>
+              <div>Last Verified: {formatISTDateTime(verification.verification_timestamp)}</div>
+              <div className="text-[10px] uppercase tracking-wider text-[var(--primary)] font-mono">SHA-256 Chained</div>
             </div>
           </div>
         )}
       </div>
 
       {/* Main Ledger Table */}
-      <div className="flex-1 p-6 pt-4 flex gap-6 overflow-hidden">
+      <div className="flex-1 p-3 sm:p-6 pt-2 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-y-auto lg:overflow-hidden">
         {/* Table Panel */}
-        <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col overflow-hidden">
+        <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col overflow-hidden min-h-[350px]">
           <div className="p-3 border-b border-[var(--border-color)] bg-[var(--bg-raised)] flex items-center justify-between">
             <span className="text-xs font-mono font-semibold uppercase text-[var(--text-muted)]">
               Ledger Sequence ({logs.length} Events)
@@ -163,11 +164,11 @@ export default function Audit() {
             <span className="text-[11px] font-mono text-[var(--primary)]">Immutable Append-Only</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <table className="w-full text-left font-mono text-xs">
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <table className="w-full text-left font-mono text-xs min-w-[540px]">
               <thead>
                 <tr className="border-b border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--text-muted)] text-[11px]">
-                  <th className="p-3">Timestamp (UTC)</th>
+                  <th className="p-3">Timestamp (IST)</th>
                   <th className="p-3">Actor</th>
                   <th className="p-3">Action</th>
                   <th className="p-3">Target</th>
@@ -187,8 +188,8 @@ export default function Audit() {
                           : 'hover:bg-[var(--bg-hover)]'
                       }`}
                     >
-                      <td className="p-3 text-[var(--text-muted)]">
-                        {new Date(log.timestamp).toISOString().replace('T', ' ').substring(0, 19)}
+                      <td className="p-3 text-[var(--text-muted)] whitespace-nowrap">
+                        {formatISTDateTime(log.timestamp)}
                       </td>
                       <td className="p-3">
                         <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--bg-raised)] text-[var(--text-main)] border border-[var(--border-color)]">
@@ -213,7 +214,7 @@ export default function Audit() {
         </div>
 
         {/* Selected Log Inspector */}
-        <div className="w-[420px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col shrink-0 overflow-hidden">
+        <div className="w-full lg:w-[420px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col shrink-0 overflow-hidden min-h-[300px]">
           <div className="p-3 border-b border-[var(--border-color)] bg-[var(--bg-raised)] flex items-center justify-between">
             <span className="text-xs font-mono font-semibold uppercase text-[var(--text-main)]">
               Cryptographic Hash Inspector

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useWebSocket } from '../../ws/WebSocketContext'
+import { formatISTTime } from '../../utils/time'
 
 export interface LogEntry {
   timestamp: string
@@ -102,7 +103,7 @@ export default function LogsDirectory() {
       const level: LogEntry['level'] =
         risk >= 80 ? 'CRITICAL' : risk >= 60 ? 'ERROR' : risk >= 40 ? 'WARN' : 'INFO'
       const newEntry: LogEntry = {
-        timestamp: latestMsg.time || new Date().toISOString().substring(11, 23),
+        timestamp: latestMsg.time ? (latestMsg.time.includes('IST') ? latestMsg.time : `${latestMsg.time} IST`) : formatISTTime(new Date()),
         level,
         agentId: latestMsg.agent || 'AGT-009',
         action: latestMsg.action || 'event_stream',
@@ -157,7 +158,7 @@ export default function LogsDirectory() {
   const distinctAgents = Array.from(new Set(logs.map((l) => l.agentId)))
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 font-mono">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4 font-mono">
       {/* Page Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -243,18 +244,20 @@ export default function LogsDirectory() {
 
       {/* Terminal Grid Container */}
       <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden flex flex-col min-h-[480px]">
-        {/* Table Header */}
-        <div className="grid grid-cols-[110px_90px_90px_160px_120px_1fr] gap-3 px-4 py-2.5 bg-[var(--bg-base)] border-b border-[var(--border-color)] text-[var(--text-muted)] text-[11px] uppercase tracking-wider sticky top-0 z-10 shrink-0">
-          <div>Timestamp</div>
-          <div>Level</div>
-          <div>Agent ID</div>
-          <div>Action Type</div>
-          <div>Result</div>
-          <div>Log Message</div>
-        </div>
+        <div className="overflow-x-auto flex-1 flex flex-col">
+          <div className="min-w-[700px] flex-1 flex flex-col">
+            {/* Table Header */}
+            <div className="grid grid-cols-[130px_90px_90px_160px_120px_1fr] gap-3 px-4 py-2.5 bg-[var(--bg-base)] border-b border-[var(--border-color)] text-[var(--text-muted)] text-[11px] uppercase tracking-wider sticky top-0 z-10 shrink-0">
+              <div>Timestamp (IST)</div>
+              <div>Level</div>
+              <div>Agent ID</div>
+              <div>Action Type</div>
+              <div>Result</div>
+              <div>Log Message</div>
+            </div>
 
-        {/* Scrollable Rows */}
-        <div className="flex-1 overflow-y-auto text-xs leading-relaxed divide-y divide-[var(--border-color)]/30">
+            {/* Scrollable Rows */}
+            <div className="flex-1 overflow-y-auto text-xs leading-relaxed divide-y divide-[var(--border-color)]/30">
           {filteredLogs.length === 0 ? (
             <div className="p-8 text-center text-[var(--text-muted)] font-mono">
               No log messages matching filter parameters.
@@ -297,5 +300,7 @@ export default function LogsDirectory() {
         </div>
       </div>
     </div>
-  )
+  </div>
+</div>
+)
 }
