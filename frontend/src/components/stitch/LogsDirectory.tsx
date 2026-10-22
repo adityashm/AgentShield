@@ -245,9 +245,9 @@ export default function LogsDirectory() {
       {/* Terminal Grid Container */}
       <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden flex flex-col min-h-[480px]">
         <div className="overflow-x-auto flex-1 flex flex-col">
-          <div className="min-w-[700px] flex-1 flex flex-col">
+          <div className="min-w-[800px] flex-1 flex flex-col">
             {/* Table Header */}
-            <div className="grid grid-cols-[130px_90px_90px_160px_120px_1fr] gap-3 px-4 py-2.5 bg-[var(--bg-base)] border-b border-[var(--border-color)] text-[var(--text-muted)] text-[11px] uppercase tracking-wider sticky top-0 z-10 shrink-0">
+            <div className="grid grid-cols-[140px_85px_110px_160px_120px_1fr] gap-3 px-4 py-2.5 bg-[var(--bg-base)] border-b border-[var(--border-color)] text-[var(--text-muted)] text-[11px] uppercase tracking-wider sticky top-0 z-10 shrink-0">
               <div>Timestamp (IST)</div>
               <div>Level</div>
               <div>Agent ID</div>
@@ -276,7 +276,7 @@ export default function LogsDirectory() {
               return (
                 <div
                   key={index}
-                  className={`grid grid-cols-[110px_90px_90px_160px_120px_1fr] gap-3 px-4 py-2 hover:bg-[var(--bg-hover)] transition-colors ${
+                  className={`grid grid-cols-[140px_85px_110px_160px_120px_1fr] gap-3 px-4 py-2 hover:bg-[var(--bg-hover)] transition-colors ${
                     log.level === 'CRITICAL'
                       ? 'bg-[rgba(248,81,73,0.06)] border-l-4 border-l-[var(--status-danger)]'
                       : log.level === 'ERROR'

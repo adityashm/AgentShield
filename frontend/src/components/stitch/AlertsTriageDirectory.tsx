@@ -345,7 +345,7 @@ export default function AlertsTriageDirectory() {
               </div>
               <div className="w-px h-6 bg-[var(--border-color)]" />
               <div>
-                <span className="text-[10px] uppercase text-[var(--text-muted)] block mb-0.5">Timestamp</span>
+                <span className="text-[10px] uppercase text-[var(--text-muted)] block mb-0.5">Timestamp (IST)</span>
                 <span className="text-[var(--text-main)]">{baseAlert.timestamp}</span>
               </div>
               <div className="w-px h-6 bg-[var(--border-color)]" />

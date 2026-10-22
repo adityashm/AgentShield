@@ -158,7 +158,7 @@ export default function AgentDetailDirectory() {
       </section>
 
       {/* MIDDLE CONTENT */}
-      <section className="grid grid-cols-1 lg:grid-cols-10 gap-4 mb-4 lg:h-[420px]">
+      <section className="grid grid-cols-1 lg:grid-cols-10 gap-4 mb-4 lg:min-h-[400px]">
         {/* Action Timeline (Left 60%) */}
         <div className="lg:col-span-6 bg-[var(--bg-raised)] border border-[var(--border-color)] flex flex-col transition-all hover:border-[var(--primary)]">
           <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-surface)]">
@@ -258,7 +258,7 @@ export default function AgentDetailDirectory() {
                 <th className="px-6 py-3 font-medium">Trigger Type</th>
                 <th className="px-6 py-3 font-medium">Severity</th>
                 <th className="px-6 py-3 font-medium">Risk Score</th>
-                <th className="px-6 py-3 font-medium">Time</th>
+                <th className="px-6 py-3 font-medium">Time (IST)</th>
                 <th className="px-6 py-3 font-medium">Status</th>
               </tr>
             </thead>

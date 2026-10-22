@@ -441,7 +441,7 @@ export default function Dashboard() {
             </div>
 
             <div className="overflow-x-auto flex-1">
-              <table className="w-full border-collapse text-left">
+              <table className="w-full border-collapse text-left whitespace-nowrap min-w-[640px]">
                 <thead>
                   <tr className="border-b border-[var(--border-color)] bg-[rgba(255,255,255,0.02)]">
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Agent ID</th>

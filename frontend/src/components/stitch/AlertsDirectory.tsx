@@ -348,7 +348,7 @@ export default function AlertsDirectory() {
                 <th className="p-3">Trigger Signature</th>
                 <th className="p-3">Severity</th>
                 <th className="p-3">Risk Score</th>
-                <th className="p-3">Timestamp</th>
+                <th className="p-3">Timestamp (IST)</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>

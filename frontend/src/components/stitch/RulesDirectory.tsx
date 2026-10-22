@@ -420,9 +420,9 @@ export default function RulesDirectory() {
       </div>
 
       {/* Main Two-Column Layout */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col xl:flex-row gap-6">
         {/* Left: Rules Table */}
-        <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden flex flex-col">
+        <div className="flex-1 min-w-0 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
@@ -530,7 +530,7 @@ export default function RulesDirectory() {
         </div>
 
         {/* Right: Controlled Rule Editor & Test Simulator */}
-        <div className="w-full lg:w-[480px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col shrink-0 overflow-hidden">
+        <div className="w-full xl:w-[440px] 2xl:w-[480px] bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm flex flex-col shrink-0 overflow-hidden">
           <div className="p-3 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-raised)]">
             <div className="flex items-center gap-1">
               <button

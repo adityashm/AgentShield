@@ -786,7 +786,7 @@ export default function SettingsDirectory() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
                     <th className="p-3">KEY NAME</th>
@@ -951,7 +951,7 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
                     <th className="p-3">RECEIVER NAME</th>
@@ -1116,59 +1116,61 @@ callback = AgentShieldCallbackHandler(shield=shield, agent_id="AGT-LANGCHAIN-01"
               </button>
             </div>
 
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
-                  <th className="p-3">MEMBER NAME</th>
-                  <th className="p-3">EMAIL ADDRESS</th>
-                  <th className="p-3">ASSIGNED ROLE</th>
-                  <th className="p-3">JOINED DATE</th>
-                  <th className="p-3">STATUS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-color)]">
-                {isLoadingUsers ? (
-                  <tr>
-                    <td colSpan={5} className="p-6 text-center text-[var(--text-muted)]">
-                      Loading team members...
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] bg-[var(--bg-surface)]">
+                    <th className="p-3">MEMBER NAME</th>
+                    <th className="p-3">EMAIL ADDRESS</th>
+                    <th className="p-3">ASSIGNED ROLE</th>
+                    <th className="p-3">JOINED DATE</th>
+                    <th className="p-3">STATUS</th>
                   </tr>
-                ) : (
-                  users.map((u) => (
-                    <tr key={u.id} className="hover:bg-[var(--bg-base)]/50 transition-colors">
-                      <td className="p-3 font-bold text-[var(--text-main)] flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-[var(--bg-raised)] border border-[var(--border-color)] flex items-center justify-center text-[10px] text-[var(--primary)]">
-                          {(u.full_name || u.email).substring(0, 2).toUpperCase()}
-                        </span>
-                        {u.full_name || 'Member'}
-                      </td>
-                      <td className="p-3 text-[var(--text-muted)]">{u.email}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-2 py-0.5 rounded-sm text-[10px] uppercase font-bold border ${
-                            u.role === 'admin'
-                              ? 'bg-[rgba(0,212,255,0.15)] text-[var(--primary)] border-[var(--primary)]/30'
-                              : u.role === 'analyst'
-                              ? 'bg-[rgba(255,184,0,0.15)] text-[var(--status-warning)] border-[var(--status-warning)]/30'
-                              : 'bg-[var(--bg-raised)] text-[var(--text-muted)] border-[var(--border-color)]'
-                          }`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="p-3 text-[var(--text-muted)]">
-                        {formatISTDate(u.created_at)}
-                      </td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-sm bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 text-[10px] uppercase font-bold">
-                          Active
-                        </span>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-color)]">
+                  {isLoadingUsers ? (
+                    <tr>
+                      <td colSpan={5} className="p-6 text-center text-[var(--text-muted)]">
+                        Loading team members...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    users.map((u) => (
+                      <tr key={u.id} className="hover:bg-[var(--bg-base)]/50 transition-colors">
+                        <td className="p-3 font-bold text-[var(--text-main)] flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[var(--bg-raised)] border border-[var(--border-color)] flex items-center justify-center text-[10px] text-[var(--primary)]">
+                            {(u.full_name || u.email).substring(0, 2).toUpperCase()}
+                          </span>
+                          {u.full_name || 'Member'}
+                        </td>
+                        <td className="p-3 text-[var(--text-muted)]">{u.email}</td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-sm text-[10px] uppercase font-bold border ${
+                              u.role === 'admin'
+                                ? 'bg-[rgba(0,212,255,0.15)] text-[var(--primary)] border-[var(--primary)]/30'
+                                : u.role === 'analyst'
+                                ? 'bg-[rgba(255,184,0,0.15)] text-[var(--status-warning)] border-[var(--status-warning)]/30'
+                                : 'bg-[var(--bg-raised)] text-[var(--text-muted)] border-[var(--border-color)]'
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="p-3 text-[var(--text-muted)]">
+                          {formatISTDate(u.created_at)}
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 rounded-sm bg-[rgba(35,134,54,0.15)] text-[var(--status-success)] border border-[var(--status-success)]/30 text-[10px] uppercase font-bold">
+                            Active
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

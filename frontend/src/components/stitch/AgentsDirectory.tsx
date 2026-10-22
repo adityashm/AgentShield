@@ -339,7 +339,7 @@ else:
       </div>
 
       {/* Agents Grid (Responsive for Mobile, Laptop & Desktop) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
         {filteredAgents.map((agent) => (
           <AgentCard
             key={agent.id}
@@ -502,13 +502,13 @@ function AgentCard({
         agent.status
       )} rounded-sm p-4 flex flex-col gap-3 transition-all duration-200 cursor-pointer hover:border-[var(--primary)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)]`}
     >
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center size-10 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm">
+      <div className="flex justify-between items-start gap-3">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="relative flex items-center justify-center size-9 shrink-0 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm">
             <span
               className="material-symbols-outlined"
               style={{
-                fontSize: 22,
+                fontSize: 20,
                 color:
                   agent.status === 'suspended'
                     ? 'var(--status-danger)'
@@ -520,7 +520,7 @@ function AgentCard({
               smart_toy
             </span>
             <div
-              className={`absolute -top-1 -right-1 size-2.5 rounded-full ${
+              className={`absolute -top-1 -right-1 size-2 rounded-full ${
                 agent.status === 'suspended'
                   ? 'bg-[var(--status-danger)] shadow-[0_0_6px_#f85149] animate-pulse'
                   : agent.status === 'warning'
@@ -529,20 +529,25 @@ function AgentCard({
               }`}
             />
           </div>
-          <div>
-            <h3 className="text-[var(--text-main)] font-mono font-semibold text-base leading-none group-hover:text-[var(--primary)] transition-colors">
+          <div className="min-w-0 flex-1">
+            <h3
+              className="text-[var(--text-main)] font-mono font-semibold text-sm leading-tight group-hover:text-[var(--primary)] transition-colors truncate"
+              title={agent.id}
+            >
               {agent.id}
             </h3>
-            <p className="text-[var(--text-muted)] text-xs mt-1 truncate max-w-[160px]">{agent.name}</p>
+            <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate" title={agent.name}>
+              {agent.name}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col items-end">
-          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold font-mono">
+        <div className="flex flex-col items-end shrink-0 pl-1 text-right">
+          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold font-mono whitespace-nowrap">
             Risk Score
           </span>
           <span
-            className={`font-mono font-bold text-lg ${
+            className={`font-mono font-bold text-base whitespace-nowrap ${
               agent.riskScore >= 70
                 ? 'text-[var(--status-danger)]'
                 : agent.riskScore >= 40
@@ -557,12 +562,12 @@ function AgentCard({
       </div>
 
       {/* Framework & Status Badges */}
-      <div className="flex items-center justify-between text-[11px] font-mono">
-        <span className="px-2 py-0.5 rounded-sm bg-[var(--bg-base)] text-[var(--primary)] border border-[rgba(0,212,255,0.2)]">
+      <div className="flex items-center justify-between text-[11px] font-mono gap-2">
+        <span className="px-2 py-0.5 rounded-sm bg-[var(--bg-base)] text-[var(--primary)] border border-[rgba(0,212,255,0.2)] truncate max-w-[140px]" title={agent.framework}>
           {agent.framework}
         </span>
         <span
-          className={`px-2 py-0.5 rounded-sm uppercase font-semibold text-[10px] ${
+          className={`px-2 py-0.5 rounded-sm uppercase font-semibold text-[10px] shrink-0 whitespace-nowrap ${
             agent.status === 'suspended'
               ? 'bg-[rgba(248,81,73,0.15)] text-[var(--status-danger)] border border-[rgba(248,81,73,0.3)]'
               : agent.status === 'warning'
@@ -575,26 +580,30 @@ function AgentCard({
       </div>
 
       {/* Uptime & Actions */}
-      <div className="grid grid-cols-2 gap-4 py-2 border-y border-[var(--border-color)] text-xs font-mono">
-        <div>
-          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block">
+      <div className="grid grid-cols-2 gap-3 py-2 border-y border-[var(--border-color)] text-xs font-mono">
+        <div className="min-w-0">
+          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block truncate">
             Status State
           </span>
-          <span className="text-[var(--text-main)]">{agent.uptime}</span>
+          <span className="text-[var(--text-main)] text-[11px] truncate block font-medium" title={agent.uptime}>
+            {agent.uptime}
+          </span>
         </div>
-        <div>
-          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block">
+        <div className="min-w-0 text-right">
+          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold block truncate">
             Telemetry Actions
           </span>
-          <span className="text-[var(--text-main)]">{agent.totalActions}</span>
+          <span className="text-[var(--text-main)] text-[11px] truncate block font-medium">
+            {agent.totalActions}
+          </span>
         </div>
       </div>
 
       {/* Footer Sparkline & Quick Action Button */}
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-mono text-[var(--text-muted)]">Risk Trend:</span>
-          <div className="flex items-end gap-1 h-4">
+      <div className="flex items-center justify-between pt-1 gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] font-mono text-[var(--text-muted)] whitespace-nowrap">Risk:</span>
+          <div className="flex items-end gap-1 h-3.5">
             {agent.recentRiskTrend.map((val, idx) => (
               <div
                 key={idx}
@@ -615,7 +624,7 @@ function AgentCard({
 
         <button
           onClick={onToggleQuarantine}
-          className={`px-2.5 py-1 text-[10px] font-mono uppercase font-bold rounded-sm transition-colors border cursor-pointer ${
+          className={`px-2.5 py-1 text-[10px] font-mono uppercase font-bold rounded-sm transition-colors border cursor-pointer whitespace-nowrap shrink-0 ${
             agent.status === 'suspended'
               ? 'border-[var(--status-success)] text-[var(--status-success)] hover:bg-[rgba(35,134,54,0.15)]'
               : 'border-[var(--status-danger)] text-[var(--status-danger)] hover:bg-[rgba(248,81,73,0.15)]'
