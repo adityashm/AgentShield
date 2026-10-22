@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL 16 Database
+  db:
+    image: postgres:16-alpine
+    container_name: agentshield_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentshield}
+      POSTGRES_USER: ${POSTGRES_USER:-agentshield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentshield_secret_change_me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agentshield} -d ${POSTGRES_DB:-agentshield}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agentshield_net
+
+  # 2. FastAPI Threat Monitoring & Ingestion Gateway
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentshield_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agentshield}:${POSTGRES_PASSWORD:-agentshield_secret_change_me}@db:5432/${POSTGRES_DB:-agentshield}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_me_in_production_f7a93c4e12b8}
+      API_KEY_PEPPER: ${API_KEY_PEPPER:-dev_api_key_pepper_secret_never_share_38c92a11}
+      SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-dGhpcy1pcy1hLTMyLWJ5dGUtZGV2LWZlcm5ldC1rZXk9PQ==}
+      SIMULATOR_ENABLED: "false"
+      AUTO_SIMULATE: "false"
+      CORS_ORIGINS: '["http://localhost", "http://localhost:8080", "http://localhost:5173", "http://127.0.0.1:8080"]'
+    ports:
+      - "8000:8000"
+    networks:
+      - agentshield_net
+
+  # 3. Nginx + React Command Center Single-Origin Gateway
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: agentshield_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${PORT:-8080}:80"
+    networks:
+      - agentshield_net
+
+  # 4. Optional Autonomous Agent Simulator (Run with: docker compose --profile demo up)
+  simulator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentshield_demo_simulator
+    profiles:
+      - demo
+    depends_on:
+      - api
+    command: >
+      python simulator.py
+      --api-url http://api:8000/api/v1
+      --api-key ashield_test_default_demo_key_12345
+      --interval 3.0
+    networks:
+      - agentshield_net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  agentshield_net:
+    driver: bridge

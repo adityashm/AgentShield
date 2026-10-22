@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 import json
 import uuid
+import asyncio
 
 from ...database import get_db
 from ...schemas import ActionCreate, ActionBulkCreate, ActionResponse
@@ -13,6 +14,7 @@ from ...services.rule_engine import RuleEngine
 from ...services.ml_engine import ml_engine
 from ...services.risk_calculator import RiskCalculator
 from ...services.websocket_manager import ws_manager
+from ...services.webhook_dispatcher import webhook_dispatcher
 from ...services.auth import get_current_org
 from ...config import settings
 
@@ -177,6 +179,28 @@ async def ingest_action(
 
     db.commit()
     db.refresh(action)
+
+    # 6. Dispatch Webhook notifications asynchronously if alert was triggered
+    if alert_info:
+        asyncio.create_task(
+            webhook_dispatcher.dispatch_alert_async(
+                org_id=org.org_id,
+                alert_data={
+                    "alert_id": alert.alert_id,
+                    "agent_id": alert.agent_id,
+                    "severity": alert.severity,
+                    "risk_score": alert.risk_score,
+                    "trigger_type": alert.trigger_type,
+                    "notes": alert.notes,
+                    "created_at": alert.created_at.isoformat() if alert.created_at else now.isoformat(),
+                },
+                action_data={
+                    "action_id": action_id,
+                    "action_type": action_in.action_type,
+                    "parameters": action_in.parameters,
+                },
+            )
+        )
 
     # Broadcast over WebSocket
     ws_event = {

@@ -77,4 +77,53 @@ export async function getSystemHealth() {
   return r.data
 }
 
+// Enterprise Tenant API Keys
+export async function getApiKeys() {
+  const r = await api.get('/api-keys')
+  return r.data
+}
+
+export async function createApiKey(data: { name: string; is_test?: boolean; scopes?: string }) {
+  const r = await api.post('/api-keys', data)
+  return r.data
+}
+
+export async function revokeApiKey(keyId: string) {
+  const r = await api.delete(`/api-keys/${keyId}`)
+  return r.data
+}
+
+// Webhooks & Threat Notifications
+export async function getWebhooks() {
+  const r = await api.get('/webhooks')
+  return r.data
+}
+
+export async function createWebhook(data: {
+  name: string
+  url: string
+  target_type: string
+  min_severity: string
+  secret?: string
+  enabled?: boolean
+}) {
+  const r = await api.post('/webhooks', data)
+  return r.data
+}
+
+export async function updateWebhook(endpointId: string, data: any) {
+  const r = await api.put(`/webhooks/${endpointId}`, data)
+  return r.data
+}
+
+export async function deleteWebhook(endpointId: string) {
+  const r = await api.delete(`/webhooks/${endpointId}`)
+  return r.data
+}
+
+export async function testWebhook(endpointId: string) {
+  const r = await api.post(`/webhooks/${endpointId}/test`)
+  return r.data
+}
+
 export default api
