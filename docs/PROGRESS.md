@@ -454,3 +454,54 @@ This document maintains an evidence-backed record of all transformation phases, 
   python scripts/seed_demo.py                  -> Exit 0 [SUCCESS, 6 agents, 25 baseline actions]
   ```
 - **Phase 7 Status**: PASSED.
+
+---
+
+## 2026-10-22 — Phase 8: Production Deployment (Docker Compose, Multi-Stage Builds & Nginx Gateway)
+
+### Work Performed
+1. **Multi-Stage Backend Container (`backend/Dockerfile`, `backend/entrypoint.sh`)**:
+   - Stage 1 (`builder`): Compiles dependencies in isolated virtual environment `/opt/venv` using Python 3.13-slim and C-extension build tools.
+   - Stage 2 (`runtime`): Ultra-lean runtime with `libpq5`, `curl`, and dedicated unprivileged user `agentshield:1000`.
+   - Hardened `entrypoint.sh` with active TCP socket readiness probing for PostgreSQL backend, automated `alembic upgrade head` migration execution, and Uvicorn process launch with proxy headers.
+   - Preserved strict Unix LF line endings for container execution compatibility.
+2. **Multi-Stage Frontend Container (`frontend/Dockerfile`)**:
+   - Stage 1 (`builder`): Node.js 20-alpine builds production static assets via `npm run build`.
+   - Stage 2 (`runtime`): Nginx 1.27-alpine serving compiled assets with healthchecks and SPA fallback.
+3. **Nginx Reverse Proxy Gateway (`deploy/nginx/nginx.conf`, `frontend/nginx.conf`)**:
+   - Single-origin gateway on port 8080 (internal port 80).
+   - Static asset caching (`/assets/` with 1-year immutable cache header) and gzip compression across text, CSS, JS, JSON, XML, and SVG.
+   - Transparent API proxying to `http://api:8000/api/` with 120s timeout.
+   - Low-latency WebSocket bidirectional upgrade routing for both global (`/ws`) and agent-isolated (`/ws/agent/*`) streaming feeds.
+   - Enterprise security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+4. **Production Docker Compose Stack (`docker-compose.yml`)**:
+   - `db`: `postgres:16-alpine` with healthcheck (`pg_isready`) and persistent volume `postgres_data`.
+   - `api`: Depends on healthy `db`, configures JWT secrets, peppered API keys, Fernet webhook secret encryption, and inline outbox worker.
+   - `web`: Depends on `api`, exposes port 8080 for web dashboard and API/WS access.
+   - `simulator`: Profile-gated container (`--profile demo`) continuously generating realistic agent activity and attack scenarios against the API.
+   - Validated cleanly via `docker compose config` (0 errors, 0 warnings).
+5. **Makefile Modernization (`Makefile`, `scripts/gen_api_types.sh`)**:
+   - Updated `make loadtest` and `make gen-api` targets to match current command signatures.
+
+### Verification Gate Status
+- **Docker Compose Validation**:
+  ```
+  Command: docker compose config
+  Result: Exit 0, 0 errors, 0 warnings, valid specification for db, api, web, and simulator services
+  ```
+- **Backend Test Suite**:
+  ```
+  Command: python -m pytest tests/ -v (in backend/)
+  Result: 39 passed, 6 warnings in 3.20s
+  ```
+- **SDK Test Suite**:
+  ```
+  Command: python -m pytest sdk/python/tests/ -v
+  Result: 25 passed in 22.55s
+  ```
+- **Frontend Build**:
+  ```
+  Command: npm run build (in frontend/)
+  Result: built in 3.41s, 0 errors, 113 modules transformed
+  ```
+- **Phase 8 Status**: PASSED.

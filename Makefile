@@ -37,7 +37,7 @@ demo:
 	docker compose --profile demo up --build
 
 loadtest:
-	python scripts/loadtest.py --rps 25 --duration 10
+	python scripts/loadtest.py --requests 100 --concurrency 10
 
 gen-api:
-	sh scripts/gen_api_types.sh
+	python scripts/export_openapi.py

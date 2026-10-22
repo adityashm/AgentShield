@@ -1,7 +1,7 @@
-version: '3.8'
-
 services:
-  # 1. PostgreSQL 16 Database
+  # ----------------------------------------------------------------------------
+  # 1. PostgreSQL 16 Relational Store
+  # ----------------------------------------------------------------------------
   db:
     image: postgres:16-alpine
     container_name: agentshield_db
@@ -20,7 +20,9 @@ services:
     networks:
       - agentshield_net
 
-  # 2. FastAPI Threat Monitoring & Ingestion Gateway
+  # ----------------------------------------------------------------------------
+  # 2. FastAPI Ingestion, Detection & Evaluation Engine
+  # ----------------------------------------------------------------------------
   api:
     build:
       context: ./backend
@@ -31,11 +33,12 @@ services:
       db:
         condition: service_healthy
     environment:
-      ENVIRONMENT: ${ENVIRONMENT:-dev}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       DATABASE_URL: postgresql://${POSTGRES_USER:-agentshield}:${POSTGRES_PASSWORD:-agentshield_secret_change_me}@db:5432/${POSTGRES_DB:-agentshield}
-      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_me_in_production_f7a93c4e12b8}
-      API_KEY_PEPPER: ${API_KEY_PEPPER:-dev_api_key_pepper_secret_never_share_38c92a11}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_secret_change_me_in_production_f7a93c4e12b8}
+      API_KEY_PEPPER: ${API_KEY_PEPPER:-prod_api_key_pepper_secret_never_share_38c92a11}
       SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-dGhpcy1pcy1hLTMyLWJ5dGUtZGV2LWZlcm5ldC1rZXk9PQ==}
+      RUN_WORKER_INLINE: "true"
       SIMULATOR_ENABLED: "false"
       AUTO_SIMULATE: "false"
       CORS_ORIGINS: '["http://localhost", "http://localhost:8080", "http://localhost:5173", "http://127.0.0.1:8080"]'
@@ -44,7 +47,9 @@ services:
     networks:
       - agentshield_net
 
-  # 3. Nginx + React Command Center Single-Origin Gateway
+  # ----------------------------------------------------------------------------
+  # 3. Nginx + React Mission Control Dashboard Single-Origin Gateway
+  # ----------------------------------------------------------------------------
   web:
     build:
       context: ./frontend
@@ -58,7 +63,9 @@ services:
     networks:
       - agentshield_net
 
+  # ----------------------------------------------------------------------------
   # 4. Optional Autonomous Agent Simulator (Run with: docker compose --profile demo up)
+  # ----------------------------------------------------------------------------
   simulator:
     build:
       context: ./backend
@@ -68,11 +75,15 @@ services:
       - demo
     depends_on:
       - api
-    command: >
-      python simulator.py
-      --api-url http://api:8000/api/v1
-      --api-key ashield_test_default_demo_key_12345
-      --interval 3.0
+    entrypoint: ["python", "simulator.py"]
+    command:
+      - "--base-url"
+      - "http://api:8000"
+      - "--api-key"
+      - "ashield_test_default_demo_key_12345"
+      - "--continuous"
+      - "--interval"
+      - "3.0"
     networks:
       - agentshield_net
 
