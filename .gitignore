@@ -51,6 +51,8 @@ npm-debug.log*
 .env.*.local
 *.pem
 *.key
+setup-stitch-mcp.ps1
+replacements.txt
 
 # IDE & OS
 .vscode/
