@@ -18,6 +18,7 @@ from .services.rule_engine import RuleEngine
 from .services.simulator import simulator
 from .services.websocket_manager import ws_manager
 from .services.auth import seed_default_org_and_key
+from .services.playbook_engine import PlaybookEngine
 
 from .api.v1.actions import router as actions_router
 from .api.v1.agents import router as agents_router
@@ -32,6 +33,9 @@ from .api.v1.webhooks import router as webhooks_router
 from .api.v1.audit import router as audit_router
 from .api.v1.demo import router as demo_router
 from .api.v1.health import router as health_router
+from .api.v1.proxy import router as proxy_router
+from .api.v1.playbooks import router as playbooks_router
+from .api.v1.compliance import router as compliance_router
 from .workers.webhook_worker import webhook_worker
 from .realtime.ws import router as realtime_ws_router
 
@@ -45,6 +49,7 @@ async def lifespan(app: FastAPI):
     try:
         RuleEngine.seed_default_rules(db)
         seed_default_org_and_key(db)
+        PlaybookEngine.seed_default_playbooks(db)
     finally:
         db.close()
 
@@ -107,6 +112,16 @@ app.include_router(audit_router, prefix=settings.API_V1_STR)
 app.include_router(demo_router, prefix=settings.API_V1_STR)
 app.include_router(health_router, prefix=settings.API_V1_STR)
 app.include_router(health_router)  # Root /healthz, /readyz, /metrics
+
+# Include Universal AI Gateway Proxy (/v1/chat/completions, /api/v1/chat/completions)
+app.include_router(proxy_router, prefix="/v1")
+app.include_router(proxy_router, prefix=settings.API_V1_STR)
+
+# Include Automated Incident Response Playbooks Router
+app.include_router(playbooks_router, prefix=settings.API_V1_STR)
+
+# Include Compliance & Governance Dossier Router
+app.include_router(compliance_router, prefix=settings.API_V1_STR)
 
 # Include Authenticated WebSocket Realtime Router
 app.include_router(realtime_ws_router)

@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useWebSocket } from '../ws/WebSocketContext'
 import { useAuth } from '../context/AuthContext'
 import { getAlerts, Alert } from '../api'
+import CommandPalette from './CommandPalette'
 
 const primaryNav = [
   { to: '/', label: 'Dashboard', icon: 'dashboard' },
@@ -35,6 +36,7 @@ export default function AppShell({ children }: PropsWithChildren) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [activeToast, setActiveToast] = useState<any | null>(null)
   const [topAlerts, setTopAlerts] = useState<Alert[]>([])
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
   const lastProcessedKeyRef = React.useRef<string | null>(null)
 
   // Live alerts count for sidebar badge and top bell
@@ -99,6 +101,18 @@ export default function AppShell({ children }: PropsWithChildren) {
     updateTime()
     const timer = setInterval(updateTime, 1000)
     return () => clearInterval(timer)
+  }, [])
+
+  // Global Ctrl+K / Cmd+K Command Palette trigger
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setIsPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   // Calculate dynamic breadcrumb based on pathname
@@ -224,6 +238,21 @@ export default function AppShell({ children }: PropsWithChildren) {
 
           {/* Right Header Badges & Actions */}
           <div className="flex items-center gap-3">
+            {/* Quick Command & Search Pill */}
+            <button
+              onClick={() => setIsPaletteOpen(true)}
+              className="flex items-center gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-2.5 py-1.5 text-xs text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--text-main)] transition-colors cursor-pointer group"
+              title="Quick Command & Search (Ctrl+K / Cmd+K)"
+            >
+              <Icon name="search" />
+              <span className="hidden md:inline font-mono text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-main)]">
+                Command Palette...
+              </span>
+              <kbd className="hidden sm:inline-block rounded bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] border border-[var(--border-color)]">
+                Ctrl K
+              </kbd>
+            </button>
+
             {/* System Status Pill */}
             <div className="flex items-center gap-2 rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)] px-3 py-1.5">
               <span
@@ -367,6 +396,9 @@ export default function AppShell({ children }: PropsWithChildren) {
             </div>
           </div>
         )}
+
+        {/* Global Command Palette */}
+        <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
       </div>
     </div>
   )

@@ -591,3 +591,36 @@ This document maintains an evidence-backed record of all transformation phases, 
 
 ---
 
+## 2026-10-22 — Phases 11–15: Universal AI Gateway Proxy, Automated Playbooks, Crescendo Detector, Compliance Reporting & Command Palette
+
+### Work Performed
+1. **Universal AI Gateway Proxy (`backend/app/api/v1/proxy.py`, `backend/tests/test_proxy.py`)**:
+   - Implemented OpenAI-compatible `/v1/chat/completions` and `/v1/models` reverse proxy.
+   - Evaluates incoming prompt messages through the normalization and AST rule engine before upstream dispatch.
+   - Returns RFC 7807 problem details with HTTP 403 when prompt injection, system prompt exfiltration, or dangerous tool invocation is detected.
+   - Validated via 4 automated unit tests (`test_proxy.py`).
+2. **Automated Incident Response Playbooks & Circuit Breakers (`backend/app/db/models/playbook.py`, `backend/app/services/playbook_engine.py`, `backend/app/api/v1/playbooks.py`, `backend/tests/test_playbooks.py`)**:
+   - Implemented automated reactive circuit breakers triggering on alert frequency thresholds (e.g. $\ge 2$ Critical alerts within a 5-minute sliding window).
+   - Autonomously transitions offending agents to `quarantined` state and dispatches high-priority security notifications via the real-time event bus.
+   - Created full CRUD API under `/api/v1/playbooks` with audit logging.
+   - Validated via 2 automated integration tests (`test_playbooks.py`).
+3. **Multi-Turn Crescendo & Velocity Drift Detector (`backend/app/detection/crescendo.py`, `backend/tests/test_crescendo.py`)**:
+   - Implemented stateful crescendo attack detector with geometric decay factor ($\gamma = 0.85$).
+   - Computes turn-by-turn risk velocity ($\Delta \text{risk} / \Delta t$) to catch gradual, multi-turn adversarial priming and semantic drift.
+   - Includes ROT13 and Base64 deobfuscation decoders.
+   - Validated via 2 automated tests (`test_crescendo.py`).
+4. **1-Click Cryptographically Verified Compliance Reporting (`backend/app/api/v1/compliance.py`, `backend/tests/test_compliance.py`)**:
+   - Implemented `/api/v1/compliance/report?framework=soc2|eu_ai_act` endpoint.
+   - Performs automated cryptographic SHA-256 audit log hash chain validation.
+   - Generates machine-readable compliance dossiers certifying SOC 2 Type II trust principles (CC6.1, CC6.6, CC7.2), EU AI Act Article 14 (Human Oversight), and OWASP ASI01–ASI10 matrix coverage.
+   - Validated via 2 automated tests (`test_compliance.py`).
+5. **Global Command Palette & Cockpit Navigation (`frontend/src/components/CommandPalette.tsx`, `frontend/src/components/AppShell.tsx`)**:
+   - Built sleek dark-mode `Ctrl+K` / `Cmd+K` keyboard shortcut modal.
+   - Fast fuzzy navigation across all pages, 1-click SOC 2 / EU AI Act JSON export, proxy threat simulation test, and ML model retraining trigger.
+   - Added persistent header button next to live UTC clock.
+6. **Regression Verification**:
+   - Backend tests: **53 passed** (was 43) in 17.54s.
+   - Python SDK tests: **25 passed** in 26.02s.
+   - Frontend build: **0 errors** (vite build succeeded in 6.13s, 114 modules transformed).
+
+

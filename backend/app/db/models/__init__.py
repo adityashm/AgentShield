@@ -9,6 +9,7 @@ from .alert import Alert, AlertComment
 from .webhook import WebhookEndpoint, WebhookDelivery
 from .audit import AuditLog
 from .ml import MLModel
+from .playbook import Playbook
 
 __all__ = [
     "Organization",
@@ -25,4 +26,5 @@ __all__ = [
     "WebhookDelivery",
     "AuditLog",
     "MLModel",
+    "Playbook",
 ]

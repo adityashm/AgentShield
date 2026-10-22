@@ -81,6 +81,17 @@ class AlertService:
 
         # Stage transactional outbox deliveries
         AlertService.stage_webhook_deliveries(new_alert, action, db)
+
+        # Trigger Automated Incident Remediation Playbooks
+        try:
+            import asyncio
+            from .playbook_engine import PlaybookEngine
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(PlaybookEngine.evaluate_alert(new_alert, db))
+        except Exception:
+            pass
+
         return new_alert, True
 
     @staticmethod
