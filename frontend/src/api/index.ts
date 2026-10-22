@@ -62,6 +62,18 @@ export async function getAgents(): Promise<Agent[]> {
   return r.data
 }
 
+export async function createAgent(agentData: {
+  agent_id: string
+  name: string
+  framework?: string
+  environment?: string
+  description?: string
+  metadata?: Record<string, any>
+}): Promise<Agent> {
+  const r = await api.post('/agents', agentData)
+  return r.data
+}
+
 export async function getAgent(agentId: string): Promise<Agent> {
   const r = await api.get(`/agents/${agentId}`)
   return r.data
@@ -130,6 +142,11 @@ export async function createRule(ruleData: any): Promise<Rule> {
 
 export async function deleteRule(ruleId: string): Promise<any> {
   const r = await api.delete(`/rules/${ruleId}`)
+  return r.data
+}
+
+export async function toggleRule(ruleId: string): Promise<any> {
+  const r = await api.patch(`/rules/${ruleId}/toggle`)
   return r.data
 }
 

@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict, Any
+import json
 import uuid
 
 from ...database import get_db
 from ...schemas import RuleResponse, RuleCreate
 from ...models import Rule
+from ...detection.dsl import SafeASTEvaluator
+from ...detection.normalize import normalize_payload
 
 router = APIRouter(prefix="/rules", tags=["rules"])
 
@@ -53,3 +56,33 @@ def toggle_rule(rule_id: str, db: Session = Depends(get_db)):
     rule.enabled = not rule.enabled
     db.commit()
     return {"rule_id": rule_id, "enabled": rule.enabled}
+
+@router.post("/test")
+def test_rule(body: Dict[str, Any] = Body(...)):
+    """Evaluate a JSON-DSL condition against a sample payload using Safe AST."""
+    condition = body.get("condition")
+    payload = body.get("payload", {})
+    if isinstance(condition, str):
+        try:
+            condition = json.loads(condition)
+        except Exception:
+            pass
+    normalized = normalize_payload(payload) if isinstance(payload, dict) else payload
+    try:
+        matched = SafeASTEvaluator.evaluate(condition, normalized)
+    except Exception as e:
+        return {
+            "matched": False,
+            "decision": "error",
+            "reasons": [f"Evaluation error: {str(e)}"],
+        }
+    return {
+        "matched": bool(matched),
+        "decision": "deny" if matched else "allow",
+        "reasons": [
+            "Rule condition matched test payload (Security Policy Violation Detected)"
+            if matched
+            else "Rule condition did not match test payload (Action Permitted)"
+        ],
+    }
+

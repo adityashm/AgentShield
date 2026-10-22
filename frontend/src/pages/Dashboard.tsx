@@ -253,6 +253,8 @@ function NodesPanel() {
 
 export default function Dashboard() {
   const { messages, status, isPaused, togglePause } = useWebSocket()
+  const [feedFilter, setFeedFilter] = useState<'all' | 'threats' | 'blocked'>('all')
+  const [selectedEvent, setSelectedEvent] = useState<WSMessage | null>(null)
   const [metrics, setMetrics] = useState({
     activeAgents: '7',
     actionsToday: '32',
@@ -401,14 +403,37 @@ export default function Dashboard() {
       <div className="grid min-h-[420px] grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <div className="flex h-full flex-col rounded-sm border border-[var(--border-color)] bg-[var(--bg-raised)]">
-            <div className="flex items-center justify-between rounded-t-sm border-b border-[var(--border-color)] bg-[var(--bg-surface)] p-4">
-              <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[var(--text-main)]">
-                Live Action Telemetry Stream
-                <span className="inline-block h-2 w-2 rounded-full bg-[var(--status-success)] align-middle shadow-[0_0_4px_#238636]" />
-              </h2>
+            <div className="flex flex-wrap items-center justify-between rounded-t-sm border-b border-[var(--border-color)] bg-[var(--bg-surface)] p-4 gap-2">
+              <div className="flex items-center gap-3">
+                <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[var(--text-main)]">
+                  Live Action Telemetry Stream
+                  <span className="inline-block h-2 w-2 rounded-full bg-[var(--status-success)] align-middle shadow-[0_0_4px_#238636]" />
+                </h2>
+
+                <div className="flex items-center gap-1 bg-[var(--bg-base)] p-0.5 rounded-sm border border-[var(--border-color)]">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'threats', label: 'Threats' },
+                    { id: 'blocked', label: 'Blocked' },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setFeedFilter(f.id as any)}
+                      className={`px-2.5 py-0.5 font-mono text-[10px] uppercase rounded-sm transition-colors cursor-pointer ${
+                        feedFilter === f.id
+                          ? 'bg-[var(--primary)] text-[#001f27] font-bold'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={togglePause}
-                className="text-[11px] font-mono uppercase tracking-wider text-[var(--primary)] transition-colors hover:text-white"
+                className="text-[11px] font-mono uppercase tracking-wider text-[var(--primary)] transition-colors hover:text-white cursor-pointer"
               >
                 {isPaused ? '▶ Resume Feed' : '⏸ Pause Feed'}
               </button>
@@ -423,58 +448,81 @@ export default function Dashboard() {
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Risk Score</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Timestamp</th>
                     <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Status</th>
+                    <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] text-right">Inspect</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-color)] text-sm">
-                  {displayFeed.map((row: WSMessage, idx: number) => {
-                    const agentId = row.agent || 'AGT-009'
-                    const actionName = row.action || 'Event Telemetry'
-                    const riskVal = row.risk || 50
-                    const toneVal = row.tone || (Number(riskVal) > 70 ? 'danger' : Number(riskVal) > 40 ? 'warning' : 'success')
-                    const timeVal = row.time || '14:32:41'
-                    const statusText = row.status || (toneVal === 'danger' ? 'Critical' : toneVal === 'warning' ? 'Suspicious' : 'Normal')
+                  {displayFeed
+                    .filter((row: WSMessage) => {
+                      const riskVal = Number(row.risk || 0)
+                      if (feedFilter === 'threats') {
+                        return riskVal >= 60 || row.tone === 'danger' || row.tone === 'warning'
+                      }
+                      if (feedFilter === 'blocked') {
+                        return row.decision === 'deny' || row.status === 'Critical' || riskVal >= 80
+                      }
+                      return true
+                    })
+                    .map((row: WSMessage, idx: number) => {
+                      const agentId = row.agent || 'AGT-009'
+                      const actionName = row.action || 'Event Telemetry'
+                      const riskVal = row.risk || 50
+                      const toneVal = row.tone || (Number(riskVal) > 70 ? 'danger' : Number(riskVal) > 40 ? 'warning' : 'success')
+                      const timeVal = row.time || '14:32:41'
+                      const statusText = row.status || (toneVal === 'danger' ? 'Critical' : toneVal === 'warning' ? 'Suspicious' : 'Normal')
 
-                    return (
-                      <tr key={idx} className="group cursor-pointer transition-colors hover:bg-[var(--bg-hover)]">
-                        <td className="p-3 font-mono font-semibold text-[var(--primary)] group-hover:underline">
-                          <Link to={`/agent/${agentId}`}>{agentId}</Link>
-                        </td>
-                        <td className="p-3 text-[var(--text-main)] font-medium">{actionName}</td>
-                        <td className="p-3">
-                          <StatBadge tone={toneVal}>{riskVal}</StatBadge>
-                        </td>
-                        <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">{timeVal}</td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                toneVal === 'danger'
-                                  ? 'bg-[var(--status-danger)] shadow-[0_0_4px_#F85149]'
-                                  : toneVal === 'warning'
-                                  ? 'bg-[var(--status-warning)]'
-                                  : toneVal === 'success'
-                                  ? 'bg-[var(--status-success)]'
-                                  : 'bg-[var(--text-muted)]'
-                              }`}
-                            />
-                            <span
-                              className={`text-[12px] font-semibold ${
-                                toneVal === 'danger'
-                                  ? 'text-[var(--status-danger)]'
-                                  : toneVal === 'warning'
-                                  ? 'text-[var(--status-warning)]'
-                                  : toneVal === 'success'
-                                  ? 'text-[var(--status-success)]'
-                                  : 'text-[var(--text-muted)]'
-                              }`}
-                            >
-                              {statusText}
+                      return (
+                        <tr
+                          key={idx}
+                          onClick={() => setSelectedEvent(row)}
+                          className="group cursor-pointer transition-colors hover:bg-[var(--bg-hover)]"
+                        >
+                          <td className="p-3 font-mono font-semibold text-[var(--primary)] group-hover:underline">
+                            <Link to={`/agent/${agentId}`} onClick={(e) => e.stopPropagation()}>
+                              {agentId}
+                            </Link>
+                          </td>
+                          <td className="p-3 text-[var(--text-main)] font-medium">{actionName}</td>
+                          <td className="p-3">
+                            <StatBadge tone={toneVal}>{riskVal}</StatBadge>
+                          </td>
+                          <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">{timeVal}</td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  toneVal === 'danger'
+                                    ? 'bg-[var(--status-danger)] shadow-[0_0_4px_#F85149]'
+                                    : toneVal === 'warning'
+                                    ? 'bg-[var(--status-warning)]'
+                                    : toneVal === 'success'
+                                    ? 'bg-[var(--status-success)]'
+                                    : 'bg-[var(--text-muted)]'
+                                }`}
+                              />
+                              <span
+                                className={`text-[12px] font-semibold ${
+                                  toneVal === 'danger'
+                                    ? 'text-[var(--status-danger)]'
+                                    : toneVal === 'warning'
+                                    ? 'text-[var(--status-warning)]'
+                                    : toneVal === 'success'
+                                    ? 'text-[var(--status-success)]'
+                                    : 'text-[var(--text-muted)]'
+                                }`}
+                              >
+                                {statusText}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-right">
+                            <span className="text-[11px] font-mono text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                              Details →
                             </span>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                          </td>
+                        </tr>
+                      )
+                    })}
                 </tbody>
               </table>
             </div>
@@ -488,6 +536,114 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Forensic Telemetry Event Modal */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-sm border border-[var(--border-color)] bg-[var(--bg-surface)] p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-[var(--border-color)] pb-3">
+              <div>
+                <h3 className="text-base font-bold font-mono text-[var(--text-main)] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[var(--primary)]">troubleshoot</span>
+                  Forensic Telemetry Event Inspection
+                </h3>
+                <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+                  Agent: <span className="text-[var(--primary)] font-bold">{selectedEvent.agent}</span> • {selectedEvent.time}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 text-xs font-mono">
+              <div className="grid grid-cols-3 gap-3 p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm">
+                <div>
+                  <span className="text-[10px] uppercase text-[var(--text-muted)] block">Action Name</span>
+                  <span className="font-semibold text-[var(--text-main)]">{selectedEvent.action}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase text-[var(--text-muted)] block">Risk Score</span>
+                  <span className={`font-bold ${
+                    Number(selectedEvent.risk || 0) >= 70
+                      ? 'text-[var(--status-danger)]'
+                      : Number(selectedEvent.risk || 0) >= 40
+                      ? 'text-[var(--status-warning)]'
+                      : 'text-[var(--status-success)]'
+                  }`}>
+                    {selectedEvent.risk}/100
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase text-[var(--text-muted)] block">Gateway Decision</span>
+                  <span className={`font-bold uppercase ${
+                    selectedEvent.decision === 'deny' || selectedEvent.tone === 'danger'
+                      ? 'text-[var(--status-danger)]'
+                      : 'text-[var(--status-success)]'
+                  }`}>
+                    {selectedEvent.decision === 'deny' || selectedEvent.tone === 'danger' ? 'DENIED / BLOCKED' : 'ALLOWED'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">
+                    Raw Telemetry Payload:
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(selectedEvent, null, 2))
+                    }}
+                    className="text-[10px] text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">content_copy</span>
+                    Copy JSON
+                  </button>
+                </div>
+                <pre className="p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-sm text-[#A8E8FF] overflow-x-auto max-h-48 leading-relaxed">
+                  {JSON.stringify(
+                    {
+                      event_type: selectedEvent.type,
+                      agent_id: selectedEvent.agent,
+                      action_type: selectedEvent.action,
+                      risk_score: selectedEvent.risk,
+                      decision: selectedEvent.decision || (selectedEvent.tone === 'danger' ? 'deny' : 'allow'),
+                      timestamp: selectedEvent.time,
+                      status: selectedEvent.status,
+                      matched_rules: selectedEvent.rules || (Number(selectedEvent.risk || 0) >= 70 ? ['RUL-001 (Unauthorized Access)'] : []),
+                    },
+                    null,
+                    2
+                  )}
+                </pre>
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-[var(--border-color)]">
+                <Link
+                  to={`/agent/${selectedEvent.agent}`}
+                  className="px-3 py-1.5 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--primary)] font-mono text-xs rounded-sm transition-colors flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  Agent Profile
+                </Link>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedEvent(null)}
+                    className="px-4 py-1.5 bg-[var(--primary)] text-[#001f27] font-mono text-xs font-bold uppercase rounded-sm hover:bg-[#00b0d4] transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

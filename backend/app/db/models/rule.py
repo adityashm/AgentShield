@@ -69,6 +69,10 @@ class Rule(Base):
     rule_id = synonym("id")
 
     @property
+    def created_at(self) -> datetime:
+        return self.updated_at or utc_now()
+
+    @property
     def category(self) -> str:
         return self.condition.get("category", "General") if isinstance(self.condition, dict) else "General"
 

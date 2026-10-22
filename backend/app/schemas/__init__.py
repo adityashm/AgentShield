@@ -61,7 +61,7 @@ class RuleResponse(BaseModel):
     condition_json: str
     enabled: bool
     matches_count: int
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 

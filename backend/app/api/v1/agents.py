@@ -17,6 +17,14 @@ class AgentStatusChangeRequest(BaseModel):
     reason: Optional[str] = "Manual administrative action"
     notes: Optional[str] = None
 
+class AgentCreateRequest(BaseModel):
+    agent_id: str
+    name: str
+    framework: Optional[str] = "custom"
+    environment: Optional[str] = "production"
+    description: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
 @router.get("", response_model=List[AgentResponse])
 def list_agents(
     request: Request,
@@ -37,6 +45,36 @@ def list_agents(
     if not agents and org_id == "org_default":
         agents = db.query(Agent).order_by(Agent.current_risk_score.desc()).all()
     return agents
+
+@router.post("", response_model=AgentResponse)
+def create_agent(
+    body: AgentCreateRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Provision a new agent in the organization."""
+    org_id = getattr(request.state, "org_id", "org_default")
+    existing = db.query(Agent).filter((Agent.id == body.agent_id) | (Agent.external_id == body.agent_id)).first()
+    if existing:
+        return existing
+    
+    agent = Agent(
+        id=body.agent_id,
+        external_id=body.agent_id,
+        org_id=org_id,
+        name=body.name,
+        framework=body.framework or "custom",
+        environment=body.environment or "production",
+        status="active",
+        risk_score=10.0,
+        metadata_json=body.metadata or {},
+        first_seen=datetime.now(timezone.utc),
+        last_seen=datetime.now(timezone.utc),
+    )
+    db.add(agent)
+    db.commit()
+    db.refresh(agent)
+    return agent
 
 @router.get("/{agent_id}")
 def get_agent_detail(
