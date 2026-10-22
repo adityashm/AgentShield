@@ -426,7 +426,7 @@ async def simulate_scenario(
         "decision": decision,
         "tone": "danger" if decision == "deny" else "warning" if risk_score >= 50 else "success",
         "status": "Critical" if decision == "deny" else "Suspicious" if risk_score >= 50 else "Normal",
-        "time": now.strftime("%H:%M:%S.%f")[:-3],
+        "time": now.isoformat(),
         "latency_ms": latency_ms,
         "rules": [sc_def["violated_rule"].split(":")[0]] if sc_def["violated_rule"] else [],
         "alert_id": alert_id,

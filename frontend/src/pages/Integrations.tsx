@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { testProxyPrompt, ProxyTestResponse } from '../api'
+import { formatISTTime } from '../utils/time'
 
 const PRESET_PROMPTS = [
   {
@@ -35,6 +36,7 @@ export default function Integrations() {
   const [testPrompt, setTestPrompt] = useState(PRESET_PROMPTS[0].prompt)
   const [isLoading, setIsLoading] = useState(false)
   const [testResult, setTestResult] = useState<ProxyTestResponse | null>(null)
+  const [testTime, setTestTime] = useState<string | null>(null)
   const [activeGuideTab, setActiveGuideTab] = useState<'dify' | 'flowise' | 'langflow' | 'cursor' | 'n8n'>('dify')
 
   const copyToClipboard = (text: string, keyId: string) => {
@@ -49,6 +51,7 @@ export default function Integrations() {
     try {
       const res = await testProxyPrompt(testPrompt, selectedModel, gatewayMode)
       setTestResult(res)
+      setTestTime(formatISTTime(new Date()))
     } catch (err: any) {
       if (err.response?.data?.error) {
         const errData = err.response.data.error
@@ -62,6 +65,7 @@ export default function Integrations() {
           response_text: `[BLOCKED BY AGENTSHIELD] ${errData.message || 'Threat quarantined.'}`,
           tokens: { prompt_tokens: testPrompt.split(' ').length, completion_tokens: 0, total_tokens: testPrompt.split(' ').length },
         })
+        setTestTime(formatISTTime(new Date()))
       }
     } finally {
       setIsLoading(false)
@@ -347,6 +351,10 @@ export default function Integrations() {
                 <div>
                   <span className="text-[var(--text-muted)]">Latency: </span>
                   <strong className="text-cyan-400">{testResult.latency_ms} ms</strong>
+                </div>
+                <div>
+                  <span className="text-[var(--text-muted)]">Tested At: </span>
+                  <strong className="text-white">{testTime || '--:--:-- IST'}</strong>
                 </div>
               </div>
             </div>

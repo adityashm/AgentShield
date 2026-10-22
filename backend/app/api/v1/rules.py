@@ -186,11 +186,11 @@ def apply_rule_profile(
     target_rule_ids = set(profile["active_rules"])
     org_id = current_user.org_id if (current_user and hasattr(current_user, "org_id")) else "org_default"
 
-    all_rules = db.query(Rule).all()
+    all_rules = db.query(Rule).filter((Rule.org_id == org_id) | (Rule.org_id.is_(None))).all()
     if not all_rules:
         from ...detection.rules_engine import RulesEngine
         RulesEngine.seed_default_rules(db, org_id=org_id)
-        all_rules = db.query(Rule).all()
+        all_rules = db.query(Rule).filter((Rule.org_id == org_id) | (Rule.org_id.is_(None))).all()
 
     enabled_count = 0
     disabled_count = 0

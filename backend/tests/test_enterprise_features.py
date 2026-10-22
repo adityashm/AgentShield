@@ -155,3 +155,59 @@ def test_apply_rule_profile_balanced(client: TestClient):
     data = res.json()
     assert data["profile_id"] == "balanced"
     assert data["rules_enabled"] >= 6
+
+def test_simulate_all_seven_scenarios(client: TestClient):
+    """Verifies all 7 attack and benign scenarios run successfully with valid SHA-256 hashes."""
+    scenarios = [
+        ("data_exfil", "deny"),
+        ("prompt_injection", "deny"),
+        ("credential_harvest", "deny"),
+        ("reverse_shell", "deny"),
+        ("crescendo_drift", "deny"),
+        ("system_file_access", "deny"),
+        ("benign_flow", "allow"),
+    ]
+    for sc_name, expected_decision in scenarios:
+        res = client.post(
+            "/api/v1/demo/simulate-scenario",
+            json={"scenario": sc_name, "mode": "enforce"},
+        )
+        assert res.status_code == 200, f"Scenario {sc_name} failed: {res.text}"
+        data = res.json()
+        assert data["scenario"] == sc_name
+        assert data["decision"] == expected_decision
+        assert len(data["audit_hash"]) == 64
+        assert len(data["steps"]) > 0
+
+def test_sequential_rule_profiles_audit_chain_integrity(client: TestClient):
+    """
+    Applies profiles sequentially in rapid succession (fintech -> healthcare -> customer_support -> devops -> balanced)
+    and verifies that the cryptographic audit log hash chain remains 100% contiguous and unbroken.
+    """
+    profiles = ["fintech", "healthcare", "customer_support", "devops", "balanced"]
+    for p in profiles:
+        res = client.post(
+            "/api/v1/rules/profiles/apply",
+            json={"profile_id": p},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert len(data["audit_hash"]) == 64
+
+    # Verify audit hash chain
+    verify_res = client.get("/api/v1/audit/verify")
+    assert verify_res.status_code == 200
+    verify_data = verify_res.json()
+    assert verify_data["verified"] is True
+    assert verify_data["tampered_records"] == 0
+    assert verify_data["total_records"] >= 5
+
+def test_compliance_report_unauthenticated_and_jwt(client: TestClient):
+    """Verifies /api/v1/compliance/report works with demo fallback and returns tampered_records count."""
+    res = client.get("/api/v1/compliance/report?framework=soc2")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["framework"] == "SOC2"
+    assert data["cryptographic_audit_chain_valid"] is True
+    assert "human_oversight_controls" in data
+

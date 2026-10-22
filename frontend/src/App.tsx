@@ -12,6 +12,9 @@ import Login from './pages/Login'
 import Logs from './pages/Logs'
 import Audit from './pages/Audit'
 import Onboarding from './pages/Onboarding'
+import Integrations from './pages/Integrations'
+import SimulatorLab from './pages/SimulatorLab'
+import Compliance from './pages/Compliance'
 
 export default function App() {
   return (
@@ -33,7 +36,10 @@ export default function App() {
               <Route path="/alerts/triage/:id" element={<AlertsTriage />} />
               <Route path="/agents" element={<Agents />} />
               <Route path="/agent/:id" element={<AgentDetail />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/simulator" element={<SimulatorLab />} />
               <Route path="/rules" element={<Rules />} />
+              <Route path="/compliance" element={<Compliance />} />
               <Route path="/logs" element={<Logs />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />

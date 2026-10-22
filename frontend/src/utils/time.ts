@@ -18,8 +18,17 @@ export function getLiveISTTime(): string {
 
 export function formatISTTime(value?: Date | string | number | null): string {
   if (!value) return '--:--:-- IST'
+  if (typeof value === 'string' && value.includes('IST')) return value
   try {
-    const d = new Date(value)
+    let d = new Date(value)
+    if (isNaN(d.getTime()) && typeof value === 'string') {
+      const timeMatch = value.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+      if (timeMatch) {
+        const today = new Date()
+        const [, h, m, s] = timeMatch
+        d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), parseInt(h), parseInt(m), parseInt(s || '0')))
+      }
+    }
     if (isNaN(d.getTime())) return String(value)
     const timeStr = d.toLocaleTimeString('en-IN', {
       timeZone: 'Asia/Kolkata',
@@ -36,6 +45,7 @@ export function formatISTTime(value?: Date | string | number | null): string {
 
 export function formatISTDate(value?: Date | string | number | null): string {
   if (!value) return '--'
+  if (typeof value === 'string' && value.includes('IST')) return value
   try {
     const d = new Date(value)
     if (isNaN(d.getTime())) return String(value)
@@ -52,6 +62,7 @@ export function formatISTDate(value?: Date | string | number | null): string {
 
 export function formatISTDateTime(value?: Date | string | number | null, includeSeconds = true): string {
   if (!value) return '--'
+  if (typeof value === 'string' && value.includes('IST')) return value
   try {
     const d = new Date(value)
     if (isNaN(d.getTime())) return String(value)
@@ -77,6 +88,7 @@ export function formatISTDateTime(value?: Date | string | number | null, include
 
 export function formatISTCompact(value?: Date | string | number | null): string {
   if (!value) return '--'
+  if (typeof value === 'string' && value.includes('IST')) return value
   try {
     const d = new Date(value)
     if (isNaN(d.getTime())) return String(value)

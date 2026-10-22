@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { getRules, toggleRule, createRule, deleteRule, testRuleEvaluation, RuleTestResponse } from '../../api'
+import {
+  getRules,
+  toggleRule,
+  createRule,
+  deleteRule,
+  testRuleEvaluation,
+  RuleTestResponse,
+  applyRuleProfile,
+  RuleProfile,
+} from '../../api'
 
 export interface Rule {
   id: string
@@ -147,6 +156,43 @@ export default function RulesDirectory() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>('RUL-001')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [activeProfile, setActiveProfile] = useState<string | null>('balanced')
+  const [applyingProfile, setApplyingProfile] = useState<string | null>(null)
+
+  const handleApplyProfile = async (profileId: string, profileName: string) => {
+    setApplyingProfile(profileId)
+    try {
+      const res = await applyRuleProfile(profileId)
+      setActiveProfile(profileId)
+      showToast(`Applied ${profileName} profile (${res.rules_enabled} rules active).`)
+      // Refresh rules list from backend
+      const data = await getRules()
+      if (data && data.length > 0) {
+        const mapped: Rule[] = data.map((r: any) => {
+          const cat = r.category || 'Access Control'
+          const tax = taxonomyMap[cat] || { owasp: 'ASI02 Tool Misuse', mitre: 'AML.T0053' }
+          return {
+            id: r.rule_id || r.id,
+            name: r.name,
+            description: r.description,
+            category: cat,
+            severity: (r.severity ? r.severity.charAt(0).toUpperCase() + r.severity.slice(1).toLowerCase() : 'Medium') as any,
+            matches: r.matches_count || 0,
+            active: Boolean(r.enabled),
+            owaspId: tax.owasp,
+            mitreAtlasId: tax.mitre,
+            jsonCondition: typeof r.condition_json === 'string' ? r.condition_json : JSON.stringify(r.condition || {}, null, 2),
+          }
+        })
+        setRules(mapped)
+        saveRulesToStorage(mapped)
+      }
+    } catch {
+      showToast(`Failed to apply profile ${profileName}.`)
+    } finally {
+      setApplyingProfile(null)
+    }
+  }
 
   // Fetch real rules from backend
   useEffect(() => {
@@ -465,6 +511,70 @@ export default function RulesDirectory() {
           <span className="material-symbols-outlined text-[16px]">add</span>
           New Policy Rule
         </button>
+      </div>
+
+      {/* 1-Click Industry Guardrail Profiles Selector Banner */}
+      <div className="panel-obsidian rounded-xl p-5 space-y-3.5 border border-white/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-sky-400 text-lg">shield_with_heart</span>
+            <h3 className="text-sm font-bold text-white">1-Click Industry Guardrail Profiles</h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              Instant Compliance Setup
+            </span>
+          </div>
+          <span className="text-xs text-slate-400">
+            One click activates recommended AST detection rules and threshold baselines for your industry.
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+          {[
+            { id: 'fintech', name: 'FinTech / Banking', badge: 'SOC 2 / PCI', icon: 'account_balance' },
+            { id: 'healthcare', name: 'Healthcare / HIPAA', badge: 'HIPAA / HITECH', icon: 'local_hospital' },
+            { id: 'customer_support', name: 'Customer Support', badge: 'OWASP ASI', icon: 'support_agent' },
+            { id: 'devops', name: 'DevOps / Cloud', badge: 'ISO 27001', icon: 'cloud_done' },
+            { id: 'balanced', name: 'Enterprise Balanced', badge: 'Standard 20-Rule', icon: 'shield' },
+          ].map((prof) => {
+            const isCurrent = activeProfile === prof.id
+            const isBusy = applyingProfile === prof.id
+            return (
+              <button
+                key={prof.id}
+                onClick={() => handleApplyProfile(prof.id, prof.name)}
+                disabled={Boolean(applyingProfile)}
+                className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+                  isCurrent
+                    ? 'border-sky-500 bg-sky-500/10 ring-1 ring-sky-500 shadow-md shadow-sky-500/10'
+                    : 'border-white/5 bg-slate-950/60 hover:bg-slate-900 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="material-symbols-outlined text-base text-sky-400">{prof.icon}</span>
+                  <span className="text-[9px] font-mono font-bold text-slate-400 uppercase">
+                    {prof.badge}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white truncate">
+                    {prof.name}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+                    {isBusy ? (
+                      <span className="text-sky-400 animate-pulse">Applying...</span>
+                    ) : isCurrent ? (
+                      <span className="text-emerald-400 font-semibold flex items-center gap-0.5">
+                        <span className="material-symbols-outlined text-[13px]">check</span> Active
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 hover:text-slate-300">1-Click Apply</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Main Two-Column Layout */}

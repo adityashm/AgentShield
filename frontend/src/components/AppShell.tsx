@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { getAlerts, Alert, ingestAction } from '../api'
 import CommandPalette from './CommandPalette'
 import Logo from './Logo'
-import { getLiveISTTime } from '../utils/time'
+import { getLiveISTTime, formatISTTime } from '../utils/time'
 
 interface NavSection {
   title: string
@@ -64,7 +64,7 @@ export default function AppShell({ children }: PropsWithChildren) {
   // Categorized Navigation Sections
   const navSections: NavSection[] = [
     {
-      title: 'OPERATIONS & TELEMETRY',
+      title: 'MONITOR',
       items: [
         { to: '/', label: 'Command Center', icon: 'dashboard' },
         { to: '/agents', label: 'Agent Fleet', icon: 'group' },
@@ -78,16 +78,19 @@ export default function AppShell({ children }: PropsWithChildren) {
       ],
     },
     {
-      title: 'SECURITY & GOVERNANCE',
+      title: 'INTEGRATE',
       items: [
-        { to: '/rules', label: 'Safe AST Rules', icon: 'policy' },
-        { to: '/audit', label: 'Cryptographic Audit', icon: 'verified_user' },
+        { to: '/integrations', label: 'AI Gateway & Connect', icon: 'hub' },
+        { to: '/simulator', label: 'Simulation Lab', icon: 'science' },
+        { to: '/onboarding', label: 'Quickstart SDK', icon: 'rocket_launch' },
       ],
     },
     {
-      title: 'PLATFORM & INTEGRATIONS',
+      title: 'GOVERN',
       items: [
-        { to: '/onboarding', label: 'Quickstart SDK', icon: 'rocket_launch' },
+        { to: '/rules', label: 'Safe AST Rules', icon: 'policy' },
+        { to: '/compliance', label: 'Compliance Dossier', icon: 'verified' },
+        { to: '/audit', label: 'Cryptographic Audit', icon: 'verified_user' },
         { to: '/settings', label: 'Settings & Webhooks', icon: 'tune' },
       ],
     },
@@ -186,6 +189,9 @@ export default function AppShell({ children }: PropsWithChildren) {
       const alertId = path.split('/')[3]
       return alertId ? ['Incidents', `Triage: ${alertId}`] : ['Incidents', 'Forensic Triage']
     }
+    if (path === '/integrations') return ['AI Gateway & Connect Hub']
+    if (path === '/simulator') return ['Attack & Simulation Lab']
+    if (path === '/compliance') return ['Executive Compliance Dossier']
     if (path === '/rules') return ['Safe AST Rule Engine']
     if (path === '/logs') return ['Telemetry Explorer']
     if (path === '/audit') return ['Cryptographic Audit Log']
@@ -490,7 +496,7 @@ export default function AppShell({ children }: PropsWithChildren) {
                   Risk: {Math.round(Number(activeToast.risk || 90))}/100
                 </span>
                 {activeToast.time && (
-                  <span className="text-gray-400 font-mono text-[11px]">{activeToast.time}</span>
+                  <span className="text-gray-400 font-mono text-[11px]">{formatISTTime(activeToast.time)}</span>
                 )}
               </div>
               {activeToast.reason && (

@@ -127,9 +127,7 @@ export default function LogsDirectory() {
       const newEntry: LogEntry = {
         id: `log-ws-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         timestamp: latestMsg.time
-          ? latestMsg.time.includes('IST')
-            ? latestMsg.time
-            : `${latestMsg.time} IST`
+          ? formatISTTime(latestMsg.time)
           : formatISTTime(new Date()),
         level,
         agentId: latestMsg.agent || 'AGT-009',
