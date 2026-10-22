@@ -55,7 +55,7 @@ RUN chmod +x /app/entrypoint.sh && \
 EXPOSE 8000
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/system/health || exit 1
+    CMD curl -f http://localhost:8000/readyz || exit 1
 
 USER agentshield
 
