@@ -255,3 +255,152 @@ export interface ComplianceReportResponse {
   >
 }
 
+// ============================================================================
+// Phase 17: Enterprise Red Team, Topology & Memory Shield Types
+// ============================================================================
+
+export interface ProbeItem {
+  id: string
+  name: string
+  category: string
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+  owasp_id: string
+  mitre_atlas: string
+  description: string
+  payload: any
+  expected_mitigation: string
+}
+
+export interface RedTeamProbeResult {
+  probe_id: string
+  name: string
+  category: string
+  severity: string
+  owasp_id: string
+  mitre_atlas: string
+  status: 'BLOCKED' | 'VULNERABLE'
+  matched_rule: string
+  confidence: number
+  latency_ms: number
+  details: string
+  payload_preview: string
+}
+
+export interface RedTeamReport {
+  run_id: string
+  target_agent_id: string
+  org_id?: string
+  executed_at: string
+  total_probes: number
+  probes_blocked: number
+  probes_vulnerable: number
+  defense_rate: number
+  risk_grade: 'A+' | 'A' | 'B' | 'C' | 'F'
+  assessment_verdict: string
+  mean_latency_ms: number
+  results: RedTeamProbeResult[]
+  recommendations: string[]
+}
+
+export interface TopologyNode {
+  id: string
+  name: string
+  role: string
+  framework: string
+  cluster: 'orchestration' | 'data' | 'execution' | 'governance' | string
+  status: 'active' | 'quarantined' | 'halted' | string
+  risk_score: number
+  tools: string[]
+  blast_radius_score: number
+  downstream_count: number
+}
+
+export interface TopologyEdge {
+  id: string
+  source: string
+  target: string
+  protocol: 'direct' | 'rpc' | 'queue' | 'rest' | string
+  status: 'active' | 'severed' | string
+  latency_ms: number
+  messages_routed: number
+  threat_level: 'nominal' | 'elevated' | 'critical' | string
+}
+
+export interface TopologyStats {
+  total_nodes: number
+  active_nodes: number
+  contained_nodes: number
+  total_edges: number
+  active_edges: number
+  severed_edges: number
+  average_risk_score: number
+  mesh_resilience_grade: string
+  last_topology_sync: string
+}
+
+export interface TopologyGraphResponse {
+  nodes: TopologyNode[]
+  edges: TopologyEdge[]
+  stats: TopologyStats
+}
+
+export interface BlastRadiusResponse {
+  agent_id: string
+  blast_radius_score: number
+  reachable_agents_count: number
+  reachable_agents: string[]
+  critical_channels_at_risk: number
+  containment_recommended: boolean
+}
+
+export interface MemoryInspectRequest {
+  content: string
+  memory_id?: string
+  agent_id?: string
+  context_type?: string
+  metadata?: Record<string, any>
+}
+
+export interface MemoryInspectResponse {
+  scan_id: string
+  memory_id: string
+  agent_id: string
+  org_id?: string
+  context_type: string
+  status: 'CLEAN' | 'SUSPICIOUS' | 'POISONED'
+  threat_score: number
+  recommendation: 'ALLOW' | 'SANITIZE' | 'QUARANTINE' | 'REJECT'
+  detected_threats: string[]
+  threat_categories: string[]
+  entropy: number
+  latency_ms: number
+  content_preview: string
+  sanitized_content?: string | null
+  inspected_at: string
+}
+
+export interface VectorStoreHealth {
+  id: string
+  name: string
+  type: string
+  status: 'healthy' | 'monitored' | 'degraded' | string
+  integrity_score: number
+  vectors_indexed: number
+  last_audited: string
+  poisoning_alerts_24h: number
+}
+
+export interface MemoryHealthResponse {
+  overall_integrity_score: number
+  total_inspections: number
+  clean_count: number
+  suspicious_count: number
+  poisoned_count: number
+  poisoning_rate_pct: number
+  mean_scan_latency_ms: number
+  vector_stores: VectorStoreHealth[]
+  shield_status: string
+  last_updated: string
+}
+
+

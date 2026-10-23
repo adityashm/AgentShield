@@ -68,6 +68,7 @@ export default function AppShell({ children }: PropsWithChildren) {
       items: [
         { to: '/', label: 'Command Center', icon: 'dashboard' },
         { to: '/agents', label: 'Agent Fleet', icon: 'group' },
+        { to: '/threat-graph', label: 'Multi-Agent Mesh', icon: 'account_tree' },
         {
           to: '/alerts',
           label: 'Incidents & Alerts',
@@ -78,10 +79,17 @@ export default function AppShell({ children }: PropsWithChildren) {
       ],
     },
     {
+      title: 'DEFENSE ARENA',
+      items: [
+        { to: '/redteam', label: 'Red Team Arena', icon: 'swords' },
+        { to: '/memory-shield', label: 'Agent Memory Shield', icon: 'psychology' },
+        { to: '/simulator', label: 'Simulation Lab', icon: 'science' },
+      ],
+    },
+    {
       title: 'INTEGRATE',
       items: [
         { to: '/integrations', label: 'AI Gateway & Connect', icon: 'hub' },
-        { to: '/simulator', label: 'Simulation Lab', icon: 'science' },
         { to: '/onboarding', label: 'Quickstart SDK', icon: 'rocket_launch' },
       ],
     },

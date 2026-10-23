@@ -15,6 +15,9 @@ import Onboarding from './pages/Onboarding'
 import Integrations from './pages/Integrations'
 import SimulatorLab from './pages/SimulatorLab'
 import Compliance from './pages/Compliance'
+import RedTeamArena from './pages/RedTeamArena'
+import ThreatGraph from './pages/ThreatGraph'
+import MemoryShield from './pages/MemoryShield'
 
 export default function App() {
   return (
@@ -36,6 +39,12 @@ export default function App() {
               <Route path="/alerts/triage/:id" element={<AlertsTriage />} />
               <Route path="/agents" element={<Agents />} />
               <Route path="/agent/:id" element={<AgentDetail />} />
+              <Route path="/threat-graph" element={<ThreatGraph />} />
+              <Route path="/topology" element={<ThreatGraph />} />
+              <Route path="/redteam" element={<RedTeamArena />} />
+              <Route path="/red-team" element={<RedTeamArena />} />
+              <Route path="/memory-shield" element={<MemoryShield />} />
+              <Route path="/memory" element={<MemoryShield />} />
               <Route path="/integrations" element={<Integrations />} />
               <Route path="/simulator" element={<SimulatorLab />} />
               <Route path="/rules" element={<Rules />} />

@@ -36,6 +36,9 @@ from .api.v1.health import router as health_router
 from .api.v1.proxy import router as proxy_router
 from .api.v1.playbooks import router as playbooks_router
 from .api.v1.compliance import router as compliance_router
+from .api.v1.redteam import router as redteam_router
+from .api.v1.topology import router as topology_router
+from .api.v1.memory import router as memory_router
 from .workers.webhook_worker import webhook_worker
 from .realtime.ws import router as realtime_ws_router
 
@@ -123,6 +126,11 @@ app.include_router(playbooks_router, prefix=settings.API_V1_STR)
 # Include Compliance & Governance Dossier Router
 app.include_router(compliance_router, prefix=settings.API_V1_STR)
 
+# Include Phase 17 Enterprise Defenses: Red Team, Multi-Agent Topology, and Memory Shield
+app.include_router(redteam_router, prefix=settings.API_V1_STR)
+app.include_router(topology_router, prefix=settings.API_V1_STR)
+app.include_router(memory_router, prefix=settings.API_V1_STR)
+
 # Include Authenticated WebSocket Realtime Router
 app.include_router(realtime_ws_router)
 
@@ -139,6 +147,9 @@ def root():
             "agents": f"{settings.API_V1_STR}/agents",
             "alerts": f"{settings.API_V1_STR}/alerts",
             "rules": f"{settings.API_V1_STR}/rules",
+            "redteam": f"{settings.API_V1_STR}/redteam",
+            "topology": f"{settings.API_V1_STR}/topology",
+            "memory": f"{settings.API_V1_STR}/memory",
             "model_retrain": f"{settings.API_V1_STR}/model/retrain",
             "health": f"{settings.API_V1_STR}/system/health",
             "websocket": "/ws",

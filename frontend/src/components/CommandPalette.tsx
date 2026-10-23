@@ -134,6 +134,36 @@ export default function CommandPalette({
       },
     },
     {
+      id: 'nav-threat-graph',
+      title: 'Open Multi-Agent Topology & Lateral Containment Graph',
+      category: 'Navigation',
+      icon: 'account_tree',
+      action: () => {
+        navigate('/threat-graph')
+        onClose()
+      },
+    },
+    {
+      id: 'nav-redteam',
+      title: 'Launch Adversarial Red Team & Jailbreak Arena',
+      category: 'Navigation',
+      icon: 'swords',
+      action: () => {
+        navigate('/redteam')
+        onClose()
+      },
+    },
+    {
+      id: 'nav-memory-shield',
+      title: 'Inspect Agent Memory Shield & RAG Vector Stores',
+      category: 'Navigation',
+      icon: 'psychology',
+      action: () => {
+        navigate('/memory-shield')
+        onClose()
+      },
+    },
+    {
       id: 'nav-logs',
       title: 'Inspect Live Telemetry Stream Logs',
       category: 'Navigation',

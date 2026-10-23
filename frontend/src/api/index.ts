@@ -296,5 +296,78 @@ export async function getComplianceReport(framework = 'soc2'): Promise<Complianc
   return r.data
 }
 
+// ============================================================================
+// Phase 17: Red Team Arena API
+// ============================================================================
+
+export async function getRedTeamProbes(category?: string): Promise<ProbeItem[]> {
+  const r = await api.get('/redteam/probes', { params: category ? { category } : undefined })
+  return r.data
+}
+
+export async function executeRedTeam(data: {
+  target_agent_id?: string
+  categories?: string[]
+  probe_ids?: string[]
+  broadcast_live?: boolean
+}): Promise<RedTeamReport> {
+  const r = await api.post('/redteam/execute', data)
+  return r.data
+}
+
+export async function evaluateSingleProbe(probe_id: string, agent_id = 'AGT-001'): Promise<RedTeamProbeResult> {
+  const r = await api.post('/redteam/evaluate-single', { probe_id, agent_id })
+  return r.data
+}
+
+export async function getRedTeamReports(): Promise<RedTeamReport[]> {
+  const r = await api.get('/redteam/reports')
+  return r.data
+}
+
+// ============================================================================
+// Phase 17: Multi-Agent Topology & Containment API
+// ============================================================================
+
+export async function getTopologyGraph(): Promise<TopologyGraphResponse> {
+  const r = await api.get('/topology/graph')
+  return r.data
+}
+
+export async function containAgent(agent_id: string, reason?: string): Promise<any> {
+  const r = await api.post('/topology/contain', { agent_id, reason })
+  return r.data
+}
+
+export async function restoreAgent(agent_id: string): Promise<any> {
+  const r = await api.post('/topology/restore', { agent_id })
+  return r.data
+}
+
+export async function getBlastRadius(agent_id: string): Promise<BlastRadiusResponse> {
+  const r = await api.get(`/topology/blast-radius/${agent_id}`)
+  return r.data
+}
+
+// ============================================================================
+// Phase 17: Agent Memory Shield API
+// ============================================================================
+
+export async function inspectMemory(data: MemoryInspectRequest): Promise<MemoryInspectResponse> {
+  const r = await api.post('/memory/inspect', data)
+  return r.data
+}
+
+export async function getMemoryHealth(): Promise<MemoryHealthResponse> {
+  const r = await api.get('/memory/health')
+  return r.data
+}
+
+export async function getMemoryHistory(limit = 50): Promise<MemoryInspectResponse[]> {
+  const r = await api.get('/memory/history', { params: { limit } })
+  return r.data
+}
+
 export default api
+
 

@@ -26,6 +26,10 @@ Format: `[YYYY-MM-DD] Decision: Reason`
 - **[2026-10-22] Cryptographically Verified Compliance Reporting (Phase 14)**: Added `/api/v1/compliance/report` generating machine-readable audit dossiers mapped to SOC 2 Type II (CC6.1, CC6.6, CC7.2), EU AI Act Article 14 (Human Oversight), and OWASP ASI01–ASI10, backed by cryptographic SHA-256 audit log hash chain validation.
 - **[2026-10-22] Cockpit Global Command Palette (Phase 15)**: Integrated keyboard-driven `Ctrl+K` command palette in `AppShell.tsx` enabling instant cross-navigation, 1-click SOC 2 JSON export, proxy threat simulation, and ML model retraining.
 - **[2026-10-22] Indian Standard Time (IST - UTC+05:30) & Full Responsive Viewports**: Standardized UI timestamps and live ticker clock on Indian Standard Time (`Asia/Kolkata`) via `frontend/src/utils/time.ts`. Upgraded dashboard layout with mobile off-canvas drawer navigation, responsive table scroll containers, adaptive headers, and unified scalable SVG cyber-shield brand logo (`Logo.tsx`).
+- **[2026-10-23] Automated Adversarial Red Teaming & Jailbreak Arena (Phase 17)**: Built continuous security fuzzing engine executing 30+ categorized probe vectors (Direct Jailbreaks, Evasion/Encoding, Indirect RAG Injection, Privilege Escalation, Multi-Turn Crescendo Velocity) with dynamic defense scoring and real-time WebSocket progress broadcasts.
+- **[2026-10-23] Multi-Agent Mesh Topology & Pre-Flight Containment (Phase 17)**: Modeled directed agent communication graphs with lateral movement risk calculation. Quarantining an agent immediately severs graph edges and guarantees strict pre-flight `/evaluate` action rejection (`decision="deny"`, `reason="agent_quarantined"`).
+- **[2026-10-23] Agent Memory & RAG Context Poisoning Shield (Phase 17)**: Implemented deep vector store chunk inspection for sleeper prompt injections, markdown data exfiltration beacons, and credential leaks, with sanitization diff highlighting and health index tracking.
+
 
 
 

@@ -163,6 +163,8 @@ def process_single_action(
     if not agent:
         existing_pk = db.query(Agent).filter(Agent.id == event.agent_id).first()
         agent_pk = event.agent_id if not existing_pk else f"{org.id}_{event.agent_id}"
+        from ...services.topology import TopologyService
+        is_contained = TopologyService.is_agent_contained(event.agent_id, org_id=org.id) or TopologyService.is_agent_contained(agent_pk, org_id=org.id)
         agent = Agent(
             id=agent_pk,
             org_id=org.id,
@@ -170,7 +172,7 @@ def process_single_action(
             name=event.agent_name or f"Agent {event.agent_id}",
             framework=event.framework,
             environment=event.environment or "production",
-            status="active",
+            status="quarantined" if is_contained else "active",
             risk_score=0.0,
             first_seen=now,
             last_seen=now,
@@ -235,7 +237,15 @@ def process_single_action(
     risk_score = RiskCalculator.calculate_action_risk(rule_severity_score, anomaly_score)
 
     # Quarantine / Halt enforcement logic
-    if agent.status == "quarantined":
+    from ...services.topology import TopologyService
+    is_contained = (
+        agent.status == "quarantined"
+        or TopologyService.is_agent_contained(agent.id, org_id=org.id)
+        or TopologyService.is_agent_contained(agent.external_id, org_id=org.id)
+    )
+    if is_contained:
+        if agent.status != "quarantined":
+            agent.status = "quarantined"
         decision = "deny"
         reason = "agent_quarantined"
         severity = "high"
